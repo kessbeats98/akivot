@@ -2,7 +2,7 @@
 
 Updated: 2026-03-08
 Phase:   Architecture
-Version: 81516cb
+Version: ba053c4
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,10 +10,15 @@ Version: 81516cb
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at:        TASK-01-G complete — initial commit done, dashboard routes fixed
-- Next action:       Start TASK-02 (DB schema V1) — implement pgTable definitions in src/db/schema/
-- Open questions:    None
-- Last commands run: npm run build, git init, git commit (x2)
+- Stopped at:        TASK-01 complete; TASK-02 planning pending.
+- Next action:       Draft and/or finalize .avner/REQUIREMENTS.md and .avner/DBSCHEMA.md, then start TASK-02 /core implementation.
+- Open questions:
+  - Exact columns and nullability for each entity (users, dogs, walks, billing, notifications, audit)
+  - Enum values for walk status, billing status, notification type, audit action
+  - Multi-tenancy model: does a walker belong to one owner or many? (affects FK shape)
+  - Billing: per-walk pricing or monthly subscription? (affects billing table shape)
+  - Soft-delete vs. hard-delete policy (deletedAt column or not)
+- Last commands run: npm run build; git add .avner/STATE.md; git commit (docs: restore full V1 backlog)
 
 ---
 
