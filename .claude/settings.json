@@ -1,0 +1,79 @@
+{
+  "model": "sonnet",
+  "permissionMode": "default",
+  "autoMemory": false,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "auto:5"
+  },
+  "permissions": {
+    "allow": [
+      "npm test",
+      "npm run dev",
+      "npm run build",
+      "npm run lint",
+      "npm run test:*",
+      "npx depcheck",
+      "git status",
+      "git diff",
+      "git diff *",
+      "git add *",
+      "git commit *",
+      "git log *",
+      "npx drizzle-kit generate",
+      "npx drizzle-kit push",
+      "npx drizzle-kit studio",
+      "tsc --noEmit",
+      "eslint *"
+    ],
+    "deny": [
+      ".env",
+      "rm -rf",
+      "rm -r",
+      "sudo",
+      "curl * | bash",
+      "git push *",
+      "git reset --hard *",
+      "git checkout -- *",
+      "npx drizzle-kit push --force-reset"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .avner/STATE.md .avner/MEMORY.md 2>/dev/null || echo 'No STATE/MEMORY found.'"
+          },
+          {
+            "type": "command",
+            "command": "test -f .avner/STATE.md && find .avner/STATE.md -mtime +7 -exec echo '⚠️ STATE.md is older than 7 days.' \\; 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🔚 Session ending. Update STATE.md (Stopped at / Next action / Open questions / Last commands run).'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run lint 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
