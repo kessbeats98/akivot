@@ -15,6 +15,13 @@
       "when": 1772974745823,
       "tag": "0001_amusing_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772977950842,
+      "tag": "0002_zippy_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

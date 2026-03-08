@@ -1,14 +1,37 @@
-// Better Auth config skeleton.
-// TASK-03 completes this with email verification plugin, password reset, and schema.
-// Not activated at runtime in TASK-01 — auth route is a 501 stub until TASK-03.
-//
-// Decision: database sessions (not JWT) — walker sessions are long-lived;
-// DB sessions allow immediate revocation if a device is lost. (impl rule 7)
-//
-// TODO TASK-03: import betterAuth, wire drizzleAdapter(getDb(), { provider: "pg" }),
-//              add emailAndPassword plugin, email verification, password reset.
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { getDb } from "@/db/drizzle";
+import * as schema from "@/db/schema";
+import { config } from "@/lib/config";
 
-export const authConfig = {
-  sessionStrategy: "database" as const,
-  emailAndPassword: { enabled: true },
-} as const;
+export const auth = betterAuth({
+  database: drizzleAdapter(getDb(), {
+    provider: "pg",
+    usePlural: true,
+    camelCase: true,
+    schema,
+  }),
+  baseURL: config.app.url,
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: true,
+    sendResetPassword: async (data) => {
+      // TODO TASK-03-email: wire transactional email (Resend / Nodemailer)
+      console.info("[reset-password] url=", data.url, "user=", data.user.email);
+    },
+  },
+  emailVerification: {
+    sendVerificationEmail: async (data) => {
+      // TODO TASK-03-email: wire transactional email
+      console.info("[verify-email] url=", data.url, "user=", data.user.email);
+    },
+    sendOnSignUp: true,
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24,
+  },
+  advanced: {
+    cookiePrefix: "ak",
+  },
+});

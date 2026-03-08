@@ -239,6 +239,45 @@ Better Auth-compatible shape.
 | `metadataJson` | `jsonb` | nullable |
 | `createdAt` | `timestamp with tz` | NOT NULL DEFAULT now() |
 
+### `sessions` (Better Auth)
+| Column | Type | Constraints |
+|--------|------|-------------|
+| `id` | `text` | PK |
+| `expiresAt` | `timestamp with tz` | NOT NULL |
+| `token` | `text` | UNIQUE NOT NULL |
+| `createdAt` | `timestamp with tz` | NOT NULL |
+| `updatedAt` | `timestamp with tz` | NOT NULL |
+| `ipAddress` | `text` | nullable |
+| `userAgent` | `text` | nullable |
+| `userId` | `text` | FK→users.id ON DELETE CASCADE NOT NULL |
+
+### `accounts` (Better Auth)
+| Column | Type | Constraints |
+|--------|------|-------------|
+| `id` | `text` | PK |
+| `accountId` | `text` | NOT NULL |
+| `providerId` | `text` | NOT NULL |
+| `userId` | `text` | FK→users.id ON DELETE CASCADE NOT NULL |
+| `accessToken` | `text` | nullable |
+| `refreshToken` | `text` | nullable |
+| `idToken` | `text` | nullable |
+| `accessTokenExpiresAt` | `timestamp with tz` | nullable |
+| `refreshTokenExpiresAt` | `timestamp with tz` | nullable |
+| `scope` | `text` | nullable |
+| `password` | `text` | nullable |
+| `createdAt` | `timestamp with tz` | NOT NULL |
+| `updatedAt` | `timestamp with tz` | NOT NULL |
+
+### `verifications` (Better Auth)
+| Column | Type | Constraints |
+|--------|------|-------------|
+| `id` | `text` | PK |
+| `identifier` | `text` | NOT NULL — indexed (`verifications_identifier_idx`) |
+| `value` | `text` | NOT NULL |
+| `expiresAt` | `timestamp with tz` | NOT NULL |
+| `createdAt` | `timestamp with tz` | nullable |
+| `updatedAt` | `timestamp with tz` | nullable |
+
 ---
 
 ## FK Relationships
@@ -271,6 +310,8 @@ Better Auth-compatible shape.
 - `paymentEntries.ownerUserId` → `users.id`
 - `notificationDeliveries.userDeviceId` → `userDevices.id`
 - `auditLogs.actorUserId` → `users.id`
+- `sessions.userId` → `users.id` (ON DELETE CASCADE)
+- `accounts.userId` → `users.id` (ON DELETE CASCADE)
 
 ### Intentionally Omitted DB FKs (circular import prevention)
 | Column | Reason |
