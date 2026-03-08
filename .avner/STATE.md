@@ -2,7 +2,7 @@
 
 Updated: 2026-03-08
 Phase:   Architecture
-Version: ba053c4
+Version: TASK-02-complete
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,33 +10,15 @@ Version: ba053c4
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at:        TASK-01 complete; TASK-02 planning pending.
-- Next action:       Draft and/or finalize .avner/REQUIREMENTS.md and .avner/DBSCHEMA.md, then start TASK-02 /core implementation.
+- Stopped at:        TASK-02 complete. All 14 tables + 14 enums + relations implemented, verified, committed.
+- Next action:       Start TASK-03 — Auth Implementation (Better Auth + drizzleAdapter + session.ts).
 - Open questions:
-  - Exact columns and nullability for each entity (users, dogs, walks, billing, notifications, audit)
-  - Enum values for walk status, billing status, notification type, audit action
-  - Multi-tenancy model: does a walker belong to one owner or many? (affects FK shape)
-  - Billing: per-walk pricing or monthly subscription? (affects billing table shape)
-  - Soft-delete vs. hard-delete policy (deletedAt column or not)
-- Last commands run: npm run build; git add .avner/STATE.md; git commit (docs: restore full V1 backlog)
+  - Accepted tradeoff: walks.paymentPeriodId and paymentEntries.walkId have no DB-level FK (circular import walks.ts↔billing.ts). Integrity enforced by closePaymentPeriodService transaction. Risk: orphan refs via direct DB write only. Revisit if integrity issues surface in TASK-06.
+- Last commands run: npx tsc --noEmit (0 errors); npx drizzle-kit generate (14 tables, SQL ok); verify-spec (PASS)
 
 ---
 
 ## Active Work
-
-_(none)_
-
----
-
-## Backlog
-
-### TASK-02: DB Schema V1 (PLANNED)
-**Priority**: P1
-**Status**: PLANNED (2026-03-08)
-
-Implement pgTable definitions in src/db/schema/ (_enums, users, dogs, walks, billing, notifications, audit, relations). Activate getDb() factory.
-
----
 
 ### TASK-03: Auth Implementation (PLANNED)
 **Priority**: P1
@@ -45,6 +27,8 @@ Implement pgTable definitions in src/db/schema/ (_enums, users, dogs, walks, bil
 Wire Better Auth with drizzleAdapter, emailAndPassword plugin, email verification, password reset. Replace 501 stub in src/app/api/auth/[...all]/route.ts with live toNextJsHandler(auth). Implement getCurrentUser and assertAuthenticated in session.ts.
 
 ---
+
+## Backlog
 
 ### TASK-04: Owner Features (PLANNED)
 **Priority**: P1
@@ -95,6 +79,15 @@ Implement Vercel Cron auto-close handler (/api/jobs/auto-close). Idempotent elap
 ---
 
 ## Completed
+
+### ~~TASK-02~~: DB Schema V1 (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-08)
+
+14 enums, 14 tables, relations. verify-spec PASS. tsc 0 errors. drizzle-kit generate OK.
+Tradeoff: walks.paymentPeriodId + paymentEntries.walkId — no DB FK (circular import). Integrity via service layer.
+
+---
 
 ### ~~TASK-01~~: Bootstrap Scaffold (✅ DONE)
 **Priority**: P1
