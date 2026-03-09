@@ -1,4 +1,4 @@
-import { getOwnerDogsAction, createDogAction, deactivateDogAction } from "./actions";
+import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction } from "./actions";
 
 export default async function OwnerDashboardPage() {
   const dogs = await getOwnerDogsAction();
@@ -19,11 +19,24 @@ export default async function OwnerDashboardPage() {
                 </p>
               )}
             </div>
-            <form action={deactivateDogAction.bind(null, dog.id)}>
-              <button type="submit" className="text-sm text-destructive hover:underline">
-                Deactivate
-              </button>
-            </form>
+            <div className="flex flex-col gap-2 items-end">
+              <form action={deactivateDogAction.bind(null, dog.id)}>
+                <button type="submit" className="text-sm text-destructive hover:underline">
+                  Deactivate
+                </button>
+              </form>
+              <form action={assignWalkerAction.bind(null, dog.id)} className="flex gap-2">
+                <input
+                  name="walkerProfileId"
+                  placeholder="Walker Profile ID"
+                  required
+                  className="border rounded px-2 py-1 text-sm flex-1"
+                />
+                <button type="submit" className="text-sm border rounded px-3 py-1 hover:bg-accent">
+                  Assign Walker
+                </button>
+              </form>
+            </div>
           </li>
         ))}
         {dogs.length === 0 && <p className="text-muted-foreground">No dogs yet.</p>}
