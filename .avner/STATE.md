@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-08
-Phase: Architecture
-Version: TASK-02-complete
+Updated: 2026-03-09
+Phase: Feature Build
+Version: TASK-06-code-complete
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,42 +10,61 @@ Version: TASK-02-complete
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-03 committed. DBSCHEMA.md updated with sessions/accounts/verifications.
-- Next action: Start TASK-04 — Owner Features.
+- Stopped at: TASK-06 implementation complete (9 commits, T1a–T9). Code verified; migration 0003 not yet applied to a live DB.
+- Next action: Apply migration 0003 (`npx drizzle-kit migrate`) once DATABASE_URL is available, then run billing smoke flow. After smoke passes, open TASK-06a (deploy-prep).
 - Open questions:
-  - Email service for verify/reset: Resend, Nodemailer, or keep console.log stub and add to backlog? (currently stubbed)
-  - Password min length: Better Auth default is 8 chars — acceptable for V1?
-  - DBSCHEMA.md needs updating to document `sessions`, `accounts`, `verifications` tables (flagged by verify-spec).
-  - Accepted tradeoff (carry-forward): `walks.paymentPeriodId` and `paymentEntries.walkId` have no DB-level FK; integrity enforced in service layer.
-- Last commands run: `npx drizzle-kit generate` (17 tables, migration 0002 generated); `npx tsc --noEmit` (0 errors); `verify-spec` (PASS)
+  - DATABASE_URL / .env.local availability — blocks migration apply and all runtime smoke.
+  - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a TASK-06 blocker.
+  - Password min length (8 chars V1) — carry-forward, not a TASK-06 blocker.
+  - Duplicate OPEN-period invariant (`payment_periods_open_unique_idx`) not yet verified in a real DB.
+- Last commands run:
+  - `npx tsc --noEmit` (0 errors, all tasks)
+  - `npx eslint src/lib/repositories/billingRepo.ts ... src/app/walker/billing/` (0 new errors; 1 pre-existing warning in pre-existing code)
+  - `git commit` ×9 for T1a–T9
+
+### Completed in this session (TASK-06)
+| # | Commit message |
+|---|----------------|
+| 1 | `feat(billing): partial unique index for OPEN payment periods + contracts` |
+| 2 | `fix(audit): tighten tx type from any to Drizzle alias` |
+| 3 | `feat(billing): add Zod schemas` |
+| 4 | `feat(billing): add billing service types` |
+| 5 | `feat(billing): implement billingRepo` |
+| 6 | `feat(owner): price-setting on dog-walker pairs` |
+| 7 | `feat(owner): owner billing server actions` |
+| 8 | `feat(owner): owner billing page` |
+| 9 | `feat(walker): walker billing server action` |
+| 10 | `feat(walker): walker billing page` |
+
+### Deployment prep prerequisites (before any deploy)
+1. `DATABASE_URL` + `.env.local` available
+2. `npx drizzle-kit migrate` — apply migration 0003 (`payment_periods_open_unique_idx`)
+3. Manual billing smoke (12-step flow from TASK-06 plan)
+4. verify-ops preflight
+5. verify-security on billing paths
+6. RUNBOOK.md migration apply procedure confirmed
+7. Staging deploy checklist prepared
 
 ---
 
 ## Active Work
 
-_(none — TASK-04 not yet started)_
+### TASK-06a: Deploy Prep / Release Readiness (PLANNED)
+**Priority**: P1
+**Status**: PLANNED (2026-03-09) — blocked on DATABASE_URL / .env.local
+
+Atomic steps before first production deploy:
+1. Confirm migration apply procedure in RUNBOOK.md
+2. Apply pending migration 0003 in non-production environment (`npx drizzle-kit migrate`)
+3. Run 12-step billing manual smoke (owner price-set → walks → close & pay → walker read-only)
+4. verify-ops preflight
+5. verify-security on billing paths (`billingRepo`, `owner/billing/actions`, `walker/billing/actions`)
+6. Prepare staging deploy checklist
+7. Propose production deploy (TASK-07 or TASK-06a close)
 
 ---
 
 ## Backlog
-
-### TASK-04: Owner Features (PLANNED)
-**Priority**: P1  
-**Status**: PLANNED (2026-03-08)
-
-Implement owner dashboard UI and server actions. Implement dogs repository and owner-facing dog management. Wire to DB schema from TASK-02 and auth from TASK-03.
-
-### TASK-05: Walk Lifecycle (PLANNED)
-**Priority**: P1  
-**Status**: PLANNED (2026-03-08)
-
-Implement walks repository, walk service types and validation, walker dashboard UI and server actions, audit repository. Walk lifecycle invariants (start/end/cancel state machine).
-
-### TASK-06: Billing (PLANNED)
-**Priority**: P1  
-**Status**: PLANNED (2026-03-08)
-
-Implement billing repository, billing service types, billing validation schemas. Billing locks and subscription state management.
 
 ### TASK-07: Notifications / FCM (PLANNED)
 **Priority**: P1  
@@ -68,6 +87,24 @@ Implement Vercel Cron auto-close handler (`/api/jobs/auto-close`), idempotent el
 ---
 
 ## Completed
+
+### ~~TASK-06~~: Billing (CODE COMPLETE — awaiting env verification)
+**Priority**: P1
+**Status**: CODE COMPLETE (2026-03-09) — migration 0003 not yet applied; runtime smoke pending .env.local
+
+Billing contracts (REQUIREMENTS.md R-BIL-01–04, APICONTRACTS.md), partial unique index migration 0003 (`payment_periods_open_unique_idx`), billing Zod schemas, billing service types, billingRepo (ensureOpenPeriods, getOrCreateOpenPeriod, closePaymentPeriod with CAS + optimistic lock, getPeriodsByOwner, getPeriodsByWalker), owner price-setting (assertDogWalkerOwnership, setDogWalkerPrice, setPriceAction, dashboard set-price form), owner billing actions/page (`/owner/billing`), walker billing actions/page (`/walker/billing`). ILS-only. auditRepo tx type tightened. tsc 0 errors. ESLint 0 new errors.
+
+### ~~TASK-05~~: Walk Lifecycle (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-09)
+
+walksRepo (assignWalker, startWalk, endWalk, queries), auditRepo (logAudit), walk validation, walker dashboard UI + server actions. Walk lifecycle invariants (LIVE uniqueness, state machine, durationMinutes). R-WLK-01–04. tsc 0 errors. Runtime smoke pending .env.local.
+
+### ~~TASK-04~~: Owner Features (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-09) — commit `1711167`
+
+Dogs repo (getDogsByOwner, createDog, deactivateDog, assertDogOwnership), Zod schemas (createDogSchema, deactivateDogSchema), server actions (getOwnerDogsAction, createDogAction, deactivateDogAction), skeleton owner dashboard (list + add form + deactivate). R-OWN-01–03. verify-spec PASS. tsc 0 errors. Runtime smoke pending .env.local.
 
 ### ~~TASK-03~~: Auth Implementation (✅ DONE)
 **Priority**: P1
