@@ -200,6 +200,8 @@ Better Auth-compatible shape.
 | `createdAt` | `timestamp with tz` | NOT NULL DEFAULT now() |
 | `updatedAt` | `timestamp with tz` | NOT NULL |
 
+**Partial unique index:** `(ownerUserId, walkerProfileId) WHERE status = 'OPEN'` — enforces one OPEN period per owner-walker pair at DB level. Index name: `payment_periods_open_unique_idx`. Added in migration 0003.
+
 ### `paymentEntries`
 | Column | Type | Constraints | Notes |
 |--------|------|-------------|-------|

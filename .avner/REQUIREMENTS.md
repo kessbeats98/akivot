@@ -12,6 +12,10 @@
 | R-WLK-02 | Walker can start a walk for an assigned dog | Walk inserted with status=LIVE; LIVE uniqueness guard; START_WALK audit in same tx | P1 | — | TASK-05 |
 | R-WLK-03 | Walker can end a LIVE walk | Walk updated to COMPLETED; durationMinutes computed; END_WALK audit in same tx | P1 | — | TASK-05 |
 | R-WLK-04 | Walker dashboard lists assigned dogs and active walks | Active dogWalkers + LIVE walks shown; start/end buttons; no self-assign | P1 | — | TASK-05 |
+| R-BIL-01 | Owner can set price on a dog-walker pair | dogWalkers.currentPrice updated; owner must own the dog | P1 | — | TASK-06 |
+| R-BIL-02 | Owner can close an open payment period | Walks tagged (same owner-walker pair only), entries inserted, total computed, status=PAID in one tx | P1 | — | TASK-06 |
+| R-BIL-03 | Owner billing page lists periods and entries | OPEN period auto-created per active owner-walker pair; entries per period; Close & Pay button | P1 | — | TASK-06 |
+| R-BIL-04 | Walker billing page lists periods and totals | Read-only; periods with totalAmount | P1 | — | TASK-06 |
 
 ## V2 (Next Phase)
 | ID | Requirement | Notes |

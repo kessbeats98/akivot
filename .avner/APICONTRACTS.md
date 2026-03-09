@@ -43,3 +43,34 @@ File: `src/app/walker/dashboard/actions.ts`
 | `getWalkerDashboardAction()` | assertAuthenticated | — | Returns { assignedDogs, activeWalks } |
 | `startWalkAction(dogId, _formData)` | assertAuthenticated | dogId bound via `.bind(null, dogId)` | Inserts LIVE walk + START_WALK audit in tx |
 | `endWalkAction(walkId, _formData)` | assertAuthenticated | walkId bound via `.bind(null, walkId)` | Updates walk to COMPLETED + END_WALK audit in tx |
+
+---
+
+## Owner — Price-Setting (addition to owner dashboard)
+
+File: `src/app/owner/dashboard/actions.ts`
+
+| Action | Auth | Input | Behavior |
+|--------|------|-------|----------|
+| `setPriceAction(dogWalkerId, formData)` | assertAuthenticated | dogWalkerId bound; FormData: price* | assertDogWalkerOwnership; updates dogWalkers.currentPrice (ILS) |
+
+---
+
+## Owner — Billing
+
+File: `src/app/owner/billing/actions.ts`
+
+| Action | Auth | Input | Behavior |
+|--------|------|-------|----------|
+| `getOwnerBillingAction()` | assertAuthenticated | — | ensureOpenPeriods (one OPEN per active owner-walker pair); returns { periods } |
+| `closePeriodAction(periodId, formData)` | assertAuthenticated | periodId bound; FormData: lockVersion* (hidden) | assertPeriodOwnership; closePaymentPeriod tx (same-owner walks only; lockVersion check + increment) |
+
+---
+
+## Walker — Billing
+
+File: `src/app/walker/billing/actions.ts`
+
+| Action | Auth | Input | Behavior |
+|--------|------|-------|----------|
+| `getWalkerBillingAction()` | assertAuthenticated | — | Returns { periods: PaymentPeriodWithEntries[] } |
