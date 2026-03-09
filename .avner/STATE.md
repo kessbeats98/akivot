@@ -2,7 +2,7 @@
 
 Updated: 2026-03-09
 Phase: Feature Build
-Version: TASK-06-code-complete
+Version: TASK-06a-in-progress
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,17 +10,15 @@ Version: TASK-06-code-complete
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-06 implementation complete (9 commits, T1a–T9). Code verified; migration 0003 not yet applied to a live DB.
-- Next action: Apply migration 0003 (`npx drizzle-kit migrate`) once DATABASE_URL is available, then run billing smoke flow. After smoke passes, open TASK-06a (deploy-prep).
+- Stopped at: TASK-06a in progress — migration 0003 confirmed applied and verified in DB; billing smoke in progress (step 1 of 12).
+- Next action: Complete 12-step billing smoke; after all pass → verify-ops + verify-security → staging deploy checklist.
 - Open questions:
-  - DATABASE_URL / .env.local availability — blocks migration apply and all runtime smoke.
-  - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a TASK-06 blocker.
-  - Password min length (8 chars V1) — carry-forward, not a TASK-06 blocker.
-  - Duplicate OPEN-period invariant (`payment_periods_open_unique_idx`) not yet verified in a real DB.
+  - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a blocker.
+  - Password min length (8 chars V1) — carry-forward, not a blocker.
 - Last commands run:
-  - `npx tsc --noEmit` (0 errors, all tasks)
-  - `npx eslint src/lib/repositories/billingRepo.ts ... src/app/walker/billing/` (0 new errors; 1 pre-existing warning in pre-existing code)
-  - `git commit` ×9 for T1a–T9
+  - `npx drizzle-kit migrate` — migration 0003 applied ✓
+  - `pg_indexes` query confirmed `payment_periods_open_unique_idx` with `WHERE (status = 'OPEN')` ✓
+  - `npx tsc --noEmit` (0 errors); `npx eslint src/` (0 errors, 3 pre-existing warnings)
 
 ### Completed in this session (TASK-06)
 | # | Commit message |
@@ -49,9 +47,9 @@ Version: TASK-06-code-complete
 
 ## Active Work
 
-### TASK-06a: Deploy Prep / Release Readiness (PLANNED)
+### TASK-06a: Deploy Prep / Release Readiness (IN PROGRESS)
 **Priority**: P1
-**Status**: PLANNED (2026-03-09) — blocked on DATABASE_URL / .env.local
+**Status**: IN PROGRESS (2026-03-09)
 
 Atomic steps before first production deploy:
 1. Confirm migration apply procedure in RUNBOOK.md
@@ -88,9 +86,9 @@ Implement Vercel Cron auto-close handler (`/api/jobs/auto-close`), idempotent el
 
 ## Completed
 
-### ~~TASK-06~~: Billing (CODE COMPLETE — awaiting env verification)
+### ~~TASK-06~~: Billing (CODE COMPLETE — smoke in progress)
 **Priority**: P1
-**Status**: CODE COMPLETE (2026-03-09) — migration 0003 not yet applied; runtime smoke pending .env.local
+**Status**: CODE COMPLETE (2026-03-09) — migration 0003 applied + verified ✓; runtime smoke in progress
 
 Billing contracts (REQUIREMENTS.md R-BIL-01–04, APICONTRACTS.md), partial unique index migration 0003 (`payment_periods_open_unique_idx`), billing Zod schemas, billing service types, billingRepo (ensureOpenPeriods, getOrCreateOpenPeriod, closePaymentPeriod with CAS + optimistic lock, getPeriodsByOwner, getPeriodsByWalker), owner price-setting (assertDogWalkerOwnership, setDogWalkerPrice, setPriceAction, dashboard set-price form), owner billing actions/page (`/owner/billing`), walker billing actions/page (`/walker/billing`). ILS-only. auditRepo tx type tightened. tsc 0 errors. ESLint 0 new errors.
 
