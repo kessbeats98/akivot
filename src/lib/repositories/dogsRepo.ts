@@ -10,7 +10,7 @@ export type DogWithWalkers = {
   birthDate: string | null;
   imageUrl: string | null;
   notes: string | null;
-  walkers: { walkerProfileId: string; displayName: string; isActive: boolean }[];
+  walkers: { dogWalkerId: string; walkerProfileId: string; displayName: string; isActive: boolean }[];
 };
 
 /** All active dogs owned by a user, with assigned walkers. */
@@ -19,6 +19,7 @@ export async function getDogsByOwner(ownerUserId: string): Promise<DogWithWalker
   const rows = await db
     .select({
       dog: dogs,
+      dogWalkerId: dogWalkers.id,
       walkerProfileId: dogWalkers.walkerProfileId,
       walkerDisplayName: walkerProfiles.displayName,
       walkerIsActive: dogWalkers.isActive,
@@ -44,6 +45,7 @@ export async function getDogsByOwner(ownerUserId: string): Promise<DogWithWalker
     }
     if (row.walkerProfileId) {
       map.get(row.dog.id)!.walkers.push({
+        dogWalkerId: row.dogWalkerId ?? "",
         walkerProfileId: row.walkerProfileId,
         displayName: row.walkerDisplayName ?? "",
         isActive: row.walkerIsActive ?? false,
@@ -89,6 +91,26 @@ export async function createDog(ownerUserId: string, input: CreateDogInput): Pro
       isPrimary: true,
     });
   });
+}
+
+export async function assertDogWalkerOwnership(dogWalkerId: string, ownerUserId: string): Promise<void> {
+  const db = getDb();
+  const [row] = await db
+    .select({ id: dogOwners.id })
+    .from(dogWalkers)
+    .innerJoin(dogs, eq(dogs.id, dogWalkers.dogId))
+    .innerJoin(dogOwners, eq(dogOwners.dogId, dogs.id))
+    .where(and(eq(dogWalkers.id, dogWalkerId), eq(dogOwners.ownerUserId, ownerUserId)))
+    .limit(1);
+  if (!row) throw new Error("Forbidden");
+}
+
+export async function setDogWalkerPrice(dogWalkerId: string, price: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(dogWalkers)
+    .set({ currentPrice: price, currency: "ILS", updatedAt: new Date() })
+    .where(eq(dogWalkers.id, dogWalkerId));
 }
 
 export async function deactivateDog(dogId: string, ownerUserId: string): Promise<void> {

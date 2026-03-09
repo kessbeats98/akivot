@@ -1,4 +1,4 @@
-import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction } from "./actions";
+import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction, setPriceAction } from "./actions";
 
 export default async function OwnerDashboardPage() {
   const dogs = await getOwnerDogsAction();
@@ -14,9 +14,17 @@ export default async function OwnerDashboardPage() {
               <p className="font-medium">{dog.name}</p>
               {dog.breed && <p className="text-sm text-muted-foreground">{dog.breed}</p>}
               {dog.walkers.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Walker: {dog.walkers.map((w) => w.displayName).join(", ")}
-                </p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  {dog.walkers.map((walker) => (
+                    <li key={walker.dogWalkerId}>
+                      {walker.displayName}
+                      <form action={setPriceAction.bind(null, walker.dogWalkerId)} className="flex gap-2 mt-1">
+                        <input name="price" placeholder="Price (ILS)" required className="border rounded px-2 py-1 text-sm w-28" />
+                        <button type="submit" className="text-sm border rounded px-3 py-1 hover:bg-accent">Set Price</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
             <div className="flex flex-col gap-2 items-end">

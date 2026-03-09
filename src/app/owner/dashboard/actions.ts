@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { createDogSchema, deactivateDogSchema } from "@/lib/validation/dogs";
-import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership } from "@/lib/repositories/dogsRepo";
+import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice } from "@/lib/repositories/dogsRepo";
+import { setPriceSchema } from "@/lib/validation/billing";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
 
@@ -29,6 +30,15 @@ export async function deactivateDogAction(dogId: string, _formData: FormData) {
   const user = await assertAuthenticated();
   const { dogId: validatedId } = deactivateDogSchema.parse({ dogId });
   await deactivateDog(validatedId, user.id);
+  revalidatePath("/owner/dashboard");
+}
+
+// dogWalkerId bound via .bind(null, dogWalkerId)
+export async function setPriceAction(dogWalkerId: string, formData: FormData): Promise<void> {
+  const user = await assertAuthenticated();
+  await assertDogWalkerOwnership(dogWalkerId, user.id);
+  const input = setPriceSchema.parse({ dogWalkerId, price: formData.get("price") });
+  await setDogWalkerPrice(input.dogWalkerId, input.price);
   revalidatePath("/owner/dashboard");
 }
 
