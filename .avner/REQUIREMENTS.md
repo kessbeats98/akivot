@@ -8,6 +8,10 @@
 | R-OWN-01 | Owner can register a dog | Dog appears in dashboard after submit; name required | P1 | — | TASK-04 |
 | R-OWN-02 | Owner can deactivate a dog | isActive=false; dog excluded from list | P1 | — | TASK-04 |
 | R-OWN-03 | Owner dashboard lists active dogs | Shows name, breed, assigned walker(s) read-only | P1 | — | TASK-04 |
+| R-WLK-01 | Owner can assign a walker to their dog | dogWalkers row created by owner; UNIQUE respected; owner must own the dog | P1 | — | TASK-05 |
+| R-WLK-02 | Walker can start a walk for an assigned dog | Walk inserted with status=LIVE; LIVE uniqueness guard; START_WALK audit in same tx | P1 | — | TASK-05 |
+| R-WLK-03 | Walker can end a LIVE walk | Walk updated to COMPLETED; durationMinutes computed; END_WALK audit in same tx | P1 | — | TASK-05 |
+| R-WLK-04 | Walker dashboard lists assigned dogs and active walks | Active dogWalkers + LIVE walks shown; start/end buttons; no self-assign | P1 | — | TASK-05 |
 
 ## V2 (Next Phase)
 | ID | Requirement | Notes |
