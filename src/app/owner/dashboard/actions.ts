@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { createDogSchema, deactivateDogSchema } from "@/lib/validation/dogs";
 import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice } from "@/lib/repositories/dogsRepo";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/db/drizzle";
+import { walkerProfiles } from "@/db/schema";
 import { setPriceSchema } from "@/lib/validation/billing";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
@@ -11,6 +14,15 @@ import { assignWalker } from "@/lib/repositories/walksRepo";
 export async function getOwnerDogsAction() {
   const user = await assertAuthenticated();
   return getDogsByOwner(user.id);
+}
+
+export async function getAvailableWalkersAction(): Promise<{ id: string; displayName: string }[]> {
+  await assertAuthenticated();
+  const db = getDb();
+  return db
+    .select({ id: walkerProfiles.id, displayName: walkerProfiles.displayName })
+    .from(walkerProfiles)
+    .where(eq(walkerProfiles.isAcceptingClients, true));
 }
 
 export async function createDogAction(formData: FormData) {
@@ -46,10 +58,9 @@ export async function setPriceAction(dogWalkerId: string, formData: FormData): P
 export async function assignWalkerAction(dogId: string, formData: FormData): Promise<void> {
   const user = await assertAuthenticated();
   await assertDogOwnership(dogId, user.id);
-  const input = assignWalkerSchema.parse({
-    dogId,
-    walkerProfileId: formData.get("walkerProfileId"),
-  });
+  const walkerProfileId = formData.get("walkerProfileId");
+  if (!walkerProfileId) throw new Error("Walker is required");
+  const input = assignWalkerSchema.parse({ dogId, walkerProfileId });
   await assignWalker(input);
   revalidatePath("/owner/dashboard");
 }

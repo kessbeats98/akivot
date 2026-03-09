@@ -1,7 +1,7 @@
-import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction, setPriceAction } from "./actions";
+import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction, setPriceAction, getAvailableWalkersAction } from "./actions";
 
 export default async function OwnerDashboardPage() {
-  const dogs = await getOwnerDogsAction();
+  const [dogs, availableWalkers] = await Promise.all([getOwnerDogsAction(), getAvailableWalkersAction()]);
 
   return (
     <main className="p-6 max-w-2xl mx-auto space-y-6">
@@ -34,14 +34,14 @@ export default async function OwnerDashboardPage() {
                 </button>
               </form>
               <form action={assignWalkerAction.bind(null, dog.id)} className="flex gap-2">
-                <input
-                  name="walkerProfileId"
-                  placeholder="Walker Profile ID"
-                  required
-                  className="border rounded px-2 py-1 text-sm flex-1"
-                />
+                <select name="walkerProfileId" required className="border rounded px-2 py-1 text-sm flex-1">
+                  <option value="">Select walker…</option>
+                  {availableWalkers.map((w) => (
+                    <option key={w.id} value={w.id}>{w.displayName}</option>
+                  ))}
+                </select>
                 <button type="submit" className="text-sm border rounded px-3 py-1 hover:bg-accent">
-                  Assign Walker
+                  Assign
                 </button>
               </form>
             </div>
