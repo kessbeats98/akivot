@@ -1,7 +1,7 @@
 import { auditLogs } from "@/db/schema";
+import { getDb } from "@/db/drizzle";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Tx = any; // Drizzle neon-http tx type; tighten in TASK-06 if needed
+type Tx = Parameters<Parameters<ReturnType<typeof getDb>["transaction"]>[0]>[0];
 
 type EntityType =
   | "USER" | "WALKER_PROFILE" | "DOG" | "DOG_OWNER" | "DOG_WALKER"
