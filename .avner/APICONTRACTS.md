@@ -16,3 +16,16 @@
 - **Response 200**: `{ field: type }`
 - **Response 4xx**: `{ error: string }`
 - **Notes**: [any important behavior]
+
+---
+
+## Owner — Dog Management
+
+All owner dog operations are Next.js Server Actions.
+File: `src/app/owner/dashboard/actions.ts`
+
+| Action | Auth | Input | Behavior |
+|--------|------|-------|----------|
+| `createDogAction(formData)` | assertAuthenticated | FormData: name*, breed?, birthDate?, notes? | Inserts dog + dogOwner(isPrimary=true) |
+| `deactivateDogAction(dogId, formData)` | assertAuthenticated | dogId bound via `.bind(null, dogId)`; FormData unused | Sets isActive=false; validates ownership |
+| `getOwnerDogsAction()` | assertAuthenticated | — | Returns active dogs for current user with walkers |
