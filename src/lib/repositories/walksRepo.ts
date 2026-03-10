@@ -49,7 +49,7 @@ export async function assignWalker(input: AssignWalkerInput): Promise<void> {
   });
 }
 
-export async function startWalk(walkerUserId: string, input: StartWalkInput): Promise<void> {
+export async function startWalk(walkerUserId: string, input: StartWalkInput): Promise<string> {
   const db = getDb();
   const walkerProfileId = await getWalkerProfileIdByUserId(walkerUserId);
   const now = new Date();
@@ -79,7 +79,7 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
     .limit(1);
   if (liveWalk) throw new Error("Walk already active");
 
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const result = await tx
       .insert(walks)
       .values({
@@ -105,6 +105,8 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
       action: "START_WALK",
       afterJson: { dogId: input.dogId, walkerProfileId, status: "LIVE" },
     });
+
+    return inserted.id;
   });
 }
 

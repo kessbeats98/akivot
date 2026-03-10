@@ -10,6 +10,7 @@ import {
   getActiveWalksByWalker,
 } from "@/lib/repositories/walksRepo";
 import type { WalkerDashboardData } from "@/lib/services/walks/types";
+import { notifyWalkEvent } from "@/lib/services/notifications/fcmService";
 
 export async function getWalkerDashboardAction(): Promise<WalkerDashboardData> {
   const user = await assertAuthenticated();
@@ -23,8 +24,10 @@ export async function getWalkerDashboardAction(): Promise<WalkerDashboardData> {
 export async function startWalkAction(dogId: string, _formData: FormData): Promise<void> {
   const user = await assertAuthenticated();
   const input = startWalkSchema.parse({ dogId });
-  await startWalk(user.id, input);
+  const walkId = await startWalk(user.id, input);
   revalidatePath("/walker/dashboard");
+  // Fire-and-forget; notifyWalkEvent never throws
+  if (walkId) void notifyWalkEvent(walkId, "WALK_STARTED");
 }
 
 export async function endWalkAction(walkId: string, _formData: FormData): Promise<void> {
@@ -32,4 +35,6 @@ export async function endWalkAction(walkId: string, _formData: FormData): Promis
   const input = endWalkSchema.parse({ walkId });
   await endWalk(user.id, input);
   revalidatePath("/walker/dashboard");
+  // Fire-and-forget; notifyWalkEvent never throws
+  void notifyWalkEvent(walkId, "WALK_COMPLETED");
 }

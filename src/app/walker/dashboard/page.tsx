@@ -1,11 +1,15 @@
 import { getWalkerDashboardAction, startWalkAction, endWalkAction } from "./actions";
+import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
 
 export default async function WalkerDashboardPage() {
   const { assignedDogs, activeWalks } = await getWalkerDashboardAction();
 
   return (
     <main className="p-6 max-w-2xl mx-auto space-y-8">
-      <h1 className="text-2xl font-semibold">Walker Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Walker Dashboard</h1>
+        <EnableNotificationsButton />
+      </div>
 
       <section>
         <h2 className="text-lg font-medium mb-2">Active Walks</h2>

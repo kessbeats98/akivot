@@ -1,11 +1,15 @@
 import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction, setPriceAction, getAvailableWalkersAction } from "./actions";
+import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
 
 export default async function OwnerDashboardPage() {
   const [dogs, availableWalkers] = await Promise.all([getOwnerDogsAction(), getAvailableWalkersAction()]);
 
   return (
     <main className="p-6 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-semibold">My Dogs</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">My Dogs</h1>
+        <EnableNotificationsButton />
+      </div>
 
       <ul className="space-y-3">
         {dogs.map((dog) => (
