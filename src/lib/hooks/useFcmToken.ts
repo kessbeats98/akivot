@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 
 type UseFcmTokenResult = {
   supported: boolean;
-  permissionGranted: boolean;
+  permissionState: NotificationPermission | "loading";
   requestPermission: () => Promise<void>;
 };
 
 export function useFcmToken(): UseFcmTokenResult {
   const [supported, setSupported] = useState(false);
-  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [permissionState, setPermissionState] = useState<NotificationPermission | "loading">("loading");
 
   useEffect(() => {
     // Check support and existing permission on mount
@@ -20,8 +20,8 @@ export function useFcmToken(): UseFcmTokenResult {
         const { isSupported } = await import("firebase/messaging");
         const ok = await isSupported();
         setSupported(ok);
-        if (ok && Notification.permission === "granted") {
-          setPermissionGranted(true);
+        if (ok) {
+          setPermissionState(Notification.permission);
         }
       } catch {
         setSupported(false);
@@ -38,19 +38,22 @@ export function useFcmToken(): UseFcmTokenResult {
       const ok = await isSupported();
       if (!ok) return;
 
+      // Public config — safe to hardcode (same values as NEXT_PUBLIC_FIREBASE_* env vars).
       const firebaseConfig = {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY            ?? "AIzaSyCJH-q9EEr8JwGZ269jAqqf1zz1iHaPmgg",
+        authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN        ?? "akivot.firebaseapp.com",
+        projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID         ?? "akivot",
+        storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET     ?? "akivot.firebasestorage.app",
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "415517104392",
+        appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID             ?? "1:415517104392:web:b7d2e3a7d953f81ad374bd",
       };
 
       const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
       const messaging = getMessaging(app);
 
-      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+      // Pass config to SW via URL params
+      const params = new URLSearchParams(firebaseConfig as any).toString();
+      const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${params}`);
 
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
@@ -66,19 +69,20 @@ export function useFcmToken(): UseFcmTokenResult {
       });
 
       // Foreground message handler
-      onMessage(messaging, (payload) => {
+      onMessage(messaging, async (payload) => {
         const title = payload.notification?.title ?? "Akivot";
         const body = payload.notification?.body ?? "";
         if (Notification.permission === "granted") {
-          new Notification(title, { body });
+          const reg = await navigator.serviceWorker.ready;
+          reg.showNotification(title, { body });
         }
       });
 
-      setPermissionGranted(true);
+      setPermissionState(Notification.permission);
     } catch (err) {
       console.error("[useFcmToken] requestPermission error:", err);
     }
   };
 
-  return { supported, permissionGranted, requestPermission };
+  return { supported, permissionState, requestPermission };
 }
