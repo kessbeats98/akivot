@@ -1,5 +1,1 @@
-{
-  "crons": [
-    { "path": "/api/jobs/auto-close", "schedule": "*/5 * * * *" }
-  ]
-}
+{ "crons": [] }
