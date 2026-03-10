@@ -30,7 +30,30 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ---
 
-## Deploy Checklist
+## Staging Deploy Checklist (TASK-06a)
+
+### Environment prerequisites (must confirm before deploy)
+- [ ] Vercel staging env has `DATABASE_URL` pointing to a dedicated Neon branch (not prod/shared DB)
+- [ ] `CRON_SECRET` set in Vercel staging + prod env vars (required before TASK-09; safe now since `/api/jobs/auto-close` is a 501 stub)
+- [ ] `BETTER_AUTH_SECRET` set in Vercel staging env
+- [ ] `NEXT_PUBLIC_APP_URL` set in Vercel staging env
+
+### Pre-deploy gates
+1. Migration apply: all pending migrations applied in staging DB (`npx drizzle-kit migrate`)
+2. `npx tsc --noEmit` → 0 errors ✓ (confirmed 2026-03-10)
+3. `npx eslint src/` → 0 errors ✓ (confirmed 2026-03-10, 3 pre-existing warnings accepted)
+4. verify-ops: CONDITIONAL-GO → conditions resolved ✓
+5. verify-security: GO ✓
+6. 12-step billing smoke: PASSED ✓ (2026-03-10)
+
+### Deploy steps
+7. Deploy to staging (Vercel preview) → smoke tests PASS
+8. Deploy to production (Vercel) → smoke tests PASS
+9. Update STATE.md with deploy timestamp + version (with user approval)
+
+---
+
+## Deploy Checklist (generic)
 1. Migration apply: all pending migrations applied in staging DB
 2. verify-ops: GO
 3. verify-security: GO
@@ -83,3 +106,16 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ## Emergency Access
 - [Who to call and how to access prod logs, DB, infra]
+
+---
+
+## V2 / Carry-Forward Backlog (non-blocking)
+
+From verify-security (TASK-06a, 2026-03-10):
+- **LOW** — Validation order in `closePeriodAction`: `assertPeriodOwnership` fires before Zod parse. Malformed `periodId` wastes a DB round-trip. Fix: swap order (parse → ownership check).
+- **MEDIUM** — No rate limiting on billing server actions. Not exploitable due to CAS + ownership checks, but should be addressed before V2 high-volume scenarios.
+- **LOW** — `getOrCreateOpenPeriod` catch block matches error by index name string (`"payment_periods_open_unique_idx"`). Fragile if index renamed. Fix: match on Postgres error code `23505` instead.
+
+From verify-ops (TASK-06a, 2026-03-10):
+- `getDb()` creates a new Pool on every call — no connection reuse across requests. Acceptable for Neon serverless; revisit before high-traffic scale.
+- `/api/jobs/auto-close` returns 501 stub; Vercel cron fires every 5 min and logs 501s. Resolved by TASK-09.
