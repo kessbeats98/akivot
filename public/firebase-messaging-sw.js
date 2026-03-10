@@ -5,16 +5,17 @@
 importScripts('https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.10.0/firebase-messaging-compat.js');
 
-// NEXT_PUBLIC_ values are safe to hardcode here (public config, no secrets).
-// Replace these placeholder values with your actual Firebase project config
-// (same values as NEXT_PUBLIC_FIREBASE_* env vars).
+// Parse Firebase config from URL query params injected during SW registration.
+// Falls back to hardcoded values (public config — safe to commit).
+const urlParams = new URLSearchParams(location.search);
+
 firebase.initializeApp({
-  apiKey: self.FIREBASE_API_KEY || '',
-  authDomain: self.FIREBASE_AUTH_DOMAIN || '',
-  projectId: self.FIREBASE_PROJECT_ID || '',
-  storageBucket: self.FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: self.FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: self.FIREBASE_APP_ID || '',
+  apiKey:            urlParams.get('apiKey')            || 'AIzaSyCJH-q9EEr8JwGZ269jAqqf1zz1iHaPmgg',
+  authDomain:        urlParams.get('authDomain')        || 'akivot.firebaseapp.com',
+  projectId:         urlParams.get('projectId')         || 'akivot',
+  storageBucket:     urlParams.get('storageBucket')     || 'akivot.firebasestorage.app',
+  messagingSenderId: urlParams.get('messagingSenderId') || '415517104392',
+  appId:             urlParams.get('appId')             || '1:415517104392:web:b7d2e3a7d953f81ad374bd',
 });
 
 const messaging = firebase.messaging();
