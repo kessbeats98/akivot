@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-09
+Updated: 2026-03-10
 Phase: Feature Build
-Version: TASK-06a-in-progress
+Version: TASK-06a-done — LIVE (staging)
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,15 +10,15 @@ Version: TASK-06a-in-progress
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-06a in progress — migration 0003 confirmed applied and verified in DB; billing smoke in progress (step 1 of 12).
-- Next action: Complete 12-step billing smoke; after all pass → verify-ops + verify-security → staging deploy checklist.
+- Stopped at: TASK-06a ✅ DONE — staging deploy LIVE, smoke passed. Ready for TASK-07.
+- Next action: Open fresh session → `/new` TASK-07 (FCM Notifications).
 - Open questions:
   - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a blocker.
   - Password min length (8 chars V1) — carry-forward, not a blocker.
 - Last commands run:
-  - `npx drizzle-kit migrate` — migration 0003 applied ✓
-  - `pg_indexes` query confirmed `payment_periods_open_unique_idx` with `WHERE (status = 'OPEN')` ✓
-  - `npx tsc --noEmit` (0 errors); `npx eslint src/` (0 errors, 3 pre-existing warnings)
+  - `git push origin main` → `8c78dee` ✓ (2026-03-10)
+  - Vercel staging deploy → READY ✓ (2026-03-10)
+  - Billing smoke (Owner + Walker) → PASSED on live URL ✓ (2026-03-10)
 
 ### Completed in this session (TASK-06)
 | # | Commit message |
@@ -47,9 +47,9 @@ Version: TASK-06a-in-progress
 
 ## Active Work
 
-### TASK-06a: Deploy Prep / Release Readiness (IN PROGRESS)
+### ~~TASK-06a~~: Deploy Prep / Release Readiness (✅ DONE)
 **Priority**: P1
-**Status**: IN PROGRESS (2026-03-09)
+**Status**: ✅ DONE (2026-03-10)
 
 Atomic steps before first production deploy:
 1. Confirm migration apply procedure in RUNBOOK.md
@@ -127,4 +127,7 @@ Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schem
 ---
 
 ## Recent Deploys
-_(none yet)_
+
+| Date | Env | Commit | Status | Notes |
+|------|-----|--------|--------|-------|
+| 2026-03-10 | Staging | `8c78dee` | ✅ LIVE | Billing (TASK-06) — crons disabled for Hobby plan; smoke passed |
