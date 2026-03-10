@@ -16,6 +16,8 @@
 | R-BIL-02 | Owner can close an open payment period | Walks tagged (same owner-walker pair only), entries inserted, total computed, status=PAID in one tx | P1 | — | TASK-06 |
 | R-BIL-03 | Owner billing page lists periods and entries | OPEN period auto-created per active owner-walker pair; entries per period; Close & Pay button | P1 | — | TASK-06 |
 | R-BIL-04 | Walker billing page lists periods and totals | Read-only; periods with totalAmount | P1 | — | TASK-06 |
+| R-NOT-01 | Owner can receive push notifications | Token registered after permission grant; notification delivered on walk start/complete for dog's owner(s) | P1 | — | TASK-07 |
+| R-NOT-02 | Token lifecycle managed | Invalid/expired tokens invalidated in DB; no duplicate tokens per device | P1 | — | TASK-07 |
 
 ## V2 (Next Phase)
 | ID | Requirement | Notes |

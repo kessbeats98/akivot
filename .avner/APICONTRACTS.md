@@ -74,3 +74,24 @@ File: `src/app/walker/billing/actions.ts`
 | Action | Auth | Input | Behavior |
 |--------|------|-------|----------|
 | `getWalkerBillingAction()` | assertAuthenticated | — | Returns { periods: PaymentPeriodWithEntries[] } |
+
+---
+
+## Devices — Token Registration
+
+### `POST /api/devices/register`
+- **Auth**: required (assertAuthenticated)
+- **Request**: `{ fcmToken: string, platform: "WEB_DESKTOP" }`
+- **Response 200**: `{ deviceId: string }`
+- **Response 409**: token already registered (idempotent — returns existing deviceId)
+- **Notes**: upsert `userDevices` row on `fcmToken` conflict; sets `notificationsEnabled=true`
+
+---
+
+## Notifications — Internal Action
+
+### `notifyWalkEvent(walkId, type)`
+- **Type**: internal server-side function (not exposed as HTTP endpoint)
+- **Called by**: `walker/dashboard/actions.ts` after `startWalk`/`endWalk`
+- **Signature**: `notifyWalkEvent(walkId: string, type: "WALK_STARTED" | "WALK_COMPLETED"): Promise<void>`
+- **Behavior**: fetches walk → dogId → owner userId(s); fetches active devices per owner; sends via Admin SDK; logs delivery; invalidates bad tokens; never throws
