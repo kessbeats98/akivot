@@ -3,8 +3,6 @@
 ## V1 (Must Ship for "Done")
 | ID | Requirement | Acceptance Criteria | Priority | Owner | Evidence |
 |----|-------------|---------------------|----------|-------|----------|
-| R1 | [What]      | [How verified]      | P0       | @name | [Source] |
-| R2 |             |                     | P0       |       |          |
 | R-OWN-01 | Owner can register a dog | Dog appears in dashboard after submit; name required | P1 | — | TASK-04 |
 | R-OWN-02 | Owner can deactivate a dog | isActive=false; dog excluded from list | P1 | — | TASK-04 |
 | R-OWN-03 | Owner dashboard lists active dogs | Shows name, breed, assigned walker(s) read-only | P1 | — | TASK-04 |
@@ -25,12 +23,14 @@
 | R3 | [What] | Deferred to next sprint |
 
 ## Out-of-Scope (Explicit No)
-- [What we're NOT doing and why]
-- [Common requests we'll reject]
-- Hard delete of dogs (preserves walk history)
-- Dog edit/update (deferred post-TASK-04)
-- Owner-initiated walker assignment (TASK-05)
-- Owner billing view (TASK-06)
+- Hard delete of any entity — soft-delete/deactivate only (preserves walk/billing history)
+- Dog edit/update — deferred to V2
+- iOS native app — PWA only, Web Push only
+- Real-time chat/messaging between owner and walker
+- Payment gateway integration — manual ILS tracking only
+- Multi-language support in V1 — Hebrew UI only
+- Multi-currency — ILS only
+- Walker self-notifications in V1 — owner-only push
 
 ## Traceability Rule
 Every /new and /core Decisions section must reference at least one R-id.
