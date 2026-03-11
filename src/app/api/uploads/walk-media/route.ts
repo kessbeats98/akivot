@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const storageKey = `walks/${walkId}/${Date.now()}-${file.name}`;
     const { url: publicUrl } = await put(storageKey, buffer, {
-      access: "public",
+      access: "private",
       contentType: file.type || "application/octet-stream",
     });
 
