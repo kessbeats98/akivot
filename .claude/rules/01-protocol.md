@@ -207,6 +207,17 @@ These are hard failures. If Claude catches itself doing any of these → stop an
 
 ---
 
+## MCP-First Research
+Before implementing any SDK/library integration (Firebase, Better Auth, Drizzle, Vercel Blob, etc.):
+1. **Context7 MCP** → get latest official docs for the library.
+2. **Exa AI Search** → find real production examples and latest API changes.
+3. Only then write code. Never rely on training data alone for SDK specifics.
+4. Pin exact versions (e.g., firebase-messaging-compat v12.10.0) — do not write approximate versions.
+
+See `CLAUDE.md` → MCP Delegation for the full tool list (Context7, Neon, Vercel, Firebase, Exa, GitHub CLI).
+
+---
+
 ## Mini-Handoff (STATE.md)
 Every task completion or session end must propose a STATE.md update with:
 - Stopped at:        [exact point — file, function, or decision pending]
