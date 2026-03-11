@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-10
+Updated: 2026-03-11
 Phase: Feature Build
-Version: TASK-06a-done — LIVE (staging)
+Version: TASK-07-done
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,42 +10,45 @@ Version: TASK-06a-done — LIVE (staging)
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-06a ✅ DONE — staging deploy LIVE, smoke passed. Ready for TASK-07.
-- Next action: Open fresh session → `/new` TASK-07 (FCM Notifications).
+- Stopped at: TASK-07 ✅ DONE — full FCM smoke passed. Ready for TASK-08.
+- Next action: Push 9 local TASK-07 commits to origin/main, then open fresh session → `/new` TASK-08 (Offline / PWA).
 - Open questions:
   - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a blocker.
   - Password min length (8 chars V1) — carry-forward, not a blocker.
 - Last commands run:
-  - `git push origin main` → `8c78dee` ✓ (2026-03-10)
-  - Vercel staging deploy → READY ✓ (2026-03-10)
-  - Billing smoke (Owner + Walker) → PASSED on live URL ✓ (2026-03-10)
-
-### Completed in this session (TASK-06)
-| # | Commit message |
-|---|----------------|
-| 1 | `feat(billing): partial unique index for OPEN payment periods + contracts` |
-| 2 | `fix(audit): tighten tx type from any to Drizzle alias` |
-| 3 | `feat(billing): add Zod schemas` |
-| 4 | `feat(billing): add billing service types` |
-| 5 | `feat(billing): implement billingRepo` |
-| 6 | `feat(owner): price-setting on dog-walker pairs` |
-| 7 | `feat(owner): owner billing server actions` |
-| 8 | `feat(owner): owner billing page` |
-| 9 | `feat(walker): walker billing server action` |
-| 10 | `feat(walker): walker billing page` |
-
-### Deployment prep prerequisites (before any deploy)
-1. `DATABASE_URL` + `.env.local` available
-2. `npx drizzle-kit migrate` — apply migration 0003 (`payment_periods_open_unique_idx`)
-3. Manual billing smoke (12-step flow from TASK-06 plan)
-4. verify-ops preflight
-5. verify-security on billing paths
-6. RUNBOOK.md migration apply procedure confirmed
-7. Staging deploy checklist prepared
+  - `npm run dev` → token register 200, walk start/end 200 ✓ (2026-03-11)
+  - Neon MCP query: notification_deliveries WALK_STARTED=SENT, WALK_COMPLETED=SENT ✓ (2026-03-11)
+  - Token invalidation: stale token auto-invalidated, removed from active pool ✓ (2026-03-11)
 
 ---
 
 ## Active Work
+
+### TASK-08: Offline / PWA (PLANNED)
+**Priority**: P2
+**Status**: PLANNED (2026-03-08)
+
+Implement Dexie offline DB (`AkivotOfflineDB`), media queue for pending uploads, service worker (`install`/`activate`/`fetch`/`sync`), and walk media upload route to Vercel Blob.
+
+---
+
+## Backlog
+
+### TASK-09: Background Jobs (PLANNED)
+**Priority**: P2
+**Status**: PLANNED (2026-03-08)
+
+Implement Vercel Cron auto-close handler (`/api/jobs/auto-close`), idempotent elapsed-time check, and `CRON_SECRET` protection. Runs every 5 minutes per `vercel.json`.
+
+---
+
+## Completed
+
+### ~~TASK-07~~: Notifications / FCM (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-11)
+
+R-NOT-01, R-NOT-02. Contracts updated (REQUIREMENTS.md, APICONTRACTS.md). Device Zod schemas, notification service types, notificationsRepo (upsertDevice, invalidateDevice, getActiveDevicesForUser, logDelivery). Firebase Admin lazy singleton (getAdminApp), fcmService (sendToDevice, notifyWalkEvent). `/api/devices/register` route. FCM service worker at `public/firebase-messaging-sw.js` (compat SDK, hardcoded public config). `useFcmToken` hook (permissionState, requestPermission). `EnableNotificationsButton` component (owner + walker dashboards). `walksRepo.startWalk` returns walkId. `notifyWalkEvent` wired fire-and-forget in walker actions. Firebase project: akivot (projectId). tsc 0 errors. Build clean. Smoke: token register SENT ✓, WALK_STARTED SENT ✓, WALK_COMPLETED SENT ✓, stale token TOKEN_INVALID + auto-invalidated ✓.
 
 ### ~~TASK-06a~~: Deploy Prep / Release Readiness (✅ DONE)
 **Priority**: P1
@@ -60,35 +63,9 @@ Atomic steps before first production deploy:
 6. Prepare staging deploy checklist
 7. Propose production deploy (TASK-07 or TASK-06a close)
 
----
-
-## Backlog
-
-### TASK-07: Notifications / FCM (PLANNED)
-**Priority**: P1  
-**Status**: PLANNED (2026-03-08)
-
-Implement FCM server-side dispatch (`firebase-admin`), notifications repository, device/FCM token validation, FCM messaging service worker background handler (`fcm-messaging-sw.js`), and notification service types.
-
-### TASK-08: Offline / PWA (PLANNED)
-**Priority**: P2  
-**Status**: PLANNED (2026-03-08)
-
-Implement Dexie offline DB (`AkivotOfflineDB`), media queue for pending uploads, service worker (`install`/`activate`/`fetch`/`sync`), and walk media upload route to Vercel Blob.
-
-### TASK-09: Background Jobs (PLANNED)
-**Priority**: P2  
-**Status**: PLANNED (2026-03-08)
-
-Implement Vercel Cron auto-close handler (`/api/jobs/auto-close`), idempotent elapsed-time check, and `CRON_SECRET` protection. Runs every 5 minutes per `vercel.json`.
-
----
-
-## Completed
-
-### ~~TASK-06~~: Billing (CODE COMPLETE — smoke in progress)
+### ~~TASK-06~~: Billing (✅ DONE)
 **Priority**: P1
-**Status**: CODE COMPLETE (2026-03-09) — migration 0003 applied + verified ✓; runtime smoke in progress
+**Status**: ✅ DONE (2026-03-09)
 
 Billing contracts (REQUIREMENTS.md R-BIL-01–04, APICONTRACTS.md), partial unique index migration 0003 (`payment_periods_open_unique_idx`), billing Zod schemas, billing service types, billingRepo (ensureOpenPeriods, getOrCreateOpenPeriod, closePaymentPeriod with CAS + optimistic lock, getPeriodsByOwner, getPeriodsByWalker), owner price-setting (assertDogWalkerOwnership, setDogWalkerPrice, setPriceAction, dashboard set-price form), owner billing actions/page (`/owner/billing`), walker billing actions/page (`/walker/billing`). ILS-only. auditRepo tx type tightened. tsc 0 errors. ESLint 0 new errors.
 
@@ -111,15 +88,15 @@ Dogs repo (getDogsByOwner, createDog, deactivateDog, assertDogOwnership), Zod sc
 Better Auth wired with `drizzleAdapter` (sessions/accounts/verifications tables added). `toNextJsHandler(auth)` replaces 501 stub. `getCurrentUser` + `assertAuthenticated` in `session.ts`. Migration 0002 generated. Email send is console.log stub (wired later). Runtime smoke pending `.env.local`.
 
 ### ~~TASK-02~~: DB Schema V1 (✅ DONE)
-**Priority**: P1  
+**Priority**: P1
 **Status**: ✅ DONE (2026-03-08)
 
-14 enums, 14 tables, relations. `verify-spec` PASS. `tsc` 0 errors. `drizzle-kit generate` OK.  
+14 enums, 14 tables, relations. `verify-spec` PASS. `tsc` 0 errors. `drizzle-kit generate` OK.
 Tradeoff: `walks.paymentPeriodId` + `paymentEntries.walkId` have no DB FK; integrity enforced in service layer.
 
 ### ~~TASK-01~~: Bootstrap Scaffold (✅ DONE)
-**Priority**: P1  
-**Status**: ✅ DONE (2026-03-08)  
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-08)
 **Commits**: `0ae8e4b–81516cb`
 
 Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schema stubs, auth stubs, lib skeleton, App Router scaffold (501 stubs), PWA manifest, git init.
