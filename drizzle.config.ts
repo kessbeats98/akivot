@@ -1,9 +1,15 @@
+import { config } from "dotenv";
+config({ path: ".env.local" }); // <-- כוון לשם הקובץ המדויק שלך
+
 import { defineConfig } from "drizzle-kit";
+
 export default defineConfig({
   dialect: "postgresql",
   schema: "./src/db/schema/index.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL! },
+  dbCredentials: {
+    url: process.env.DATABASE_URL!
+  },
   verbose: true,
   strict: true,
 });
