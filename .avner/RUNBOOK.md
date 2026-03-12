@@ -43,11 +43,12 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ### Pre-deploy gates
 1. Migration apply: all pending migrations applied in staging DB (`npx drizzle-kit migrate`)
-2. `npx tsc --noEmit` → 0 errors ✓ (confirmed 2026-03-10)
+2. `npx tsc --noEmit` → 0 errors ✓ (re-confirmed 2026-03-12, TASK-09)
 3. `npx eslint src/` → 0 errors ✓ (confirmed 2026-03-10, 3 pre-existing warnings accepted)
 4. verify-ops: CONDITIONAL-GO → conditions resolved ✓
 5. verify-security: GO ✓
 6. 12-step billing smoke: PASSED ✓ (2026-03-10)
+7. **Cron constraint:** `vercel.json` keeps `"crons": []` — production cron `*/5 * * * *` requires Vercel Pro plan. Enable when plan upgraded. Until then trigger manually (see env prereqs above).
 
 ### Deploy steps
 7. Deploy to staging (Vercel preview) → smoke tests PASS
@@ -96,6 +97,11 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 ### Offline / PWA
 - [ ] PWA loads and syncs after reconnect
 
+### Auto-close cron (TASK-09)
+- [ ] `curl -X GET https://<staging-host>/api/jobs/auto-close` → `401 {"error":"Unauthorized"}` (no auth)
+- [ ] `curl -X GET -H "Authorization: Bearer $CRON_SECRET" https://<staging-host>/api/jobs/auto-close` → `200 {"closed":0}`
+- [ ] (optional) Seed stale LIVE walk (`start_time = NOW() - INTERVAL '3 hours'`) via Neon MCP → route returns `{"closed":1}` → re-run returns `{"closed":0}` (idempotency)
+
 ## CI/CD
 - Platform: Vercel
 - Preview deploys: automatic on PR
@@ -121,4 +127,4 @@ From verify-security (TASK-06a, 2026-03-10):
 
 From verify-ops (TASK-06a, 2026-03-10):
 - `getDb()` creates a new Pool on every call — no connection reuse across requests. Acceptable for Neon serverless; revisit before high-traffic scale.
-- `/api/jobs/auto-close` returns 501 stub; Vercel cron fires every 5 min and logs 501s. Resolved by TASK-09.
+- `/api/jobs/auto-close` was a 501 stub — resolved by TASK-09 (commit `9b73ead`).
