@@ -67,9 +67,7 @@ export const walks = pgTable("walks", {
   createdByUserId: text("created_by_user_id")
     .references(() => users.id)
     .notNull(),
-  updatedByUserId: text("updated_by_user_id")
-    .references(() => users.id)
-    .notNull(),
+  updatedByUserId: text("updated_by_user_id").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

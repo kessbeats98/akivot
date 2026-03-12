@@ -246,13 +246,13 @@ export async function autoCloseWalks(): Promise<number> {
           closureReason: "AUTO_TIMEOUT",
           statusUpdatedAt: now,
           updatedAt: now,
-          updatedByUserId: "system",
+          updatedByUserId: null,
         })
         .where(eq(walks.id, walk.id));
 
       await logAudit({
         tx,
-        actorUserId: "system",
+        actorUserId: null,
         entityType: "WALK",
         entityId: walk.id,
         action: "AUTO_CLOSE_WALK",

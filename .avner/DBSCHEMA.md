@@ -164,7 +164,7 @@ Better Auth-compatible shape.
 | `cancelledAt` | `timestamp with tz` | nullable | |
 | `statusUpdatedAt` | `timestamp with tz` | NOT NULL | |
 | `createdByUserId` | `text` | FK→users.id NOT NULL | |
-| `updatedByUserId` | `text` | FK→users.id NOT NULL | |
+| `updatedByUserId` | `text` | FK→users.id nullable | NULL = system/background-job update (no human user) |
 | `createdAt` | `timestamp with tz` | NOT NULL DEFAULT now() | |
 | `updatedAt` | `timestamp with tz` | NOT NULL | |
 | `deletedAt` | `timestamp with tz` | nullable | Soft delete |
@@ -232,7 +232,7 @@ Better Auth-compatible shape.
 | Column | Type | Constraints |
 |--------|------|-------------|
 | `id` | `uuid` | PK DEFAULT gen_random_uuid() |
-| `actorUserId` | `text` | FK→users.id NOT NULL |
+| `actorUserId` | `text` | FK→users.id nullable | NULL = system/background-job actor (no human user) |
 | `entityType` | `entityTypeEnum` | NOT NULL |
 | `entityId` | `text` | NOT NULL |
 | `action` | `auditActionEnum` | NOT NULL |

@@ -5,6 +5,9 @@ import { config } from "@/lib/config";
 import { autoCloseWalks } from "@/lib/repositories/walksRepo";
 
 export async function GET(req: NextRequest) {
+  if (!config.cron.secret) {
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
   const auth = req.headers.get("authorization");
   if (!auth || auth !== `Bearer ${config.cron.secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

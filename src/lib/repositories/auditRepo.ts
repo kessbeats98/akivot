@@ -16,7 +16,7 @@ type AuditAction =
 
 export type LogAuditParams = {
   tx: Tx;
-  actorUserId: string;
+  actorUserId: string | null;
   entityType: EntityType;
   entityId: string;
   action: AuditAction;

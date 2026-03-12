@@ -4,9 +4,7 @@ import { users } from "./users";
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  actorUserId: text("actor_user_id")
-    .references(() => users.id)
-    .notNull(),
+  actorUserId: text("actor_user_id").references(() => users.id),
   entityType: entityTypeEnum("entity_type").notNull(),
   entityId: text("entity_id").notNull(),
   action: auditActionEnum("action").notNull(),
