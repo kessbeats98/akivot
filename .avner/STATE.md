@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-11
+Updated: 2026-03-12
 Phase: Feature Build
-Version: TASK-07-done
+Version: TASK-09-done
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,39 +10,46 @@ Version: TASK-07-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-07 ✅ DONE — full FCM smoke passed. Ready for TASK-08.
-- Next action: Push 9 local TASK-07 commits to origin/main, then open fresh session → `/new` TASK-08 (Offline / PWA).
+- Stopped at: TASK-09 ✅ DONE — commit `9b73ead`, build clean, tsc 0 errors.
+- Next action: Open fresh session → deploy prep or next planned task.
 - Open questions:
+  - Production cron (`*/5 * * * *`) requires Vercel Pro plan — `vercel.json` stays `"crons": []` until plan upgrade; manual trigger documented in RUNBOOK.md.
   - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a blocker.
   - Password min length (8 chars V1) — carry-forward, not a blocker.
+  - AUTO_CLOSED walks excluded from billing — revisit if product requires them billable.
 - Last commands run:
-  - `npm run dev` → token register 200, walk start/end 200 ✓ (2026-03-11)
-  - Neon MCP query: notification_deliveries WALK_STARTED=SENT, WALK_COMPLETED=SENT ✓ (2026-03-11)
-  - Token invalidation: stale token auto-invalidated, removed from active pool ✓ (2026-03-11)
+  - `npx tsc --noEmit` → 0 errors ✓
+  - `npm run build` → next build + postbuild → exits 0 ✓
 
 ---
 
 ## Active Work
 
-### TASK-08: Offline / PWA (PLANNED)
-**Priority**: P2
-**Status**: PLANNED (2026-03-08)
-
-Implement Dexie offline DB (`AkivotOfflineDB`), media queue for pending uploads, service worker (`install`/`activate`/`fetch`/`sync`), and walk media upload route to Vercel Blob.
+*(none — TASK-09 complete)*
 
 ---
 
 ## Backlog
 
-### TASK-09: Background Jobs (PLANNED)
-**Priority**: P2
-**Status**: PLANNED (2026-03-08)
-
-Implement Vercel Cron auto-close handler (`/api/jobs/auto-close`), idempotent elapsed-time check, and `CRON_SECRET` protection. Runs every 5 minutes per `vercel.json`.
+*(empty)*
 
 ---
 
 ## Completed
+
+### ~~TASK-09~~: Background Jobs (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-12)
+**Commits**: `9b73ead`
+
+`autoCloseWalks()` in `walksRepo`: queries LIVE walks past 120-min cutoff (`config.cron.autoCloseMinutes`), closes each in an atomic tx — sets `AUTO_CLOSED` / `AUTO_TIMEOUT` / timestamps, logs `AUTO_CLOSE_WALK` audit with `actorUserId: "system"`. Idempotent via `autoClosedAt IS NULL` guard. `/api/jobs/auto-close` route: `nodejs` runtime, `Authorization: Bearer $CRON_SECRET` guard, returns `{ closed: N }`. `vercel.json` stays `"crons": []` (Hobby plan); production schedule `*/5 * * * *` documented in RUNBOOK.md. tsc 0 errors. Build clean.
+
+### ~~TASK-08~~: Offline / PWA (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-11)
+**Commits**: `8b9e987` (T1/T2) · `c2ca2cf` (T3) · `a739b9c` (T4) · `fd5a3d0` (T5) · `e933362` (T6) · `ee4dbc3` (blob fix)
+
+Dexie `AkivotOfflineDB` with `pendingMedia` store + exported constants (`OFFLINE_DB_NAME`, `PENDING_MEDIA_STORE`). `mediaQueue` helpers (enqueue/get/dequeue). Service worker (`src/workers/service-worker.ts`): Cache-First static, Network-First dynamic, background sync tag `"media-upload"` flushes pending items to upload route. `tsconfig.sw.json` with `WebWorker` lib; `src/workers` excluded from root tsc. `scripts/build-sw.mjs` (esbuild, type-check first); `postbuild` wires into `npm run build`. `/api/uploads/walk-media` route (Node.js runtime): auth → walkerProfile → walk LIVE check → Vercel Blob `put` → `walkMedia` row `UPLOADED`. `ServiceWorkerRegistration` client component registered in root layout; `online` event triggers `retryPendingUploads`. Build clean, tsc 0 errors. Runtime smoke: HTTP 200, blob URL returned, Neon `walk_media` row confirmed `upload_status = UPLOADED`. Fix: Blob store requires `access: "private"` — corrected in final commit `ee4dbc3`.
 
 ### ~~TASK-07~~: Notifications / FCM (✅ DONE)
 **Priority**: P1
