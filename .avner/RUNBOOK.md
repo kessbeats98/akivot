@@ -34,7 +34,10 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ### Environment prerequisites (must confirm before deploy)
 - [ ] Vercel staging env has `DATABASE_URL` pointing to a dedicated Neon branch (not prod/shared DB)
-- [ ] `CRON_SECRET` set in Vercel staging + prod env vars (required before TASK-09; safe now since `/api/jobs/auto-close` is a 501 stub)
+- [ ] `CRON_SECRET` set in Vercel staging + prod env vars (required — `/api/jobs/auto-close` is now live as of TASK-09)
+  - Production cron schedule: `*/5 * * * *` (requires Vercel Pro plan — Hobby rejects sub-hourly intervals)
+  - `vercel.json` keeps `"crons": []` until plan upgrade; trigger manually via:
+    `curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/jobs/auto-close`
 - [ ] `BETTER_AUTH_SECRET` set in Vercel staging env
 - [ ] `NEXT_PUBLIC_APP_URL` set in Vercel staging env
 

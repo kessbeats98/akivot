@@ -1,6 +1,7 @@
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, lte } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walks, dogWalkers, walkerProfiles, dogs } from "@/db/schema";
+import { config } from "@/lib/config";
 import { logAudit } from "@/lib/repositories/auditRepo";
 import type { AssignWalkerInput, StartWalkInput, EndWalkInput } from "@/lib/validation/walks";
 import type { WalkWithDog, AssignedDog } from "@/lib/services/walks/types";
@@ -213,4 +214,53 @@ export async function getAssignedDogsByWalker(walkerUserId: string): Promise<Ass
     ));
 
   return rows.map((r) => ({ ...r }));
+}
+
+// Called by /api/jobs/auto-close. No user session — actorUserId is "system".
+// Idempotent: autoClosedAt IS NULL guard prevents double-close.
+export async function autoCloseWalks(): Promise<number> {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - config.cron.autoCloseMinutes * 60_000);
+
+  const stale = await db
+    .select({ id: walks.id, startTime: walks.startTime })
+    .from(walks)
+    .where(and(
+      eq(walks.status, "LIVE"),
+      isNull(walks.deletedAt),
+      isNull(walks.autoClosedAt),
+      lte(walks.startTime, cutoff),
+    ));
+
+  for (const walk of stale) {
+    const now = new Date();
+    const durationMinutes = Math.round((now.getTime() - walk.startTime.getTime()) / 60_000);
+    await db.transaction(async (tx) => {
+      await tx
+        .update(walks)
+        .set({
+          status: "AUTO_CLOSED",
+          endTime: now,
+          durationMinutes,
+          autoClosedAt: now,
+          closureReason: "AUTO_TIMEOUT",
+          statusUpdatedAt: now,
+          updatedAt: now,
+          updatedByUserId: "system",
+        })
+        .where(eq(walks.id, walk.id));
+
+      await logAudit({
+        tx,
+        actorUserId: "system",
+        entityType: "WALK",
+        entityId: walk.id,
+        action: "AUTO_CLOSE_WALK",
+        beforeJson: { status: "LIVE" },
+        afterJson: { status: "AUTO_CLOSED", durationMinutes },
+      });
+    });
+  }
+
+  return stale.length;
 }

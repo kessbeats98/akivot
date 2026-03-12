@@ -1,6 +1,19 @@
-// TODO TASK-09: Vercel Cron auto-close
-// Scheduler: Vercel Cron fires every 5 min (vercel.json); handler checks elapsed time — idempotent.
-// Protected by CRON_SECRET header check.
-export async function GET() {
-  return new Response("Not implemented", { status: 501 });
+export const runtime = "nodejs";
+
+import { NextRequest, NextResponse } from "next/server";
+import { config } from "@/lib/config";
+import { autoCloseWalks } from "@/lib/repositories/walksRepo";
+
+export async function GET(req: NextRequest) {
+  const auth = req.headers.get("authorization");
+  if (!auth || auth !== `Bearer ${config.cron.secret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    const closed = await autoCloseWalks();
+    return NextResponse.json({ closed }, { status: 200 });
+  } catch (err: unknown) {
+    console.error("[GET /api/jobs/auto-close]", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
