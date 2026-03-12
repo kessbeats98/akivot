@@ -31,7 +31,11 @@ Version: TASK-09-done
 
 ## Backlog
 
-*(empty)*
+### TASK-10: Deploy Prep / Staging Rollout (PLANNED)
+**Priority**: P1
+**Status**: PLANNED (2026-03-12)
+
+Verify Vercel env vars (including `CRON_SECRET`), run staging smoke tests for `/api/jobs/auto-close`, confirm cron plan constraints (Hobby vs Pro), staging-first verification before any production deploy proposal.
 
 ---
 
