@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-12
+Updated: 2026-03-13
 Phase: Feature Build
-Version: TASK-09-done
+Version: TASK-11-done
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,36 +10,46 @@ Version: TASK-09-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-09 ✅ DONE — commit `9b73ead`, build clean, tsc 0 errors.
-- Next action: Open fresh session → deploy prep or next planned task.
+- Stopped at: TASK-11 ✅ DONE — Resend wired, smoke tested (verify + reset emails received)
+- Next action: identify next task or declare V1 complete
 - Open questions:
-  - Production cron (`*/5 * * * *`) requires Vercel Pro plan — `vercel.json` stays `"crons": []` until plan upgrade; manual trigger documented in RUNBOOK.md.
-  - Email service (Resend vs Nodemailer vs stub) — carry-forward, not a blocker.
-  - Password min length (8 chars V1) — carry-forward, not a blocker.
-  - AUTO_CLOSED walks excluded from billing — revisit if product requires them billable.
+  - Password min length — carry-forward
+  - Production cron schedule pending Vercel Pro upgrade
 - Last commands run:
   - `npx tsc --noEmit` → 0 errors ✓
-  - `npm run build` → next build + postbuild → exits 0 ✓
+  - `npm run build` → exits 0 ✓
+  - Smoke: verify email received via Resend ✓
+  - Smoke: password reset email received via Resend ✓
 
 ---
 
 ## Active Work
 
-*(none — TASK-09 complete)*
+*(none — TASK-11 complete)*
 
 ---
 
 ## Backlog
 
-### TASK-10: Deploy Prep / Staging Rollout (PLANNED)
-**Priority**: P1
-**Status**: PLANNED (2026-03-12)
-
-Verify Vercel env vars (including `CRON_SECRET`), run staging smoke tests for `/api/jobs/auto-close`, confirm cron plan constraints (Hobby vs Pro), staging-first verification before any production deploy proposal.
+*(no planned tasks — project feature-complete for V1)*
 
 ---
 
 ## Completed
+
+### ~~TASK-11~~: Resend Email Integration (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-13)
+**Commits**: `3979d35`
+
+`src/lib/email/resend.ts`: lazy `getResend()` factory, `sendVerificationEmail` + `sendPasswordResetEmail` with inline HTML templates, 10s AbortController timeout, log-only on failure (V1). Better Auth stubs in `better-auth.ts` replaced. `RESEND_API_KEY` + `EMAIL_FROM_ADDRESS` added to `.env.example` and Vercel env. R-EML-01, R-EML-02. tsc 0 errors. Build clean. Smoke: verify email received ✓, password reset email received ✓.
+
+### ~~TASK-10~~: Deploy Prep / Post-Secret-Rotation Verification (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-13)
+**Commits**: `ed2017c` (F1+F2 fixes)
+
+Migration 0004 applied (nullable `actor_user_id` + `updated_by_user_id`). `drizzle.__drizzle_migrations` row 5 placeholder hash corrected to real SHA-256 (`48870e09…`). Post-rotation smoke: T3-b no-auth → 401 ✓, T3-c correct-auth → 200 `{"closed":0}` ✓. Runtime logs zero errors. Deployment `dpl_9CUuxcJy` READY on commit `ed2017c`. Final GO issued.
 
 ### ~~TASK-09~~: Background Jobs (✅ DONE)
 **Priority**: P2
@@ -118,4 +128,5 @@ Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schem
 
 | Date | Env | Commit | Status | Notes |
 |------|-----|--------|--------|-------|
+| 2026-03-13 | Production | `ed2017c` | ✅ LIVE | TASK-10 — nullable actor/updated_by, fail-closed cron secret; post-rotation GO |
 | 2026-03-10 | Staging | `8c78dee` | ✅ LIVE | Billing (TASK-06) — crons disabled for Hobby plan; smoke passed |
