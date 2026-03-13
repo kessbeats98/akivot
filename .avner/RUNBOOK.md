@@ -30,16 +30,29 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ---
 
-## Staging Deploy Checklist (TASK-06a)
+## Staging Deploy Checklist (TASK-12)
 
 ### Environment prerequisites (must confirm before deploy)
-- [ ] Vercel staging env has `DATABASE_URL` pointing to a dedicated Neon branch (not prod/shared DB)
-- [ ] `CRON_SECRET` set in Vercel staging + prod env vars (required — `/api/jobs/auto-close` is now live as of TASK-09)
-  - Production cron schedule: `*/5 * * * *` (requires Vercel Pro plan — Hobby rejects sub-hourly intervals)
+- [ ] `DATABASE_URL` — Neon branch dedicated to staging (not prod)
+- [ ] `BETTER_AUTH_SECRET` — random 32-char secret
+- [ ] `NEXT_PUBLIC_APP_URL` — staging base URL (e.g. `https://akivot-staging.vercel.app`)
+- [ ] `CRON_SECRET` — required; `/api/jobs/auto-close` is live
+  - Production cron schedule: `*/5 * * * *` (requires Vercel Pro — Hobby rejects sub-hourly)
   - `vercel.json` keeps `"crons": []` until plan upgrade; trigger manually via:
     `curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/jobs/auto-close`
-- [ ] `BETTER_AUTH_SECRET` set in Vercel staging env
-- [ ] `NEXT_PUBLIC_APP_URL` set in Vercel staging env
+- [ ] `RESEND_API_KEY` — Resend API key for transactional email
+- [ ] `EMAIL_FROM_ADDRESS` — verified sender address (e.g. `noreply@yourdomain.com`)
+- [ ] `BLOB_READ_WRITE_TOKEN` — Vercel Blob token
+- [ ] `NEXT_PUBLIC_FIREBASE_API_KEY`
+- [ ] `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- [ ] `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- [ ] `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- [ ] `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- [ ] `NEXT_PUBLIC_FIREBASE_APP_ID`
+- [ ] `NEXT_PUBLIC_FIREBASE_VAPID_KEY`
+- [ ] `FIREBASE_PROJECT_ID` (server — Admin SDK)
+- [ ] `FIREBASE_CLIENT_EMAIL` (server — Admin SDK)
+- [ ] `FIREBASE_PRIVATE_KEY` (server — Admin SDK, newlines escaped as `\n`)
 
 ### Pre-deploy gates
 1. Migration apply: all pending migrations applied in staging DB (`npx drizzle-kit migrate`)
@@ -75,7 +88,10 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 ## Smoke Tests (Critical Paths)
 
 ### Auth
-- [ ] Sign up → sign in → sign out
+- [ ] Sign up → verification email received → click verify link → login succeeds
+- [ ] Sign in → sign out
+- [ ] Request password reset → reset email received → click reset link → set new password → login with new password succeeds
+- [ ] Sign up with password < 8 chars → rejected at server
 
 ### Walk lifecycle
 - [ ] Walker assigned to dog → starts walk → ends walk → status=COMPLETED
@@ -93,6 +109,12 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 - [ ] 10. `auditLogs` row for `CLOSE_PAYMENT_PERIOD` exists after step 4
 - [ ] 11. Walker with no walkerProfile hits `/walker/billing` → "Walker profile not found"
 - [ ] 12. Attempt to INSERT two OPEN periods for same `(ownerUserId, walkerProfileId)` → DB unique constraint violation on `payment_periods_open_unique_idx`
+
+### Notifications (FCM)
+- [ ] Owner clicks "Enable Notifications" → browser permission prompt → grant → device token registered (`/api/devices/register` 200)
+- [ ] Walker starts walk → owner receives push notification (WALK_STARTED)
+- [ ] Walker ends walk → owner receives push notification (WALK_COMPLETED)
+- [ ] Stale FCM token → send returns TOKEN_INVALID → token auto-invalidated in DB
 
 ### Offline / PWA
 - [ ] PWA loads and syncs after reconnect

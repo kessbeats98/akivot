@@ -8,17 +8,6 @@
 
 ## Endpoints
 
-### [GROUP] — [Description]
-
-#### `METHOD /api/path`
-- **Auth**: required / public
-- **Request**: `{ field: type }`
-- **Response 200**: `{ field: type }`
-- **Response 4xx**: `{ error: string }`
-- **Notes**: [any important behavior]
-
----
-
 ## Owner — Dog Management
 
 All owner dog operations are Next.js Server Actions.

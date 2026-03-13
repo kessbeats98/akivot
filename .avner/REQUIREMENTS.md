@@ -22,7 +22,7 @@
 ## V2 (Next Phase)
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| R3 | [What] | Deferred to next sprint |
+| — | (no items yet) | — |
 
 ## Out-of-Scope (Explicit No)
 - Hard delete of any entity — soft-delete/deactivate only (preserves walk/billing history)
