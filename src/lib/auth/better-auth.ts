@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { getDb } from "@/db/drizzle";
 import * as schema from "@/db/schema";
 import { config } from "@/lib/config";
+import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email/resend";
 
 export const auth = betterAuth({
   database: drizzleAdapter(getDb(), {
@@ -16,14 +17,12 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async (data) => {
-      // TODO TASK-03-email: wire transactional email (Resend / Nodemailer)
-      console.info("[reset-password] url=", data.url, "user=", data.user.email);
+      await sendPasswordResetEmail({ user: data.user, url: data.url });
     },
   },
   emailVerification: {
     sendVerificationEmail: async (data) => {
-      // TODO TASK-03-email: wire transactional email
-      console.info("[verify-email] url=", data.url, "user=", data.user.email);
+      await sendVerificationEmail({ user: data.user, url: data.url });
     },
     sendOnSignUp: true,
   },

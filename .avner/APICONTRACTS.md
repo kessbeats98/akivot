@@ -88,6 +88,17 @@ File: `src/app/walker/billing/actions.ts`
 
 ---
 
+## Email — Internal Service
+
+### `sendVerificationEmail(data)` / `sendPasswordResetEmail(data)`
+- **Type**: internal server-side functions (`src/lib/email/resend.ts`)
+- **Called by**: `src/lib/auth/better-auth.ts` Better Auth callbacks
+- **Failure handling**: catch-all; errors logged via `console.error`; never throws (V1 log-only)
+- **Timeout**: 10s AbortController
+- **Env vars**: `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS` (default: `no-reply@mail.akivot.com`)
+
+---
+
 ## Notifications — Internal Action
 
 ### `notifyWalkEvent(walkId, type)`

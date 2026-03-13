@@ -16,6 +16,8 @@
 | R-BIL-04 | Walker billing page lists periods and totals | Read-only; periods with totalAmount | P1 | — | TASK-06 |
 | R-NOT-01 | Owner can receive push notifications | Token registered after permission grant; notification delivered on walk start/complete for dog's owner(s) | P1 | — | TASK-07 |
 | R-NOT-02 | Token lifecycle managed | Invalid/expired tokens invalidated in DB; no duplicate tokens per device | P1 | — | TASK-07 |
+| R-EML-01 | Verification email sent on sign-up | HTML email delivered via Resend; link expires per Better Auth default (~24h); V1: log-only on send failure | P1 | — | TASK-11 |
+| R-EML-02 | Password reset email sent on request | HTML email delivered via Resend; Better Auth built-in rate limiting; V1: log-only on send failure | P1 | — | TASK-11 |
 
 ## V2 (Next Phase)
 | ID | Requirement | Notes |
