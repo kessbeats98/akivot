@@ -2,7 +2,7 @@
 
 Updated: 2026-03-13
 Phase: Feature Build
-Version: TASK-11-done
+Version: TASK-12-done
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,22 +10,19 @@ Version: TASK-11-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-11 ✅ DONE — Resend wired, smoke tested (verify + reset emails received)
-- Next action: identify next task or declare V1 complete
+- Stopped at: TASK-12 ✅ DONE — all 5 V1 blockers resolved, commit `1f86d27`
+- Next action: TASK-13 Production Release (`/deploy`)
 - Open questions:
-  - Password min length — carry-forward
-  - Production cron schedule pending Vercel Pro upgrade
+  - Production cron schedule pending Vercel Pro upgrade (non-blocker)
 - Last commands run:
   - `npx tsc --noEmit` → 0 errors ✓
-  - `npm run build` → exits 0 ✓
-  - Smoke: verify email received via Resend ✓
-  - Smoke: password reset email received via Resend ✓
+  - verify-security: GO ✓
 
 ---
 
 ## Active Work
 
-*(none — TASK-11 complete)*
+*(none — TASK-12 complete)*
 
 ---
 
@@ -36,6 +33,13 @@ Version: TASK-11-done
 ---
 
 ## Completed
+
+### ~~TASK-12~~: Polish & V1 Hardening (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-13)
+**Commits**: `1f86d27`
+
+All 5 V1 blockers fixed. T1: `minPasswordLength: 8` explicit in Better Auth config. T2: `crypto.timingSafeEqual` replaces plain `!==` for cron secret (SEC-1). T3: `src/app/not-found.tsx` — custom 404, hides framework version (SEC-2). T4/T5: RUNBOOK smoke tests expanded (email verify, password reset, notifications) + staging env checklist expanded to all 18 vars. T6: stub rows deleted from REQUIREMENTS.md + APICONTRACTS.md. tsc 0 errors. verify-security: GO.
 
 ### ~~TASK-11~~: Resend Email Integration (✅ DONE)
 **Priority**: P1
