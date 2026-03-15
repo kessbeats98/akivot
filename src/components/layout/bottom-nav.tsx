@@ -13,7 +13,7 @@ const tabs = [
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 inset-x-0 h-16 bg-white border-t flex items-center justify-around z-50">
+    <nav className="fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-xl border-t border-[#2A9D8F]/10 px-4 pb-8 pt-4 flex items-center justify-around z-50">
       {tabs.map(({ label, icon: Icon, href }) => {
         const active = pathname === href;
         return (
@@ -21,7 +21,7 @@ export function BottomNav() {
             key={href}
             href={href}
             className={`flex flex-col items-center gap-0.5 text-xs min-w-[44px] ${
-              active ? "text-[#2A9D8F]" : "text-[#9CA3AF]"
+              active ? "text-[#2A9D8F] font-bold" : "text-[#9CA3AF]"
             }`}
           >
             <Icon size={22} />
