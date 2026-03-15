@@ -1,9 +1,9 @@
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getWalkerDashboardAction, startWalkAction, endWalkAction } from "./actions";
+import { getWalkerDashboardAction, startWalkAction } from "./actions";
 import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HeroCta } from "@/components/walker/hero-cta";
-import { ActiveWalkBanner } from "@/components/walker/active-walk-banner";
 import { StatsGrid } from "@/components/walker/stats-grid";
 
 export default async function WalkerDashboardPage() {
@@ -12,7 +12,7 @@ export default async function WalkerDashboardPage() {
     getWalkerDashboardAction(),
   ]);
 
-  const activeWalk = activeWalks[0] ?? null;
+  if (activeWalks[0]) redirect("/walker/live");
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FAF9F6]" dir="rtl">
@@ -46,11 +46,7 @@ export default async function WalkerDashboardPage() {
 
         {/* Hero area */}
         <section className="flex-1 flex flex-col items-center justify-center">
-          {activeWalk ? (
-            <ActiveWalkBanner walk={activeWalk} endWalkAction={endWalkAction} />
-          ) : (
-            <HeroCta assignedDogs={assignedDogs} startWalkAction={startWalkAction} />
-          )}
+          <HeroCta assignedDogs={assignedDogs} startWalkAction={startWalkAction} />
         </section>
 
         {/* Stats */}

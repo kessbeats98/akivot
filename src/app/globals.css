@@ -27,6 +27,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: #2A9D8F;
+  --color-accent: #F4A261;
+  --color-background-light: #fdfcf8;
+  --color-neutral-muted: #678380;
+  --color-neutral-dark: #1e2928;
+  --color-surface: #ffffff;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
