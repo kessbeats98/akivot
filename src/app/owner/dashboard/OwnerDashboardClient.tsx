@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SlideOver } from "@/components/ui/slide-over";
-import type { DogWithWalkers } from "@/lib/repositories/dogsRepo";
+import type { DogWithWalkers, ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 
 interface Props {
   dogs: DogWithWalkers[];
   availableWalkers: { id: string; displayName: string }[];
+  liveWalks: ActiveLiveWalk[];
   createDogAction: (formData: FormData) => Promise<void>;
   deactivateDogAction: (dogId: string, formData: FormData) => Promise<void>;
   assignWalkerAction: (dogId: string, formData: FormData) => Promise<void>;
@@ -15,9 +17,35 @@ interface Props {
   notificationsButton: ReactNode;
 }
 
+function LiveWalkCard({ walk }: { walk: ActiveLiveWalk }) {
+  const [elapsed, setElapsed] = useState(() =>
+    Math.floor((Date.now() - new Date(walk.startTime).getTime()) / 60000)
+  );
+  useEffect(() => {
+    const id = setInterval(() =>
+      setElapsed(Math.floor((Date.now() - new Date(walk.startTime).getTime()) / 60000)), 30_000
+    );
+    return () => clearInterval(id);
+  }, [walk.startTime]);
+
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-4">
+      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+        <span className="material-symbols-rounded text-green-600 text-xl">directions_walk</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-green-900 text-sm truncate">{walk.dogName} בטיול עכשיו</p>
+        <p className="text-xs text-green-700 mt-0.5">{walk.walkerName} · {elapsed} דק'</p>
+      </div>
+      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+    </div>
+  );
+}
+
 export function OwnerDashboardClient({
   dogs,
   availableWalkers,
+  liveWalks,
   createDogAction,
   deactivateDogAction,
   assignWalkerAction,
@@ -25,7 +53,14 @@ export function OwnerDashboardClient({
   notificationsButton,
 }: Props) {
   const [isAddDogOpen, setIsAddDogOpen] = useState(false);
+  const router = useRouter();
   const firstDog = dogs[0];
+
+  // Auto-refresh every 30s to pick up walk status changes
+  useEffect(() => {
+    const id = setInterval(() => router.refresh(), 30_000);
+    return () => clearInterval(id);
+  }, [router]);
 
   return (
     <div className="animate-in fade-in duration-300 pb-32">
@@ -54,21 +89,27 @@ export function OwnerDashboardClient({
         </div>
       </header>
 
-      {/* Dog Status */}
+      {/* Live Walks / Dog Status */}
       <section className="px-6 mb-8 mt-4">
-        <div className="bg-white rounded-organic p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center">
-            <span className="material-symbols-rounded">home</span>
+        {liveWalks.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {liveWalks.map((w) => <LiveWalkCard key={w.walkId} walk={w} />)}
           </div>
-          <div>
-            <h3 className="font-bold text-dark">
-              {firstDog ? `${firstDog.name} בבית` : "אין כלבים עדיין"}
-            </h3>
-            <p className="text-xs text-gray-400">
-              {firstDog ? "לא בטיול כרגע" : "הוסף את הכלב הראשון שלך"}
-            </p>
+        ) : (
+          <div className="bg-white rounded-organic p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center">
+              <span className="material-symbols-rounded">home</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-dark">
+                {firstDog ? `${firstDog.name} בבית` : "אין כלבים עדיין"}
+              </h3>
+              <p className="text-xs text-gray-400">
+                {firstDog ? "לא בטיול כרגע" : "הוסף את הכלב הראשון שלך"}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* Dog List */}

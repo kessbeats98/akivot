@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { createDogSchema, deactivateDogSchema } from "@/lib/validation/dogs";
-import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice } from "@/lib/repositories/dogsRepo";
+import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice, getActiveLiveWalks } from "@/lib/repositories/dogsRepo";
+import type { ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walkerProfiles } from "@/db/schema";
@@ -14,6 +15,11 @@ import { assignWalker } from "@/lib/repositories/walksRepo";
 export async function getOwnerDogsAction() {
   const user = await assertAuthenticated();
   return getDogsByOwner(user.id);
+}
+
+export async function getActiveLiveWalksAction(): Promise<ActiveLiveWalk[]> {
+  const user = await assertAuthenticated();
+  return getActiveLiveWalks(user.id);
 }
 
 export async function getAvailableWalkersAction(): Promise<{ id: string; displayName: string }[]> {

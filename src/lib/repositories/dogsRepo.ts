@@ -261,6 +261,32 @@ export async function getDogStats(dogId: string): Promise<DogStats> {
   };
 }
 
+export type ActiveLiveWalk = {
+  walkId: string;
+  dogId: string;
+  dogName: string;
+  walkerName: string;
+  startTime: Date;
+};
+
+export async function getActiveLiveWalks(ownerUserId: string): Promise<ActiveLiveWalk[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      walkId: walks.id,
+      dogId: dogs.id,
+      dogName: dogs.name,
+      walkerName: walkerProfiles.displayName,
+      startTime: walks.startTime,
+    })
+    .from(dogOwners)
+    .innerJoin(dogs, eq(dogs.id, dogOwners.dogId))
+    .innerJoin(walks, and(eq(walks.dogId, dogs.id), eq(walks.status, "LIVE")))
+    .innerJoin(walkerProfiles, eq(walkerProfiles.id, walks.walkerProfileId))
+    .where(and(eq(dogOwners.ownerUserId, ownerUserId), eq(dogs.isActive, true)));
+  return rows;
+}
+
 export async function updateDogImageUrl(dogId: string, imageUrl: string): Promise<void> {
   const db = getDb();
   await db.update(dogs).set({ imageUrl, updatedAt: new Date() }).where(eq(dogs.id, dogId));
