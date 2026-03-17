@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { he } from "date-fns/locale";
 import { SlideOver } from "@/components/ui/slide-over";
-import type { DogWithWalkers } from "@/lib/repositories/dogsRepo";
+import type { DogWithWalkers, DogStats } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem, WalkStatus } from "@/lib/services/walks/types";
 
 interface Props {
   dog: DogWithWalkers;
   walkHistory: DogWalkHistoryItem[];
+  stats: DogStats;
   updateDogAction: (formData: FormData) => Promise<void>;
 }
 
@@ -41,9 +42,31 @@ const formatCurrency = (amount: string | null) => {
   }).format(Number(amount));
 };
 
-export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
+function formatMinutes(totalMinutes: number): string {
+  if (totalMinutes < 60) return `${totalMinutes} דק'`;
+  const hours = (totalMinutes / 60).toFixed(1).replace(/\.0$/, "");
+  return `${hours} שע'`;
+}
+
+export function DogProfileClient({ dog, walkHistory, stats, updateDogAction }: Props) {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(dog.imageUrl);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const age = formatAge(dog.birthDate);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append("dogId", dog.id);
+    form.append("file", file);
+    const res = await fetch("/api/uploads/dog-image", { method: "POST", body: form });
+    if (res.ok) {
+      const { url } = await res.json() as { url: string };
+      setAvatarUrl(url);
+    }
+  }
 
   return (
     <div className="animate-in fade-in duration-300 pb-32">
@@ -59,15 +82,30 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
       </header>
 
       {/* Hero */}
-      <section className="px-6 mb-6">
+      <section className="px-6 mb-4">
         <div className="bg-gradient-to-b from-brand/10 to-transparent rounded-[2rem] p-8 flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full bg-brand-light flex items-center justify-center text-brand shadow-lg border-4 border-white mb-4">
-            {dog.imageUrl ? (
-              <img src={dog.imageUrl} alt={dog.name} className="w-full h-full rounded-full object-cover" />
+          {/* Avatar with upload overlay */}
+          <div
+            className="relative group w-24 h-24 rounded-full bg-brand-light flex items-center justify-center text-brand shadow-lg border-4 border-white mb-4 cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={dog.name} className="w-full h-full rounded-full object-cover" />
             ) : (
               <span className="font-black text-4xl">{dog.name.charAt(0)}</span>
             )}
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="material-symbols-rounded text-white text-2xl">photo_camera</span>
+            </div>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarUpload}
+          />
+
           <h1 className="text-3xl font-black text-dark mb-1">{dog.name}</h1>
           <div className="flex items-center gap-3 text-sm text-gray-500">
             {dog.breed && <span>{dog.breed}</span>}
@@ -84,7 +122,33 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
         </div>
       </section>
 
-      {/* Notes */}
+      {/* Stats Row */}
+      {stats.totalWalks > 0 && (
+        <section className="px-6 mb-6">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-around text-center">
+            <div>
+              <p className="text-xl font-black text-brand font-numbers">{stats.totalWalks}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">טיולים</p>
+            </div>
+            <div className="w-px h-8 bg-gray-100" />
+            <div>
+              <p className="text-xl font-black text-brand font-numbers">{formatMinutes(stats.totalMinutes)}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">סה"כ זמן</p>
+            </div>
+            {stats.favoriteWalkerName && (
+              <>
+                <div className="w-px h-8 bg-gray-100" />
+                <div className="flex-1 px-2">
+                  <p className="text-sm font-black text-brand truncate">{stats.favoriteWalkerName}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">מוביל</p>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Dog Notes */}
       {dog.notes && (
         <section className="px-6 mb-6">
           <div className="bg-white rounded-[2rem] p-5 shadow-glass border border-white/60">
@@ -122,9 +186,9 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
         </section>
       )}
 
-      {/* Walk History */}
+      {/* Diary */}
       <section className="px-6 mb-8">
-        <h3 className="font-bold text-lg text-dark mb-4">היסטוריית טיולים</h3>
+        <h3 className="font-bold text-lg text-dark mb-4">יומן טיולים</h3>
         {walkHistory.length > 0 ? (
           <div className="flex flex-col gap-3">
             {walkHistory.map((walk) => {
@@ -132,9 +196,10 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
               return (
                 <div
                   key={walk.id}
-                  className="bg-white rounded-[2rem] p-4 shadow-glass border border-white/60"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  {/* Card header */}
+                  <div className="flex justify-between items-start p-4 pb-3">
                     <div>
                       <p className="font-bold text-dark text-sm">
                         {format(new Date(walk.startTime), "EEEE, d בMMMM", { locale: he })}
@@ -148,12 +213,16 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
                       {badge.label}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
+
+                  {/* Walker + duration */}
+                  <div className="flex items-center justify-between px-4 pb-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <span className="material-symbols-rounded text-sm">directions_walk</span>
                       <span>{walk.walkerName}</span>
                       {walk.durationMinutes != null && (
-                        <span className="font-numbers">• {walk.durationMinutes} דק'</span>
+                        <span className="font-numbers bg-gray-100 px-2 py-0.5 rounded-full">
+                          {walk.durationMinutes} דק'
+                        </span>
                       )}
                     </div>
                     {walk.finalPrice && (
@@ -162,6 +231,38 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
                       </span>
                     )}
                   </div>
+
+                  {/* Walk note */}
+                  {walk.note && (
+                    <div className="mx-4 mb-3 bg-amber-50 rounded-xl px-3 py-2 flex gap-2 items-start">
+                      <span className="material-symbols-rounded text-amber-500 text-sm mt-0.5">edit_note</span>
+                      <p className="text-xs text-amber-800 italic leading-relaxed">{walk.note}</p>
+                    </div>
+                  )}
+
+                  {/* Photo strip */}
+                  {walk.mediaPhotos.length > 0 && (
+                    <div className="px-4 pb-4">
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {walk.mediaPhotos.map((photo) => {
+                          const src = `/api/media/walk-photo?key=${encodeURIComponent(photo.storageKey)}`;
+                          return (
+                            <button
+                              key={photo.id}
+                              onClick={() => setLightboxSrc(src)}
+                              className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-sm border border-gray-100"
+                            >
+                              <img
+                                src={src}
+                                alt="תמונה מהטיול"
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -173,6 +274,26 @@ export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
           </div>
         )}
       </section>
+
+      {/* Lightbox */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <img
+            src={lightboxSrc}
+            alt="תמונה מהטיול"
+            className="max-w-full max-h-full object-contain rounded-xl"
+          />
+          <button
+            onClick={() => setLightboxSrc(null)}
+            className="absolute top-6 right-6 text-white"
+          >
+            <span className="material-symbols-rounded text-3xl">close</span>
+          </button>
+        </div>
+      )}
 
       {/* Edit SlideOver */}
       <SlideOver isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="עריכת פרופיל">

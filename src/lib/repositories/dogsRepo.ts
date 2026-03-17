@@ -1,6 +1,6 @@
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, inArray, asc, count, sql } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
-import { dogs, dogOwners, dogWalkers, walkerProfiles, walks } from "@/db/schema";
+import { dogs, dogOwners, dogWalkers, walkerProfiles, walks, walkMedia } from "@/db/schema";
 import type { CreateDogInput, UpdateDogInput } from "@/lib/validation/dogs";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
 
@@ -196,6 +196,7 @@ export async function getWalkHistoryByDog(
       durationMinutes: walks.durationMinutes,
       finalPrice: walks.finalPrice,
       walkerName: walkerProfiles.displayName,
+      note: walks.note,
     })
     .from(walks)
     .innerJoin(walkerProfiles, eq(walkerProfiles.id, walks.walkerProfileId))
@@ -203,5 +204,64 @@ export async function getWalkHistoryByDog(
     .orderBy(desc(walks.startTime))
     .limit(limit);
 
-  return rows.map((r) => ({ ...r }));
+  if (rows.length === 0) return [];
+
+  const walkIds = rows.map((r) => r.id);
+  const photos = await db
+    .select({
+      id: walkMedia.id,
+      walkId: walkMedia.walkId,
+      storageKey: walkMedia.storageKey,
+      capturedAt: walkMedia.capturedAt,
+    })
+    .from(walkMedia)
+    .where(and(inArray(walkMedia.walkId, walkIds), eq(walkMedia.uploadStatus, "UPLOADED")))
+    .orderBy(asc(walkMedia.capturedAt));
+
+  const photosByWalkId = new Map<string, { id: string; storageKey: string; capturedAt: Date }[]>();
+  for (const p of photos) {
+    if (!p.storageKey) continue;
+    const arr = photosByWalkId.get(p.walkId) ?? [];
+    arr.push({ id: p.id, storageKey: p.storageKey, capturedAt: p.capturedAt });
+    photosByWalkId.set(p.walkId, arr);
+  }
+
+  return rows.map((r) => ({ ...r, mediaPhotos: photosByWalkId.get(r.id) ?? [] }));
+}
+
+export type DogStats = {
+  totalWalks: number;
+  totalMinutes: number;
+  favoriteWalkerName: string | null;
+};
+
+export async function getDogStats(dogId: string): Promise<DogStats> {
+  const db = getDb();
+  const [totals] = await db
+    .select({
+      totalWalks: count(),
+      totalMinutes: sql<number>`coalesce(sum(${walks.durationMinutes}), 0)`,
+    })
+    .from(walks)
+    .where(and(eq(walks.dogId, dogId), isNull(walks.deletedAt)));
+
+  const [favoriteRow] = await db
+    .select({ name: walkerProfiles.displayName })
+    .from(walks)
+    .innerJoin(walkerProfiles, eq(walkerProfiles.id, walks.walkerProfileId))
+    .where(and(eq(walks.dogId, dogId), isNull(walks.deletedAt)))
+    .groupBy(walks.walkerProfileId, walkerProfiles.displayName)
+    .orderBy(desc(count()))
+    .limit(1);
+
+  return {
+    totalWalks: totals?.totalWalks ?? 0,
+    totalMinutes: Number(totals?.totalMinutes ?? 0),
+    favoriteWalkerName: favoriteRow?.name ?? null,
+  };
+}
+
+export async function updateDogImageUrl(dogId: string, imageUrl: string): Promise<void> {
+  const db = getDb();
+  await db.update(dogs).set({ imageUrl, updatedAt: new Date() }).where(eq(dogs.id, dogId));
 }

@@ -2,21 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
-import { getDogById, updateDog, getWalkHistoryByDog } from "@/lib/repositories/dogsRepo";
+import { getDogById, updateDog, getWalkHistoryByDog, getDogStats } from "@/lib/repositories/dogsRepo";
 import { updateDogSchema } from "@/lib/validation/dogs";
-import type { DogWithWalkers } from "@/lib/repositories/dogsRepo";
+import type { DogWithWalkers, DogStats } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
 
 export async function getDogProfileAction(dogId: string): Promise<{
   dog: DogWithWalkers;
   walkHistory: DogWalkHistoryItem[];
+  stats: DogStats;
 }> {
   const user = await assertAuthenticated();
-  const [dog, walkHistory] = await Promise.all([
+  const [dog, walkHistory, stats] = await Promise.all([
     getDogById(dogId, user.id),
     getWalkHistoryByDog(dogId, user.id),
+    getDogStats(dogId),
   ]);
-  return { dog, walkHistory };
+  return { dog, walkHistory, stats };
 }
 
 export async function updateDogAction(dogId: string, formData: FormData): Promise<void> {

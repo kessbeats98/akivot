@@ -7,12 +7,13 @@ interface Props {
 
 export default async function DogProfilePage({ params }: Props) {
   const { dogId } = await params;
-  const { dog, walkHistory } = await getDogProfileAction(dogId);
+  const { dog, walkHistory, stats } = await getDogProfileAction(dogId);
 
   return (
     <DogProfileClient
       dog={dog}
       walkHistory={walkHistory}
+      stats={stats}
       updateDogAction={updateDogAction.bind(null, dogId)}
     />
   );

@@ -49,6 +49,8 @@ export type DogWalkHistoryItem = {
   durationMinutes: number | null;
   finalPrice: string | null;
   walkerName: string;
+  note: string | null;
+  mediaPhotos: { id: string; storageKey: string; capturedAt: Date }[];
 };
 
 export type WalkerDashboardData = {
