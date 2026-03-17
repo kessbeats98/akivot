@@ -1,7 +1,7 @@
-import { getOwnerBillingAction, closePeriodAction } from "./actions";
+import { getOwnerPaymentsAction } from "./actions";
 import { OwnerBillingClient } from "./OwnerBillingClient";
 
 export default async function OwnerBillingPage() {
-  const { periods } = await getOwnerBillingAction();
-  return <OwnerBillingClient periods={periods} closePeriodAction={closePeriodAction} />;
+  const periods = await getOwnerPaymentsAction();
+  return <OwnerBillingClient periods={periods} />;
 }

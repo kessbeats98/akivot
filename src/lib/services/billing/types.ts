@@ -28,3 +28,25 @@ export type OwnerBillingData = {
 export type WalkerBillingData = {
   periods: PaymentPeriodWithEntries[];
 };
+
+export type OwnerPaymentEntry = {
+  id: string;
+  entryType: PaymentEntryType;
+  amount: string;         // decimal string, ILS
+  createdAt: Date;
+  walkId: string | null;
+  dogName: string | null;
+  walkDate: Date | null;
+  walkStatus: string | null;
+};
+
+export type OwnerPaymentPeriod = {
+  id: string;
+  status: PaymentPeriodStatus;
+  totalAmount: string;    // decimal string, ILS
+  lockVersion: number;
+  paidAt: Date | null;
+  createdAt: Date;
+  walkerDisplayName: string;
+  entries: OwnerPaymentEntry[];
+};
