@@ -43,7 +43,7 @@ export function OwnerDashboardClient({
           {notificationsButton}
           {firstDog && (
             <Link
-              href={`/owner/dog-profile?dogId=${firstDog.id}`}
+              href={`/owner/dog-profile/${firstDog.id}`}
               className="w-16 h-16 rounded-full p-1 bg-white shadow-glass border border-brand/10 flex items-center justify-center transition-transform active:scale-95"
             >
               <div className="w-full h-full rounded-full bg-brand-light flex items-center justify-center text-brand">
@@ -81,7 +81,7 @@ export function OwnerDashboardClient({
                 key={dog.id}
                 className="bg-white rounded-[2rem] p-5 shadow-glass border border-white/60"
               >
-                <div className="flex justify-between items-start mb-3">
+                <Link href={`/owner/dog-profile/${dog.id}`} className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-brand-light flex items-center justify-center text-brand">
                       <span className="font-bold text-lg">{dog.name.charAt(0)}</span>
@@ -91,7 +91,7 @@ export function OwnerDashboardClient({
                       {dog.breed && <p className="text-xs text-gray-400">{dog.breed}</p>}
                     </div>
                   </div>
-                  <form action={deactivateDogAction.bind(null, dog.id)}>
+                  <form action={deactivateDogAction.bind(null, dog.id)} onClick={(e) => e.preventDefault()}>
                     <button
                       type="submit"
                       className="text-xs text-danger hover:underline font-medium"
@@ -99,7 +99,7 @@ export function OwnerDashboardClient({
                       הסר
                     </button>
                   </form>
-                </div>
+                </Link>
 
                 {/* Walkers */}
                 {dog.walkers.length > 0 && (

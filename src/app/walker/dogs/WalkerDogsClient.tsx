@@ -16,7 +16,8 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
   const filtered = assignedDogs.filter(
     (dog) =>
       dog.dogName.includes(searchQuery) ||
-      (dog.dogBreed && dog.dogBreed.includes(searchQuery)),
+      (dog.dogBreed && dog.dogBreed.includes(searchQuery)) ||
+      (dog.ownerName && dog.ownerName.includes(searchQuery)),
   );
 
   return (
@@ -64,13 +65,30 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
                   {dog.dogBreed && (
                     <p className="text-xs text-gray-500 font-medium">{dog.dogBreed}</p>
                   )}
+                  {dog.ownerName && (
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      <span className="material-symbols-rounded text-[12px] align-middle ml-0.5">person</span>
+                      {dog.ownerName}
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="text-left">
-                <p className="font-bold font-numbers text-brand text-sm">
-                  {formatPrice(dog.currentPrice, dog.currency)}
-                </p>
-                <p className="text-[10px] text-gray-400">לטיול</p>
+              <div className="flex items-center gap-3">
+                {dog.ownerPhone && (
+                  <a
+                    href={`tel:${dog.ownerPhone}`}
+                    className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center transition-transform active:scale-95"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="material-symbols-rounded text-lg">call</span>
+                  </a>
+                )}
+                <div className="text-left">
+                  <p className="font-bold font-numbers text-brand text-sm">
+                    {formatPrice(dog.currentPrice, dog.currency)}
+                  </p>
+                  <p className="text-[10px] text-gray-400">לטיול</p>
+                </div>
               </div>
             </div>
           ))

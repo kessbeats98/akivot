@@ -1,0 +1,226 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { format, differenceInYears, differenceInMonths } from "date-fns";
+import { he } from "date-fns/locale";
+import { SlideOver } from "@/components/ui/slide-over";
+import type { DogWithWalkers } from "@/lib/repositories/dogsRepo";
+import type { DogWalkHistoryItem, WalkStatus } from "@/lib/services/walks/types";
+
+interface Props {
+  dog: DogWithWalkers;
+  walkHistory: DogWalkHistoryItem[];
+  updateDogAction: (formData: FormData) => Promise<void>;
+}
+
+const STATUS_BADGE: Record<WalkStatus, { label: string; cls: string }> = {
+  PLANNED: { label: "מתוכנן", cls: "bg-gray-100 text-gray-600" },
+  LIVE: { label: "בטיול", cls: "bg-green-100 text-green-700" },
+  COMPLETED: { label: "הושלם", cls: "bg-brand-light text-brand" },
+  AUTO_CLOSED: { label: "נסגר", cls: "bg-amber-100 text-amber-700" },
+  CANCELLED: { label: "בוטל", cls: "bg-red-100 text-red-600" },
+};
+
+function formatAge(birthDate: string | null): string {
+  if (!birthDate) return "";
+  const bd = new Date(birthDate);
+  const years = differenceInYears(new Date(), bd);
+  if (years >= 1) return `${years} שנים`;
+  const months = differenceInMonths(new Date(), bd);
+  return `${months} חודשים`;
+}
+
+const formatCurrency = (amount: string | null) => {
+  if (!amount) return "";
+  return new Intl.NumberFormat("he-IL", {
+    style: "currency",
+    currency: "ILS",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(amount));
+};
+
+export function DogProfileClient({ dog, walkHistory, updateDogAction }: Props) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const age = formatAge(dog.birthDate);
+
+  return (
+    <div className="animate-in fade-in duration-300 pb-32">
+      {/* Back + Header */}
+      <header className="px-6 pt-6 pb-2">
+        <Link
+          href="/owner/dashboard"
+          className="flex items-center gap-1 text-brand font-medium text-sm mb-4"
+        >
+          <span className="material-symbols-rounded text-lg">arrow_forward</span>
+          חזרה
+        </Link>
+      </header>
+
+      {/* Hero */}
+      <section className="px-6 mb-6">
+        <div className="bg-gradient-to-b from-brand/10 to-transparent rounded-[2rem] p-8 flex flex-col items-center">
+          <div className="w-24 h-24 rounded-full bg-brand-light flex items-center justify-center text-brand shadow-lg border-4 border-white mb-4">
+            {dog.imageUrl ? (
+              <img src={dog.imageUrl} alt={dog.name} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <span className="font-black text-4xl">{dog.name.charAt(0)}</span>
+            )}
+          </div>
+          <h1 className="text-3xl font-black text-dark mb-1">{dog.name}</h1>
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            {dog.breed && <span>{dog.breed}</span>}
+            {dog.breed && age && <span>•</span>}
+            {age && <span>{age}</span>}
+          </div>
+          <button
+            onClick={() => setIsEditOpen(true)}
+            className="mt-4 px-6 py-2 rounded-full bg-white border border-gray-200 text-sm font-bold text-dark shadow-sm transition-transform active:scale-95"
+          >
+            <span className="material-symbols-rounded text-sm align-middle ml-1">edit</span>
+            עריכה
+          </button>
+        </div>
+      </section>
+
+      {/* Notes */}
+      {dog.notes && (
+        <section className="px-6 mb-6">
+          <div className="bg-white rounded-[2rem] p-5 shadow-glass border border-white/60">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-rounded text-brand">description</span>
+              <h3 className="font-bold text-dark">הערות</h3>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{dog.notes}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Walkers */}
+      {dog.walkers.length > 0 && (
+        <section className="px-6 mb-6">
+          <h3 className="font-bold text-lg text-dark mb-3">דוגווקרים</h3>
+          <div className="flex flex-col gap-2">
+            {dog.walkers.map((w) => (
+              <div
+                key={w.dogWalkerId}
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand">
+                  <span className="material-symbols-rounded text-lg">directions_walk</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-dark text-sm">{w.displayName}</p>
+                  <p className="text-[11px] text-gray-400">
+                    {w.isActive ? "פעיל" : "לא פעיל"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Walk History */}
+      <section className="px-6 mb-8">
+        <h3 className="font-bold text-lg text-dark mb-4">היסטוריית טיולים</h3>
+        {walkHistory.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {walkHistory.map((walk) => {
+              const badge = STATUS_BADGE[walk.status];
+              return (
+                <div
+                  key={walk.id}
+                  className="bg-white rounded-[2rem] p-4 shadow-glass border border-white/60"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-dark text-sm">
+                        {format(new Date(walk.startTime), "EEEE, d בMMMM", { locale: he })}
+                      </p>
+                      <p className="text-xs text-gray-400 font-numbers mt-0.5">
+                        {format(new Date(walk.startTime), "HH:mm")}
+                        {walk.endTime && ` — ${format(new Date(walk.endTime), "HH:mm")}`}
+                      </p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.cls}`}>
+                      {badge.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className="material-symbols-rounded text-sm">directions_walk</span>
+                      <span>{walk.walkerName}</span>
+                      {walk.durationMinutes != null && (
+                        <span className="font-numbers">• {walk.durationMinutes} דק'</span>
+                      )}
+                    </div>
+                    {walk.finalPrice && (
+                      <span className="font-bold font-numbers text-brand text-sm">
+                        {formatCurrency(walk.finalPrice)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-brand/5 rounded-[2rem] p-8 flex flex-col items-center gap-2">
+            <span className="material-symbols-rounded text-brand/40 text-3xl">directions_walk</span>
+            <p className="text-gray-500 text-sm">אין טיולים עדיין</p>
+          </div>
+        )}
+      </section>
+
+      {/* Edit SlideOver */}
+      <SlideOver isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="עריכת פרופיל">
+        <form action={updateDogAction} className="flex flex-col gap-5">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-dark px-1">שם הכלב</label>
+            <input
+              name="name"
+              type="text"
+              defaultValue={dog.name}
+              className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:border-brand"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-dark px-1">גזע</label>
+            <input
+              name="breed"
+              type="text"
+              defaultValue={dog.breed ?? ""}
+              className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:border-brand"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-dark px-1">תאריך לידה</label>
+            <input
+              name="birthDate"
+              type="date"
+              defaultValue={dog.birthDate ?? ""}
+              className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:border-brand font-numbers"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-dark px-1">הערות</label>
+            <textarea
+              name="notes"
+              defaultValue={dog.notes ?? ""}
+              className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:border-brand min-h-[100px] resize-none"
+            />
+          </div>
+          <button
+            type="submit"
+            onClick={() => setIsEditOpen(false)}
+            className="w-full bg-brand text-white py-5 rounded-2xl font-black text-xl shadow-glow-brand transition-transform active:scale-95 mt-4"
+          >
+            שמור שינויים
+          </button>
+        </form>
+      </SlideOver>
+    </div>
+  );
+}
