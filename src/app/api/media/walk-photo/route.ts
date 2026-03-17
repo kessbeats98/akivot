@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { head } from "@vercel/blob";
+import { head, get as blobGet } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { getDb } from "@/db/drizzle";
@@ -43,14 +43,13 @@ export async function GET(req: NextRequest) {
 
     const blobMeta = await head(key);
 
-    // head() returns a signed downloadUrl for private blobs
-    const downloadUrl = blobMeta.downloadUrl ?? blobMeta.url;
-    const blobRes = await fetch(downloadUrl);
-    if (!blobRes.ok) {
+    // Use SDK-authenticated get() — handles private blob token auth correctly
+    const blobRes = await blobGet(blobMeta.url, { access: "private", token: process.env.BLOB_READ_WRITE_TOKEN! });
+    if (!blobRes) {
       return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 });
     }
 
-    return new NextResponse(blobRes.body, {
+    return new NextResponse(blobRes.stream, {
       headers: {
         "Content-Type": blobMeta.contentType,
         "Cache-Control": "private, max-age=3600",
