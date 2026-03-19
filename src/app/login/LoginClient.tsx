@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PawPrint, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
+import { signIn } from "@/lib/auth/auth-client";
 
 export function LoginClient() {
   const router = useRouter();
@@ -19,22 +20,20 @@ export function LoginClient() {
     setError(null);
 
     try {
-      const res = await fetch("/api/auth/sign-in/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const { data, error: signInError } = await signIn.email({
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "שגיאה בכניסה. נסה שוב.");
+      if (signInError) {
+        throw new Error(signInError.message || "שגיאה בכניסה. נסה שוב.");
       }
 
-      // Redirect will happen via server-side on refresh
-      // Force a full page reload to let the server handle routing
-      router.refresh();
-      window.location.href = "/login";
+      if (data) {
+        // Force a full page reload to let the server handle routing
+        router.refresh();
+        window.location.href = "/login";
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בכניסה. נסה שוב.");
     } finally {

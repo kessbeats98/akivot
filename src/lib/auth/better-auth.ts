@@ -34,4 +34,10 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "ak",
   },
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://*.vusercontent.net",
+    "https://*.vercel.app",
+    config.app.url,
+  ].filter(Boolean),
 });

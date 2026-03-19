@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PawPrint, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
+import { signUp } from "@/lib/auth/auth-client";
 
 export function RegisterClient() {
   const router = useRouter();
@@ -33,20 +34,20 @@ export function RegisterClient() {
     }
 
     try {
-      const res = await fetch("/api/auth/sign-up/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+      const { data, error: signUpError } = await signUp.email({
+        name,
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "שגיאה בהרשמה. נסה שוב.");
+      if (signUpError) {
+        throw new Error(signUpError.message || "שגיאה בהרשמה. נסה שוב.");
       }
 
-      // Redirect to login after successful registration
-      router.push("/login");
+      if (data) {
+        // Redirect to login after successful registration
+        router.push("/login");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בהרשמה. נסה שוב.");
     } finally {
