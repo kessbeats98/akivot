@@ -1,71 +1,8 @@
-import { getOwnerDogsAction, createDogAction, deactivateDogAction, assignWalkerAction, setPriceAction, getAvailableWalkersAction } from "./actions";
-import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
+import { getOwnerDashboardAction } from "./actions";
+import { OwnerDashboardClient } from "./OwnerDashboardClient";
 
 export default async function OwnerDashboardPage() {
-  const [dogs, availableWalkers] = await Promise.all([getOwnerDogsAction(), getAvailableWalkersAction()]);
+  const data = await getOwnerDashboardAction();
 
-  return (
-    <main className="p-6 max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">My Dogs</h1>
-        <EnableNotificationsButton />
-      </div>
-
-      <ul className="space-y-3">
-        {dogs.map((dog) => (
-          <li key={dog.id} className="border rounded p-4 flex justify-between items-start">
-            <div>
-              <p className="font-medium">{dog.name}</p>
-              {dog.breed && <p className="text-sm text-muted-foreground">{dog.breed}</p>}
-              {dog.walkers.length > 0 && (
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  {dog.walkers.map((walker) => (
-                    <li key={walker.dogWalkerId}>
-                      {walker.displayName}
-                      <form action={setPriceAction.bind(null, walker.dogWalkerId)} className="flex gap-2 mt-1">
-                        <input name="price" placeholder="Price (ILS)" required className="border rounded px-2 py-1 text-sm w-28" />
-                        <button type="submit" className="text-sm border rounded px-3 py-1 hover:bg-accent">Set Price</button>
-                      </form>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <form action={deactivateDogAction.bind(null, dog.id)}>
-                <button type="submit" className="text-sm text-destructive hover:underline">
-                  Deactivate
-                </button>
-              </form>
-              <form action={assignWalkerAction.bind(null, dog.id)} className="flex gap-2">
-                <select name="walkerProfileId" required className="border rounded px-2 py-1 text-sm flex-1">
-                  <option value="">Select walker…</option>
-                  {availableWalkers.map((w) => (
-                    <option key={w.id} value={w.id}>{w.displayName}</option>
-                  ))}
-                </select>
-                <button type="submit" className="text-sm border rounded px-3 py-1 hover:bg-accent">
-                  Assign
-                </button>
-              </form>
-            </div>
-          </li>
-        ))}
-        {dogs.length === 0 && <p className="text-muted-foreground">No dogs yet.</p>}
-      </ul>
-
-      <section>
-        <h2 className="text-lg font-medium mb-2">Add a dog</h2>
-        <form action={createDogAction} className="space-y-2">
-          <input name="name" placeholder="Name *" required className="border rounded px-3 py-2 w-full" />
-          <input name="breed" placeholder="Breed" className="border rounded px-3 py-2 w-full" />
-          <input type="date" name="birthDate" className="border rounded px-3 py-2 w-full" />
-          <input name="notes" placeholder="Notes" className="border rounded px-3 py-2 w-full" />
-          <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded">
-            Add
-          </button>
-        </form>
-      </section>
-    </main>
-  );
+  return <OwnerDashboardClient data={data} />;
 }
