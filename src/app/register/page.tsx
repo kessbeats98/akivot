@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
-import { usersRepo } from "@/lib/repositories/usersRepo";
+import { getCurrentUser } from "@/lib/auth/session";
+import { hasWalkerProfile } from "@/lib/repositories/usersRepo";
 import { RegisterClient } from "./RegisterClient";
 
 export default async function RegisterPage() {
-  const session = await getSession();
+  const user = await getCurrentUser();
 
-  if (session) {
+  if (user) {
     // User already logged in - redirect to appropriate dashboard
-    const hasWalkerProfile = await usersRepo.hasWalkerProfile(session.user.id);
-    if (hasWalkerProfile) {
+    const isWalker = await hasWalkerProfile(user.id);
+    if (isWalker) {
       redirect("/walker/dashboard");
     } else {
       redirect("/owner/dashboard");
