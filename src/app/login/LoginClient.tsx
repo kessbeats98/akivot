@@ -43,7 +43,7 @@ export function LoginClient() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-primary to-primary/80">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-primary to-primary/80 z-50">
       {/* Logo area */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12">
         <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-6">
