@@ -11,10 +11,10 @@ type BottomNavProps = {
 };
 
 const walkerTabs: { key: NavTab; label: string; icon: typeof Home; href: string }[] = [
-  { key: "home", label: "בית", icon: Home, href: "/walker" },
+  { key: "home", label: "בית", icon: Home, href: "/walker/dashboard" },
   { key: "calendar", label: "יומן", icon: Calendar, href: "/walker/calendar" },
   { key: "dogs", label: "כלבים", icon: Dog, href: "/walker/dogs" },
-  { key: "finance", label: "כספים", icon: Wallet, href: "/walker/billing" },
+  { key: "finance", label: "כספים", icon: Wallet, href: "/walker/finance" },
 ];
 
 const ownerTabs: { key: NavTab; label: string; icon: typeof Home; href: string }[] = [
