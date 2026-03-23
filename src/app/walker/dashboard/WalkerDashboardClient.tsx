@@ -271,6 +271,7 @@ export function WalkerDashboardClient({
           await seedTestScenarioAction();
           router.refresh();
         }}
+        onRefresh={() => router.refresh()}
       />
 
       {/* Start Walk SlideOver */}
