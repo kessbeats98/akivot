@@ -81,33 +81,42 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
   if (liveWalk) throw new Error("Walk already active");
 
   return db.transaction(async (tx) => {
-    const result = await tx
-      .insert(walks)
-      .values({
-        dogId: input.dogId,
-        walkerProfileId,
-        dogWalkerId: dw.id,
-        status: "LIVE",
-        startTime: now,
-        statusUpdatedAt: now,
-        createdByUserId: walkerUserId,
-        updatedByUserId: walkerUserId,
-        updatedAt: now,
-      })
-      .returning({ id: walks.id });
-    const inserted = result[0];
-    if (!inserted) throw new Error("Insert failed");
+    let insertedId: string;
+    try {
+      const result = await tx
+        .insert(walks)
+        .values({
+          dogId: input.dogId,
+          walkerProfileId,
+          dogWalkerId: dw.id,
+          status: "LIVE",
+          startTime: now,
+          statusUpdatedAt: now,
+          createdByUserId: walkerUserId,
+          updatedByUserId: walkerUserId,
+          updatedAt: now,
+        })
+        .returning({ id: walks.id });
+      const inserted = result[0];
+      if (!inserted) throw new Error("Insert failed");
+      insertedId = inserted.id;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes("walks_live_unique_idx")) {
+        throw new Error("Walk already active");
+      }
+      throw err;
+    }
 
     await logAudit({
       tx,
       actorUserId: walkerUserId,
       entityType: "WALK",
-      entityId: inserted.id,
+      entityId: insertedId,
       action: "START_WALK",
       afterJson: { dogId: input.dogId, walkerProfileId, status: "LIVE" },
     });
 
-    return inserted.id;
+    return insertedId;
   });
 }
 
