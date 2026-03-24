@@ -1,0 +1,45 @@
+{
+  "name": "edge-auto-close",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "edge",
+    "lifecycle"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "seed"
+    },
+    {
+      "action": "start-walk-full"
+    }
+  ],
+  "steps": [
+    {
+      "action": "force-auto-close",
+      "note": "Use debug test mode to force auto-close the walk in DB"
+    },
+    {
+      "action": "navigate-away-and-back",
+      "note": "Trigger real navigation lifecycle — server re-fetch detects non-LIVE"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "redirected to dashboard",
+      "type": "url-includes",
+      "value": "/walker/dashboard"
+    },
+    {
+      "name": "start-walk visible (idle state)",
+      "type": "testid-visible",
+      "value": "start-walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}
