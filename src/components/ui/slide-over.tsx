@@ -34,7 +34,7 @@ export function SlideOver({ isOpen, onClose, title, children }: SlideOverProps) 
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
@@ -45,7 +45,7 @@ export function SlideOver({ isOpen, onClose, title, children }: SlideOverProps) 
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed inset-x-0 bottom-0 max-w-md mx-auto bg-surface rounded-t-[2.5rem] shadow-2xl z-50 overflow-hidden flex flex-col max-h-[90vh] transition-transform duration-300 ease-out ${
+        className={`fixed inset-x-0 bottom-0 max-w-md mx-auto bg-surface rounded-t-[2.5rem] shadow-2xl z-[60] overflow-hidden flex flex-col max-h-[90vh] transition-transform duration-300 ease-out ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >

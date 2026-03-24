@@ -7,6 +7,7 @@ import { getActionError } from "@/lib/action-utils";
 import { checkWalkStatusAction } from "./actions";
 import { useDebugMode } from "@/lib/hooks/useDebugMode";
 import { DebugPanel } from "@/components/DebugPanel";
+import { resetTestDataAction } from "@/app/dev/actions";
 
 interface Props {
   walkId: string;
@@ -36,6 +37,17 @@ export function WalkerLiveClient({ walkId, dogName, startTime, endWalkAction }: 
   const [isOffline, setIsOffline] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const debug = useDebugMode();
+
+  // Register __akivotReset so test cleanup works from the live page
+  useEffect(() => {
+    if (!debug.enabled) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__akivotReset = async () => {
+      await resetTestDataAction();
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return () => { delete (window as any).__akivotReset; };
+  }, [debug.enabled]);
 
   // Online/offline detection
   useEffect(() => {
@@ -234,6 +246,7 @@ export function WalkerLiveClient({ walkId, dogName, startTime, endWalkAction }: 
           </div>
 
           <button
+            data-testid="end-walk"
             onClick={() => setIsFinishOpen(true)}
             disabled={isEnding}
             className="w-full border-none rounded-2xl py-4 font-bold text-[17px] cursor-pointer flex items-center justify-center gap-2.5 transition-transform active:scale-[0.98] bg-amber text-white relative z-10 disabled:opacity-50"
@@ -359,6 +372,7 @@ export function WalkerLiveClient({ walkId, dogName, startTime, endWalkAction }: 
           )}
 
           <button
+            data-testid="end-walk-confirm"
             onClick={handleFinishWalk}
             disabled={isEnding}
             className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-[17px] text-center shadow-glow-brand transition-transform active:scale-[0.98] disabled:opacity-50"
