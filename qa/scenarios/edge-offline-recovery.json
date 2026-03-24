@@ -1,0 +1,55 @@
+{
+  "name": "edge-offline-recovery",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "edge",
+    "offline"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "seed"
+    }
+  ],
+  "steps": [
+    {
+      "action": "force-offline-on",
+      "note": "Enable force-offline via debug panel"
+    },
+    {
+      "action": "attempt-start-walk",
+      "note": "Try to start walk while offline — should fail"
+    },
+    {
+      "action": "force-offline-off",
+      "note": "Disable force-offline"
+    },
+    {
+      "action": "retry-start-walk",
+      "note": "Retry via still-open SlideOver — should succeed"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "lands on live page",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "no error after recovery",
+      "type": "no-error-banner",
+      "value": ""
+    },
+    {
+      "name": "end-walk available",
+      "type": "testid-visible",
+      "value": "end-walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

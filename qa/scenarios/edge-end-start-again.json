@@ -1,0 +1,54 @@
+{
+  "name": "edge-end-start-again",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "edge",
+    "lifecycle"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "seed"
+    },
+    {
+      "action": "start-walk-full"
+    }
+  ],
+  "steps": [
+    {
+      "action": "end-walk",
+      "note": "End first walk"
+    },
+    {
+      "action": "assert-idle",
+      "note": "Verify dashboard returns to idle state"
+    },
+    {
+      "action": "start-walk-full",
+      "note": "Start second walk immediately"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "second walk on live page",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "timer visible",
+      "type": "text-visible",
+      "value": "בהליכה עכשיו"
+    },
+    {
+      "name": "end-walk available",
+      "type": "testid-visible",
+      "value": "end-walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

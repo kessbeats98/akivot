@@ -1,16 +1,25 @@
 "use client";
 
+import { Bell, BellOff } from "lucide-react";
 import { useFcmToken } from "@/lib/hooks/useFcmToken";
 
 export function EnableNotificationsButton() {
   const { supported, permissionState, requestPermission } = useFcmToken();
 
-  if (!supported || permissionState === "granted" || permissionState === "loading") return null;
+  if (!supported || permissionState === "loading") return null;
+
+  if (permissionState === "granted") {
+    return (
+      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2A9D8F]/10">
+        <Bell size={20} className="text-[#2A9D8F]" />
+      </div>
+    );
+  }
 
   if (permissionState === "denied") {
     return (
-      <div className="text-xs text-neutral-500 italic px-4 py-2 border border-transparent">
-        Notifications blocked in browser
+      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-neutral-100">
+        <BellOff size={20} className="text-neutral-400" />
       </div>
     );
   }
@@ -18,10 +27,11 @@ export function EnableNotificationsButton() {
   return (
     <button
       onClick={requestPermission}
-      className="border border-neutral-200 dark:border-neutral-800 rounded px-4 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+      className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2A9D8F]/10 hover:bg-[#2A9D8F]/20 transition-colors"
       type="button"
+      aria-label="הפעל התראות"
     >
-      Enable Notifications
+      <Bell size={20} className="text-[#2A9D8F]" />
     </button>
   );
 }

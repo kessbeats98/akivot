@@ -1,10 +1,10 @@
-import { eq, and, isNull, lte } from "drizzle-orm";
+import { eq, and, isNull, lte, gte, asc, desc } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
-import { walks, dogWalkers, walkerProfiles, dogs } from "@/db/schema";
+import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users } from "@/db/schema";
 import { config } from "@/lib/config";
 import { logAudit } from "@/lib/repositories/auditRepo";
 import type { AssignWalkerInput, StartWalkInput, EndWalkInput } from "@/lib/validation/walks";
-import type { WalkWithDog, AssignedDog } from "@/lib/services/walks/types";
+import type { WalkWithDog, AssignedDog, CalendarWalk, OwnerCalendarWalk } from "@/lib/services/walks/types";
 
 // Private helper — walker-side functions only
 async function getWalkerProfileIdByUserId(userId: string): Promise<string> {
@@ -81,33 +81,42 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
   if (liveWalk) throw new Error("Walk already active");
 
   return db.transaction(async (tx) => {
-    const result = await tx
-      .insert(walks)
-      .values({
-        dogId: input.dogId,
-        walkerProfileId,
-        dogWalkerId: dw.id,
-        status: "LIVE",
-        startTime: now,
-        statusUpdatedAt: now,
-        createdByUserId: walkerUserId,
-        updatedByUserId: walkerUserId,
-        updatedAt: now,
-      })
-      .returning({ id: walks.id });
-    const inserted = result[0];
-    if (!inserted) throw new Error("Insert failed");
+    let insertedId: string;
+    try {
+      const result = await tx
+        .insert(walks)
+        .values({
+          dogId: input.dogId,
+          walkerProfileId,
+          dogWalkerId: dw.id,
+          status: "LIVE",
+          startTime: now,
+          statusUpdatedAt: now,
+          createdByUserId: walkerUserId,
+          updatedByUserId: walkerUserId,
+          updatedAt: now,
+        })
+        .returning({ id: walks.id });
+      const inserted = result[0];
+      if (!inserted) throw new Error("Insert failed");
+      insertedId = inserted.id;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes("walks_live_unique_idx")) {
+        throw new Error("Walk already active");
+      }
+      throw err;
+    }
 
     await logAudit({
       tx,
       actorUserId: walkerUserId,
       entityType: "WALK",
-      entityId: inserted.id,
+      entityId: insertedId,
       action: "START_WALK",
       afterJson: { dogId: input.dogId, walkerProfileId, status: "LIVE" },
     });
 
-    return inserted.id;
+    return insertedId;
   });
 }
 
@@ -204,9 +213,13 @@ export async function getAssignedDogsByWalker(walkerUserId: string): Promise<Ass
       currency: dogWalkers.currency,
       dogName: dogs.name,
       dogBreed: dogs.breed,
+      ownerName: users.name,
+      ownerPhone: users.phone,
     })
     .from(dogWalkers)
     .innerJoin(dogs, eq(dogs.id, dogWalkers.dogId))
+    .leftJoin(dogOwners, and(eq(dogOwners.dogId, dogs.id), eq(dogOwners.isPrimary, true)))
+    .leftJoin(users, eq(users.id, dogOwners.ownerUserId))
     .where(and(
       eq(dogWalkers.walkerProfileId, walkerProfileId),
       eq(dogWalkers.isActive, true),
@@ -263,4 +276,69 @@ export async function autoCloseWalks(): Promise<number> {
   }
 
   return stale.length;
+}
+
+/** Walks for a walker within a date range (calendar view). */
+export async function getWalksByDateRange(
+  walkerUserId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<CalendarWalk[]> {
+  const db = getDb();
+  const walkerProfileId = await getWalkerProfileIdByUserId(walkerUserId);
+
+  const rows = await db
+    .select({
+      id: walks.id,
+      dogName: dogs.name,
+      dogBreed: dogs.breed,
+      status: walks.status,
+      startTime: walks.startTime,
+      endTime: walks.endTime,
+      durationMinutes: walks.durationMinutes,
+    })
+    .from(walks)
+    .innerJoin(dogs, eq(dogs.id, walks.dogId))
+    .where(and(
+      eq(walks.walkerProfileId, walkerProfileId),
+      gte(walks.startTime, startDate),
+      lte(walks.startTime, endDate),
+      isNull(walks.deletedAt),
+    ))
+    .orderBy(asc(walks.startTime));
+
+  return rows.map((r) => ({ ...r }));
+}
+
+/** Walks for an owner within a date range (owner calendar view). */
+export async function getWalksByOwner(
+  ownerUserId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<OwnerCalendarWalk[]> {
+  const db = getDb();
+
+  const rows = await db
+    .select({
+      id: walks.id,
+      dogName: dogs.name,
+      dogBreed: dogs.breed,
+      status: walks.status,
+      startTime: walks.startTime,
+      endTime: walks.endTime,
+      durationMinutes: walks.durationMinutes,
+      walkerName: walkerProfiles.displayName,
+    })
+    .from(walks)
+    .innerJoin(dogs, eq(dogs.id, walks.dogId))
+    .innerJoin(dogOwners, and(eq(dogOwners.dogId, dogs.id), eq(dogOwners.ownerUserId, ownerUserId)))
+    .innerJoin(walkerProfiles, eq(walkerProfiles.id, walks.walkerProfileId))
+    .where(and(
+      gte(walks.startTime, startDate),
+      lte(walks.startTime, endDate),
+      isNull(walks.deletedAt),
+    ))
+    .orderBy(asc(walks.startTime));
+
+  return rows.map((r) => ({ ...r }));
 }
