@@ -140,6 +140,43 @@ DROP INDEX IF EXISTS "payment_periods_open_unique_idx";
 
 ---
 
+## QA Smoke Gate
+
+**Purpose:** Automated release gate. Must pass before merge to `main` or production deploy.
+
+### Run
+
+```bash
+QA_EMAIL=<qa-user> QA_PASSWORD=<qa-password> npm run qa:smoke
+```
+
+Requires: dev server running (`npm run dev`), Chromium installed (`npx playwright install chromium`).
+
+### Pass criteria
+
+- **100% pass** — all smoke scenarios green, non-zero exit blocks merge/deploy.
+- **No routine DB cleanup** — every test must self-clean via `__akivotReset` debug hooks. Manual DB fixes = test infrastructure bug, not acceptable workaround.
+- **Debug hooks are debug-only** — `__akivotReset`/`__akivotSeed` guarded by `useDebugMode` (client) + `assertDev()` / `NODE_ENV !== "production"` (server). Must never be reachable in production.
+- **Idempotent** — consecutive runs must pass without intervention. Back-to-back execution is the bar.
+
+### When to run
+
+| Event | Required? |
+|---|---|
+| Before merge to `main` | Yes |
+| Before production deploy | Yes |
+| After schema migration | Yes |
+| After UI component changes | Recommended |
+
+### QA user setup
+
+Dedicated user created via Better Auth sign-up API, then DB-patched:
+- `email_verified = true`
+- Walker profile attached
+- Credentials stored locally (never committed)
+
+---
+
 ## V2 / Carry-Forward Backlog (non-blocking)
 
 From verify-security (TASK-06a, 2026-03-10):

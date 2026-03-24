@@ -8,7 +8,8 @@
     "postbuild": "npm run build:sw",
     "build:sw": "node scripts/build-sw.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "qa:smoke": "npx playwright test --grep smoke --reporter=list"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
