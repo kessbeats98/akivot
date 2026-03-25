@@ -8,7 +8,7 @@ import type { AssignedDog } from "@/lib/services/walks/types";
 import { getActionError } from "@/lib/action-utils";
 import { useDebugMode } from "@/lib/hooks/useDebugMode";
 import { DebugPanel } from "@/components/DebugPanel";
-import { seedTestScenarioAction } from "@/app/dev/actions";
+import { seedTestScenarioAction, resetTestDataAction } from "@/app/dev/actions";
 
 interface Props {
   userName: string;
@@ -51,7 +51,12 @@ export function WalkerDashboardClient({
       return result;
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return () => { delete (window as any).__akivotSeed; };
+    (window as any).__akivotReset = async () => {
+      await resetTestDataAction();
+      router.refresh();
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return () => { delete (window as any).__akivotSeed; delete (window as any).__akivotReset; };
   }, [debug.enabled, router]);
 
   // Online/offline detection
@@ -157,7 +162,7 @@ export function WalkerDashboardClient({
             <div className="text-sm text-muted-color">אין הליכה פעילה כרגע</div>
           </div>
         ) : (
-          <div className="text-center py-5">
+          <div data-testid="empty-state" className="text-center py-5">
             <div className="text-[44px] mb-2.5">🐾</div>
             <div className="text-xl font-bold text-dark mb-1">ברוך הבא</div>
             <div className="text-sm text-muted-color">אין כלבים משויכים כרגע</div>
@@ -197,6 +202,7 @@ export function WalkerDashboardClient({
 
             {/* Start Walk button */}
             <button
+              data-testid="start-walk"
               onClick={() => {
                 setIsStartWalkOpen(true);
                 setError(null);
@@ -332,6 +338,7 @@ export function WalkerDashboardClient({
           </div>
 
           <button
+            data-testid="start-walk-confirm"
             onClick={handleStartWalk}
             disabled={selectedDogs.length === 0 || isStarting}
             className={`w-full py-4 rounded-2xl font-bold text-[17px] text-center transition-all flex items-center justify-center gap-2.5 ${

@@ -8,6 +8,11 @@ import {
   setTestPriceAction,
   resetTestDataAction,
   listOwnedDogsAction,
+  startTestWalkAction,
+  endTestWalkAction,
+  forceAutoCloseWalkAction,
+  listActiveWalksAction,
+  forceErrorAction,
 } from "@/app/dev/actions";
 
 interface Props {
@@ -76,7 +81,7 @@ export function DebugPanel({ debug, info, onSeed, onRefresh }: Props) {
         <button onClick={() => debug.addTimeOffset(60)} style={btnStyle}>
           +60 min
         </button>
-        <button onClick={() => debug.toggleForceOffline()} style={btnStyle}>
+        <button data-testid="debug-force-offline" onClick={() => debug.toggleForceOffline()} style={btnStyle}>
           {debug.forceOffline ? "Offline: ON" : "Offline: OFF"}
         </button>
         <button
@@ -91,6 +96,7 @@ export function DebugPanel({ debug, info, onSeed, onRefresh }: Props) {
         </button>
         {onSeed && (
           <button
+            data-testid="debug-seed"
             onClick={handleSeed}
             disabled={seedState === "loading"}
             style={{ ...btnStyle, color: seedState === "done" ? "#4ade80" : "#60a5fa" }}
@@ -101,6 +107,7 @@ export function DebugPanel({ debug, info, onSeed, onRefresh }: Props) {
 
         {/* Test Mode toggle */}
         <button
+          data-testid="debug-test-mode"
           onClick={() => setTestOpen((p) => !p)}
           style={{ ...btnStyle, color: "#fbbf24", borderColor: "#fbbf24" }}
         >
@@ -133,6 +140,20 @@ function TestModePanel({ onRefresh }: { onRefresh?: () => void }) {
   const [selectedDog, setSelectedDog] = useState("");
   const [price, setPrice] = useState("50");
 
+  interface ActiveWalk { walkId: string; dogId: string; dogName: string; startTime: string }
+  const [activeWalks, setActiveWalks] = useState<ActiveWalk[]>([]);
+  const [now, setNow] = useState(Date.now());
+  const [simOffline, setSimOffline] = useState(false);
+  const [simSlow, setSimSlow] = useState(false);
+
+  const refreshWalks = async () => {
+    try {
+      setActiveWalks(await listActiveWalksAction());
+    } catch (err) {
+      console.error("[test-mode] listActiveWalks failed:", err);
+    }
+  };
+
   const refreshDogs = async () => {
     try {
       const dogs = await listOwnedDogsAction();
@@ -143,20 +164,31 @@ function TestModePanel({ onRefresh }: { onRefresh?: () => void }) {
     }
   };
 
-  // Load dogs on mount
+  // Load dogs + walks on mount
   useEffect(() => {
     refreshDogs();
+    refreshWalks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Tick timer for elapsed display
+  useEffect(() => {
+    if (activeWalks.length === 0) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [activeWalks.length]);
 
   const run = async (label: string, fn: () => Promise<void>) => {
     if (loading) return;
     setLoading(true);
     setStatus(`${label}...`);
     try {
+      if (simOffline) throw new Error("Simulated offline — no network");
+      if (simSlow) await new Promise((r) => setTimeout(r, 1500));
       await fn();
       setStatus(`${label} OK`);
       await refreshDogs();
+      await refreshWalks();
       onRefresh?.();
     } catch (err) {
       setStatus(`ERR: ${err instanceof Error ? err.message : String(err)}`);
@@ -166,6 +198,12 @@ function TestModePanel({ onRefresh }: { onRefresh?: () => void }) {
   };
 
   const currentDog = ownedDogs.find((d) => d.dogId === selectedDog);
+  const activeDogIds = new Set(activeWalks.map((w) => w.dogId));
+
+  const elapsed = (iso: string) => {
+    const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
+    return `${Math.floor(s / 60)}m ${s % 60}s`;
+  };
 
   return (
     <div style={{ borderTop: "1px solid #fbbf24", paddingTop: 6, marginTop: 2 }}>
@@ -263,8 +301,82 @@ function TestModePanel({ onRefresh }: { onRefresh?: () => void }) {
         </div>
       )}
 
-      {/* 4. Reset all test data */}
+      {/* 4. Start Walk */}
+      {currentDog?.walkerId && !activeDogIds.has(currentDog.dogId) && (
+        <button
+          onClick={() =>
+            run("Start walk", async () => {
+              await startTestWalkAction(selectedDog);
+            })
+          }
+          disabled={loading}
+          style={{ ...btnStyle, color: "#34d399", borderColor: "#34d399", marginBottom: 4, width: "100%" }}
+        >
+          Start Walk ({currentDog.dogName})
+        </button>
+      )}
+
+      {/* 5. Active Walks */}
+      {activeWalks.length > 0 && (
+        <div style={{ marginBottom: 6 }}>
+          <div style={labelStyle}>Active Walks</div>
+          {activeWalks.map((w) => (
+            <div key={w.walkId} style={{ marginBottom: 4 }}>
+              <div>
+                <span style={{ color: "#34d399" }}>{w.dogName}</span>{" "}
+                <span style={{ color: "#888" }}>{elapsed(w.startTime)}</span>
+              </div>
+              <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+                <button
+                  onClick={() => run("End walk", async () => { await endTestWalkAction(w.walkId); })}
+                  disabled={loading}
+                  style={{ ...btnStyle, flex: 1 }}
+                >
+                  End Walk
+                </button>
+                <button
+                  onClick={() => run("Auto-close", async () => { await forceAutoCloseWalkAction(w.walkId); })}
+                  disabled={loading}
+                  style={{ ...btnStyle, flex: 1, color: "#fb923c", borderColor: "#fb923c" }}
+                >
+                  Force Auto-Close
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 6. Failure simulation */}
+      <div style={{ borderTop: "1px solid #555", paddingTop: 4, marginTop: 4, marginBottom: 4 }}>
+        <div style={labelStyle}>Failure Simulation</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <button
+            data-testid="debug-sim-offline"
+            onClick={() => setSimOffline((p) => !p)}
+            style={{ ...btnStyle, color: simOffline ? "#f87171" : "#e5e5e5" }}
+          >
+            {simOffline ? "Sim Offline: ON" : "Sim Offline: OFF"}
+          </button>
+          <button
+            onClick={() => setSimSlow((p) => !p)}
+            style={{ ...btnStyle, color: simSlow ? "#fbbf24" : "#e5e5e5" }}
+          >
+            {simSlow ? "Sim Slow: ON (1.5s)" : "Sim Slow: OFF"}
+          </button>
+          <button
+            onClick={() => run("Force error", async () => { await forceErrorAction(); })}
+            disabled={loading}
+            style={{ ...btnStyle, color: "#f87171" }}
+          >
+            Force Error
+          </button>
+        </div>
+      </div>
+
+      {/* 7. Reset all test data */}
       <button
+        data-testid="debug-reset"
         onClick={() =>
           run("Reset", async () => {
             const { deleted } = await resetTestDataAction();
@@ -275,6 +387,7 @@ function TestModePanel({ onRefresh }: { onRefresh?: () => void }) {
             setStatus(`Reset OK — ${summary || "nothing to delete"}`);
             setOwnedDogs([]);
             setSelectedDog("");
+            setActiveWalks([]);
           })
         }
         disabled={loading}
