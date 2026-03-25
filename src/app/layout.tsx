@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo, Plus_Jakarta_Sans } from "next/font/google";
+import { Heebo, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegistration } from "@/components/shared/ServiceWorkerRegistration";
 
@@ -13,13 +13,19 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-jetbrains",
+});
+
 export const metadata: Metadata = {
   title: "עקבות — Akivot",
   description: "ניהול טיולי כלבים לדוגווקרים ובעלי כלבים",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#14746F",
+  themeColor: "#16a34a",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -31,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} ${jakarta.variable}`}>
+    <html lang="he" dir="rtl" className={`${heebo.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link
