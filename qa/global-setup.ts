@@ -20,8 +20,14 @@ export default async function globalSetup(_config: FullConfig) {
 
   // Sign in via Better Auth API
   const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
+  const bypassToken = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  const baseHeaders: Record<string, string> = bypassToken
+    ? { "x-vercel-protection-bypass": bypassToken }
+    : {};
+
   const res = await page.request.post(`${baseUrl}/api/auth/sign-in/email`, {
     data: { email, password },
+    headers: baseHeaders,
   });
 
   if (!res.ok()) {
@@ -33,7 +39,7 @@ export default async function globalSetup(_config: FullConfig) {
   await context.storageState({ path: STATE_PATH });
 
   // Seed test data via API (context still holds session cookies)
-  const seedHeaders: Record<string, string> = {};
+  const seedHeaders: Record<string, string> = { ...baseHeaders };
   if (process.env.QA_SEED_SECRET) {
     seedHeaders["x-qa-seed-secret"] = process.env.QA_SEED_SECRET;
   }

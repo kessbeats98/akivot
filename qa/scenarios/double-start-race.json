@@ -1,0 +1,41 @@
+{
+  "name": "double-start-race",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "full",
+    "edge"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "steps": [
+    {
+      "action": "dblclick",
+      "ref": "start-walk-button"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "single live session only",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "no duplicate success banner",
+      "type": "text-not-visible",
+      "value": "2 active walks"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

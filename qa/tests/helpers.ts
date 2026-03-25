@@ -68,6 +68,7 @@ export async function assertErrorVisible(page: Page, text: string) {
 /** Navigate to walker dashboard, wait for page to load */
 export async function gotoDashboard(page: Page) {
   await page.goto("/walker/dashboard", { timeout: T.nav });
+  await page.waitForLoadState("networkidle", { timeout: T.nav });
   await assertUrl(page, "/walker/dashboard");
 }
 
@@ -81,13 +82,18 @@ export async function waitForDebugPanel(_page: Page) {
 // ---------------------------------------------------------------------------
 
 function qaHeaders(): Record<string, string> {
-  const secret = process.env.QA_SEED_SECRET;
-  return secret ? { "x-qa-seed-secret": secret } : {};
+  const headers: Record<string, string> = {};
+  if (process.env.QA_SEED_SECRET) headers["x-qa-seed-secret"] = process.env.QA_SEED_SECRET;
+  if (process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
+    headers["x-vercel-protection-bypass"] = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  }
+  return headers;
 }
 
 /** Reload dashboard and verify seeded state (data seeded in globalSetup) */
 export async function seedAndReload(page: Page) {
   await page.goto("/walker/dashboard", { timeout: T.nav });
+  await page.waitForLoadState("networkidle", { timeout: T.nav });
   await assertUrl(page, "/walker/dashboard");
   // After seed: start-walk button must exist (dog was assigned)
   await expect(

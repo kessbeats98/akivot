@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const isRemote = !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(BASE_URL);
+const bypassToken = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
 export default defineConfig({
   testDir: "qa/tests",
@@ -24,6 +25,9 @@ export default defineConfig({
     screenshot: "only-on-failure",
     actionTimeout: 5_000,
     navigationTimeout: 15_000,
+    ...(bypassToken
+      ? { extraHTTPHeaders: { "x-vercel-protection-bypass": bypassToken } }
+      : {}),
   },
   projects: [
     {

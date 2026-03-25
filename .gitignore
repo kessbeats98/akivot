@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+qa/.auth/
+qa/.env.qa
+qa/.qa-creds.tmp
+qa/results.json
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
