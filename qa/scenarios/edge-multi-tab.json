@@ -1,0 +1,47 @@
+{
+  "name": "edge-multi-tab",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "edge",
+    "consistency"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "seed"
+    },
+    {
+      "action": "start-walk-full"
+    }
+  ],
+  "steps": [
+    {
+      "action": "open-second-tab",
+      "value": "/walker/dashboard",
+      "note": "Second tab with same auth — should redirect to live"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "tab B redirected to live",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "tab B shows live indicator",
+      "type": "text-visible",
+      "value": "בהליכה עכשיו"
+    },
+    {
+      "name": "tab B has end-walk",
+      "type": "testid-visible",
+      "value": "end-walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

@@ -16,5 +16,13 @@ export const deactivateDogSchema = z.object({
   dogId: z.string().uuid(),
 });
 
+export const updateDogSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  breed: z.string().max(100).optional(),
+  birthDate: isoDate,
+  notes: z.string().max(1000).optional(),
+});
+
 export type CreateDogInput = z.infer<typeof createDogSchema>;
 export type DeactivateDogInput = z.infer<typeof deactivateDogSchema>;
+export type UpdateDogInput = z.infer<typeof updateDogSchema>;

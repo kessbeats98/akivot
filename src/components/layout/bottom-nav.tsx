@@ -1,34 +1,52 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, PawPrint, CreditCard } from "lucide-react";
 
-const tabs = [
-  { label: "דשבורד", icon: LayoutDashboard, href: "/walker/dashboard" },
-  { label: "יומן", icon: Calendar, href: "/walker/calendar" },
-  { label: "כלבים", icon: PawPrint, href: "/walker/dogs" },
-  { label: "תשלומים", icon: CreditCard, href: "/walker/billing" },
+const navItems = [
+  { path: "/walker/dashboard", icon: "home", label: "בית" },
+  { path: "/walker/calendar", icon: "calendar_month", label: "יומן" },
+  { path: "/walker/dogs", icon: "pets", label: "כלבים" },
+  { path: "/walker/billing", icon: "account_balance_wallet", label: "כספים", badge: true },
 ];
+
+/** Hide during live walk (full-screen experience) */
+const HIDDEN_PATHS = ["/walker/live"];
 
 export function BottomNav() {
   const pathname = usePathname();
+
+  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null;
+
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-xl border-t border-[#2A9D8F]/10 px-4 pb-8 pt-4 flex items-center justify-around z-50">
-      {tabs.map(({ label, icon: Icon, href }) => {
-        const active = pathname === href;
-        return (
-          <a
-            key={href}
-            href={href}
-            className={`flex flex-col items-center gap-0.5 text-xs min-w-[44px] ${
-              active ? "text-[#2A9D8F] font-bold" : "text-[#9CA3AF]"
-            }`}
-          >
-            <Icon size={22} />
-            {label}
-          </a>
-        );
-      })}
-    </nav>
+    <div className="fixed bottom-6 left-0 right-0 px-6 z-50 flex justify-center">
+      <nav className="bg-dark/90 backdrop-blur-xl rounded-organic p-2 flex items-center gap-2 shadow-2xl border border-white/10">
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`relative ${
+                isActive
+                  ? "bg-white/10 text-white px-5 py-3 rounded-full flex items-center gap-2 transition-all"
+                  : "text-white/50 px-4 py-3 rounded-full transition-colors hover:text-white/70"
+              }`}
+            >
+              <span
+                className="material-symbols-rounded text-xl"
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              >
+                {item.icon}
+              </span>
+              {isActive && <span className="text-sm font-bold">{item.label}</span>}
+              {item.badge && !isActive && (
+                <span className="absolute top-3 right-3 w-2 h-2 bg-accent rounded-full" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }

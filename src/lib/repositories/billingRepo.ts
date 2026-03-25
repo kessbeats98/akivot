@@ -3,7 +3,7 @@ import { getDb } from "@/db/drizzle";
 import { paymentPeriods, paymentEntries, walks, dogWalkers, walkerProfiles, dogs, dogOwners } from "@/db/schema";
 import { logAudit } from "@/lib/repositories/auditRepo";
 import type { ClosePeriodInput } from "@/lib/validation/billing";
-import type { PaymentPeriodWithEntries } from "@/lib/services/billing/types";
+import type { PaymentPeriodWithEntries, OwnerPaymentPeriod, OwnerPaymentEntry } from "@/lib/services/billing/types";
 
 export async function assertPeriodOwnership(periodId: string, ownerUserId: string): Promise<void> {
   const db = getDb();
@@ -187,6 +187,78 @@ export async function getPeriodsByOwner(ownerUserId: string): Promise<PaymentPer
         entryType: e.entryType as "WALK" | "ADJUSTMENT",
         createdAt: e.createdAt,
       })),
+  }));
+}
+
+// Pure read — no inserts, no updates. Orphaned walkId entries (walk deleted) get null walk fields.
+export async function getOwnerPaymentPeriodsEnriched(ownerUserId: string): Promise<OwnerPaymentPeriod[]> {
+  const db = getDb();
+
+  // 1. All periods for owner
+  const periods = await db
+    .select()
+    .from(paymentPeriods)
+    .where(eq(paymentPeriods.ownerUserId, ownerUserId))
+    .orderBy(paymentPeriods.createdAt);
+  if (periods.length === 0) return [];
+
+  // 2. Walker display names
+  const walkerIds = [...new Set(periods.map((p) => p.walkerProfileId))];
+  const walkerRows = await db
+    .select({ id: walkerProfiles.id, displayName: walkerProfiles.displayName })
+    .from(walkerProfiles)
+    .where(inArray(walkerProfiles.id, walkerIds));
+  const walkerMap = new Map(walkerRows.map((w) => [w.id, w.displayName]));
+
+  // 3. All entries for these periods
+  const periodIds = periods.map((p) => p.id);
+  const entries = await db
+    .select()
+    .from(paymentEntries)
+    .where(inArray(paymentEntries.paymentPeriodId, periodIds));
+
+  // 4. Enrich WALK entries — join walks + dogs
+  const walkIds = entries.map((e) => e.walkId).filter((id): id is string => id !== null);
+  type WalkRow = { id: string; startTime: Date; status: string; dogName: string };
+  let walkMap = new Map<string, WalkRow>();
+  if (walkIds.length > 0) {
+    const walkRows = await db
+      .select({
+        id: walks.id,
+        startTime: walks.startTime,
+        status: walks.status,
+        dogName: dogs.name,
+      })
+      .from(walks)
+      .innerJoin(dogs, eq(walks.dogId, dogs.id))
+      .where(inArray(walks.id, walkIds));
+    walkMap = new Map(walkRows.map((w) => [w.id, w]));
+  }
+
+  // 5. Merge
+  return periods.map((p): OwnerPaymentPeriod => ({
+    id: p.id,
+    status: p.status as OwnerPaymentPeriod["status"],
+    totalAmount: p.totalAmount,
+    lockVersion: p.lockVersion,
+    paidAt: p.paidAt,
+    createdAt: p.createdAt,
+    walkerDisplayName: walkerMap.get(p.walkerProfileId) ?? "מטייל לא ידוע",
+    entries: entries
+      .filter((e) => e.paymentPeriodId === p.id)
+      .map((e): OwnerPaymentEntry => {
+        const walk = e.walkId ? walkMap.get(e.walkId) : undefined;
+        return {
+          id: e.id,
+          entryType: e.entryType as OwnerPaymentEntry["entryType"],
+          amount: e.amount,
+          createdAt: e.createdAt,
+          walkId: e.walkId,
+          dogName: walk?.dogName ?? null,
+          walkDate: walk?.startTime ?? null,
+          walkStatus: walk?.status ?? null,
+        };
+      }),
   }));
 }
 

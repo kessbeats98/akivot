@@ -1,8 +1,8 @@
 # Project State — Akivot
 
-Updated: 2026-03-13
-Phase: Feature Build
-Version: TASK-12-done
+Updated: 2026-03-25 (TASK-14 closeout)
+Phase: Production — V1 Live
+Version: DEPLOY-01-done
 
 > **Status values:** `PLANNED` / `IN PROGRESS` / `REVIEW` / `PAUSED` / `✅ DONE`
 > **ID format:** `TASK-XXX` · `BUG-XXX` · `FEAT-XXX` (globally sequential)
@@ -10,29 +10,101 @@ Version: TASK-12-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-12 ✅ DONE — all 5 V1 blockers resolved, commit `1f86d27`
-- Next action: TASK-13 Production Release (`/deploy`)
+- Stopped at: TASK-14 complete. qa:smoke 5/5 PASS against preview at commit `2be94f6` on branch `feat/fp-premium-ui`.
+- Next action: Review remaining Commit C files (`walker/dashboard/page.tsx`, `useFcmToken.ts`) + `skills-lock.json`, then merge branch to main when ready. Deferred files are uncommitted working-tree debt — not blocking.
 - Open questions:
   - Production cron schedule pending Vercel Pro upgrade (non-blocker)
 - Last commands run:
-  - `npx tsc --noEmit` → 0 errors ✓
-  - verify-security: GO ✓
+  - `BASE_URL=https://akivot-git-feat-fp-premium-ui-kessbeats98s-projects.vercel.app npm run qa:smoke` — 5/5 PASS
+  - Last commits: `be44cfb` (qa bypass+fixtures), `a57c1b3` (owner UI), `22369aa` (build fix), `1fb930d` (empty-state testid), `2be94f6` (walker profile error handling)
+- Neon wiring discovery: Vercel `DATABASE_URL` → Neon project `quiet-math-53370251`, **staging branch** `br-wispy-hall-agzj0ep9` (`ep-shy-glade-agbknp45`), NOT the `production` branch.
+- QA account `qa-smoke@akivot.test` created, `email_verified=true` on staging branch. Credentials in gitignored `qa/.env.qa`.
 
 ---
 
 ## Active Work
 
-*(none — TASK-12 complete)*
+*(none)*
 
 ---
 
 ## Backlog
 
-*(no planned tasks — project feature-complete for V1)*
+*(none)*
 
 ---
 
 ## Completed
+
+### ~~TASK-14~~: Add API-based globalSetup seed for production-target smoke (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-25)
+**Commits**: `be44cfb` (qa bypass+fixtures), `a57c1b3` (owner UI), `22369aa` (build fix), `1fb930d` (empty-state testid), `2be94f6` (walker profile error handling)
+
+`/api/qa/seed` + `/api/qa/reset` endpoints (guarded by `QA_SEED_SECRET` header + session auth). `globalSetup` calls seed after auth — no DebugPanel dependency. Vercel bypass token support added to `playwright.config.ts` and `qa/global-setup.ts`. `qa/compact-reporter.ts` and all `qa/scenarios/*.json` fixtures committed. Walker dashboard error-handling: missing walker profile returns empty state instead of throwing. Owner dashboard redesign synced with 3 new sub-components. qa:smoke **5/5 PASS** against preview `akivot-git-feat-fp-premium-ui-kessbeats98s-projects.vercel.app` at commit `2be94f6`.
+
+---
+
+### ~~TASK-13~~: Make qa:smoke target-configurable (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-25)
+**Commits**: `13d0ea8`
+
+`BASE_URL` env support added to `qa/global-setup.ts` and `playwright.config.ts`. `isRemote` check: skips `webServer` block for non-localhost targets. `qa/.env.qa` gitignored credential file created. QA account `qa-smoke@akivot.test` created on the Vercel-backed Neon staging branch (`br-wispy-hall-agzj0ep9`). Auth against production confirmed working (401 resolved). Remaining smoke failure is seed/setup (TASK-14) — not target-config.
+
+Discovery: Vercel `DATABASE_URL` points to the Neon **staging branch**, not the production branch. All future DB operations targeting production Vercel must use `br-wispy-hall-agzj0ep9`.
+
+---
+
+### ~~DEPLOY-01~~: Production Deploy — feat/fp-premium-ui (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-24) — deploy complete; smoke gap recorded
+
+**Commits**: `6df3dd95` (merge PR #2), `48f1b1c5` (build fix: missing useDebugMode.ts)
+**Deployment**: `dpl_46DQJyPH8vmmdgvJXTSfRoKQYB6f` → READY @ `akivot.vercel.app`
+
+**DB**: Migration 0005 already applied to production before deploy. Verified: index `walks_live_unique_idx` exists, 0 duplicate LIVE walks.
+
+**Build incident**: `useDebugMode.ts` was untracked — missing from merge commit. Fixed by committing file directly to main (`48f1b1c5`). Second build: READY.
+
+**Manual sanity checks (post-deploy)**:
+
+| # | Check | Method | Result |
+|---|-------|--------|--------|
+| 1 | App loads, correct title/lang | GET `/` | HTTP 200, `<html lang="he" dir="rtl">`, title "עקבות — Akivot" ✓ |
+| 2 | Custom 404 (not framework default) | GET `/nonexistent-route-xyz` | Hebrew "404 — דף לא נמצא", `robots: noindex` ✓ |
+| 3 | Auth endpoint live | GET `/api/auth/get-session` | HTTP 200, `null` (no session = correct unauthenticated response) ✓ |
+| 4 | Cron endpoint fail-closed | GET `/api/jobs/auto-close` (no auth) | HTTP 401 `{"error":"Unauthorized"}` ✓ |
+| 5 | Runtime errors (last 30min) | Vercel runtime logs, level=error/fatal | 0 errors ✓ |
+| 6 | DB: no duplicate LIVE walks | Neon production query | 0 rows ✓ |
+| 7 | DB: uniqueness index present | Neon production query | `walks_live_unique_idx` exists ✓ |
+
+**Verification gap**: Closed by TASK-13. Auth-target smoke now runs against production. Remaining gap: seed/setup (TASK-14).
+
+**Rollback**: not needed. Previous READY deployment `dpl_DF7QGocL1S8hU8SvodhxB1BFpPAx` available as rollback candidate if needed. DB index is rollback-compatible.
+
+---
+
+### ~~QA-02~~: QA Smoke Gate + Edge Test Layer (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-24)
+**Commits**: `655601b` (qa:smoke script + formal gate definition in RUNBOOK), `5ce8c5d` (non-gate edge layer)
+
+Formal QA gate: `npm run qa:smoke` (5 scenarios, serial, self-cleaning). Separate non-gate edge layer: 5 scenarios (refresh-live, end-start-again, offline-recovery, multi-tab, auto-close). Edge uses `[edge,*]` tags, excluded from `qa:smoke`. `655601b` added the qa:smoke script and gate definition. `5ce8c5d` added the edge layer — no product code changes in that commit. 2 consecutive runs green, 0 flakiness.
+
+### ~~BUG-01~~: Break Mode — Edge Case Bugs (✅ DONE)
+**Priority**: P1
+**Status**: ✅ DONE (2026-03-23)
+**Commits**: `52ae624`, `df23787`
+
+6 bugs fixed (2 HIGH, 2 MED, 2 LOW). Migration 0005 partial unique index on walks. See session handoff above for details.
+
+### ~~FEAT-01~~: Dev Test Mode (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-23)
+**Commits**: `322b728`
+
+Dev-only test mode in DebugPanel. Granular actions: create dog, assign walker, set price, reset all data. FK-safe cascade delete scoped to current user.
 
 ### ~~TASK-12~~: Polish & V1 Hardening (✅ DONE)
 **Priority**: P1
@@ -132,5 +204,7 @@ Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schem
 
 | Date | Env | Commit | Status | Notes |
 |------|-----|--------|--------|-------|
+| 2026-03-24 | Production | `48f1b1c5` | ✅ LIVE | DEPLOY-01 — feat/fp-premium-ui + build fix; manual checks 7/7 pass; smoke gap (TASK-13) |
+| 2026-03-23 | Staging | `322b728` | ✅ Migration 0005 applied | BUG-01 + FEAT-01; index verified, 0 dupes |
 | 2026-03-13 | Production | `ed2017c` | ✅ LIVE | TASK-10 — nullable actor/updated_by, fail-closed cron secret; post-rotation GO |
 | 2026-03-10 | Staging | `8c78dee` | ✅ LIVE | Billing (TASK-06) — crons disabled for Hobby plan; smoke passed |

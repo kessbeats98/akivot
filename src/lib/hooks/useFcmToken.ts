@@ -13,7 +13,6 @@ export function useFcmToken(): UseFcmTokenResult {
   const [permissionState, setPermissionState] = useState<NotificationPermission | "loading">("loading");
 
   useEffect(() => {
-    // Check support and existing permission on mount
     const checkSupport = async () => {
       if (typeof window === "undefined") return;
       try {
@@ -22,8 +21,12 @@ export function useFcmToken(): UseFcmTokenResult {
         setSupported(ok);
         if (ok) {
           setPermissionState(Notification.permission);
+          console.log("[fcm] support check passed, permission:", Notification.permission);
+        } else {
+          console.log("[fcm] FCM not supported in this browser");
         }
-      } catch {
+      } catch (err) {
+        console.error("[fcm] support check failed:", err);
         setSupported(false);
       }
     };
@@ -31,12 +34,16 @@ export function useFcmToken(): UseFcmTokenResult {
   }, []);
 
   const requestPermission = async () => {
+    console.log("[fcm] requestPermission called");
     try {
       const { isSupported, getMessaging, getToken, onMessage } = await import("firebase/messaging");
       const { initializeApp, getApps, getApp } = await import("firebase/app");
 
       const ok = await isSupported();
-      if (!ok) return;
+      if (!ok) {
+        console.warn("[fcm] FCM not supported, aborting");
+        return;
+      }
 
       // Public config — safe to hardcode (same values as NEXT_PUBLIC_FIREBASE_* env vars).
       const firebaseConfig = {
@@ -52,24 +59,40 @@ export function useFcmToken(): UseFcmTokenResult {
       const messaging = getMessaging(app);
 
       // Pass config to SW via URL params
-      const params = new URLSearchParams(firebaseConfig as any).toString();
+      const params = new URLSearchParams(firebaseConfig as Record<string, string>).toString();
       const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${params}`);
+      console.log("[fcm] service worker registered");
 
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: registration,
       });
 
-      if (!token) return;
+      if (!token) {
+        console.warn("[fcm] no token received from getToken");
+        return;
+      }
+      console.log("[fcm] token obtained, registering with backend...");
 
-      await fetch("/api/devices/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fcmToken: token, platform: "WEB_DESKTOP" }),
-      });
+      // Register token with our backend
+      try {
+        const res = await fetch("/api/devices/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fcmToken: token, platform: "WEB_DESKTOP" }),
+        });
+        if (!res.ok) {
+          console.error("[fcm] token registration HTTP error:", res.status, await res.text().catch(() => ""));
+        } else {
+          console.log("[fcm] token registered successfully");
+        }
+      } catch (fetchErr) {
+        console.error("[fcm] token registration network error:", fetchErr);
+      }
 
       // Foreground message handler
       onMessage(messaging, async (payload) => {
+        console.log("[fcm] foreground message received:", payload.notification?.title);
         const title = payload.notification?.title ?? "Akivot";
         const body = payload.notification?.body ?? "";
         if (Notification.permission === "granted") {
@@ -79,8 +102,9 @@ export function useFcmToken(): UseFcmTokenResult {
       });
 
       setPermissionState(Notification.permission);
+      console.log("[fcm] permission state after flow:", Notification.permission);
     } catch (err) {
-      console.error("[useFcmToken] requestPermission error:", err);
+      console.error("[fcm] requestPermission error:", err);
     }
   };
 

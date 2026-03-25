@@ -10,16 +10,16 @@ export function EnableNotificationsButton() {
 
   if (permissionState === "granted") {
     return (
-      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2A9D8F]/10">
-        <Bell size={20} className="text-[#2A9D8F]" />
+      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-brand-light">
+        <Bell size={20} className="text-brand" />
       </div>
     );
   }
 
   if (permissionState === "denied") {
     return (
-      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-neutral-100">
-        <BellOff size={20} className="text-neutral-400" />
+      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-stone100" title="התראות חסומות — שנה בהגדרות הדפדפן">
+        <BellOff size={20} className="text-muted-color" />
       </div>
     );
   }
@@ -27,11 +27,11 @@ export function EnableNotificationsButton() {
   return (
     <button
       onClick={requestPermission}
-      className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2A9D8F]/10 hover:bg-[#2A9D8F]/20 transition-colors"
+      className="w-10 h-10 rounded-full flex items-center justify-center bg-brand-light hover:bg-brand-light/80 transition-colors"
       type="button"
       aria-label="הפעל התראות"
     >
-      <Bell size={20} className="text-[#2A9D8F]" />
+      <Bell size={20} className="text-brand" />
     </button>
   );
 }

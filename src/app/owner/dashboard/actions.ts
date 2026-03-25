@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { createDogSchema, deactivateDogSchema } from "@/lib/validation/dogs";
-import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice } from "@/lib/repositories/dogsRepo";
+import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice, getActiveLiveWalks, getWalkHistoryByDog } from "@/lib/repositories/dogsRepo";
+import type { ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
+import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walkerProfiles } from "@/db/schema";
@@ -13,7 +15,25 @@ import { assignWalker } from "@/lib/repositories/walksRepo";
 
 export async function getOwnerDogsAction() {
   const user = await assertAuthenticated();
-  return getDogsByOwner(user.id);
+  console.log("[owner/dashboard] loading dogs for user:", user.id);
+  const dogs = await getDogsByOwner(user.id);
+  console.log("[owner/dashboard] loaded:", dogs.length, "dogs");
+  return dogs;
+}
+
+export async function getActiveLiveWalksAction(): Promise<ActiveLiveWalk[]> {
+  const user = await assertAuthenticated();
+  const walks = await getActiveLiveWalks(user.id);
+  console.log("[owner/dashboard] live walks:", walks.length);
+  return walks;
+}
+
+export async function getWalkHistoryForDogAction(dogId: string): Promise<DogWalkHistoryItem[]> {
+  const user = await assertAuthenticated();
+  console.log("[owner/dashboard] loading walk history", { userId: user.id, dogId });
+  const history = await getWalkHistoryByDog(dogId, user.id, 50);
+  console.log("[owner/dashboard] walk history loaded:", history.length, "walks");
+  return history;
 }
 
 export async function getAvailableWalkersAction(): Promise<{ id: string; displayName: string }[]> {

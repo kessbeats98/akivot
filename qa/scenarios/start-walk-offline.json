@@ -1,0 +1,48 @@
+{
+  "name": "start-walk-offline",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "core",
+    "failure"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "snapshot"
+    },
+    {
+      "action": "click",
+      "ref": "sim-offline-toggle"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "steps": [
+    {
+      "action": "click",
+      "ref": "start-walk-button"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "offline error visible",
+      "type": "text-visible",
+      "value": "offline"
+    },
+    {
+      "name": "stay on dashboard",
+      "type": "url-includes",
+      "value": "/walker/dashboard"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "end-walk-success",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "core"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/live?debug=true"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "steps": [
+    {
+      "action": "click",
+      "ref": "end-walk-button"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "redirect to dashboard",
+      "type": "url-includes",
+      "value": "/walker/dashboard"
+    },
+    {
+      "name": "dashboard idle visible",
+      "type": "text-visible",
+      "value": "Start Walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

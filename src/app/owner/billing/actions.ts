@@ -7,14 +7,21 @@ import {
   closePaymentPeriod,
   assertPeriodOwnership,
   ensureOpenPeriods,
+  getOwnerPaymentPeriodsEnriched,
 } from "@/lib/repositories/billingRepo";
-import type { OwnerBillingData } from "@/lib/services/billing/types";
+import type { OwnerBillingData, OwnerPaymentPeriod } from "@/lib/services/billing/types";
 
 export async function getOwnerBillingAction(): Promise<OwnerBillingData> {
   const user = await assertAuthenticated();
   await ensureOpenPeriods(user.id);
   const periods = await getPeriodsByOwner(user.id);
   return { periods };
+}
+
+// Pure read — no ensureOpenPeriods, no mutations
+export async function getOwnerPaymentsAction(): Promise<OwnerPaymentPeriod[]> {
+  const user = await assertAuthenticated();
+  return getOwnerPaymentPeriodsEnriched(user.id);
 }
 
 // periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
