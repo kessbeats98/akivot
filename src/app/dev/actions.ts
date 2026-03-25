@@ -15,7 +15,8 @@ import {
   auditLogs,
   notificationDeliveries,
 } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, isNull } from "drizzle-orm";
+import { startWalk, endWalk, getActiveWalksByWalker } from "@/lib/repositories/walksRepo";
 import crypto from "node:crypto";
 
 function assertDev() {
@@ -272,6 +273,67 @@ export async function listOwnedDogsAction(): Promise<
     .where(eq(dogs.isActive, true));
 
   return rows.map((r) => ({ dogId: r.dogId, dogName: r.dogName, walkerId: r.walkerId }));
+}
+
+// --- Walk simulator actions ---
+
+export async function startTestWalkAction(dogId: string): Promise<{ walkId: string }> {
+  assertDev();
+  const user = await assertAuthenticated();
+  const walkId = await startWalk(user.id, { dogId });
+  return { walkId };
+}
+
+export async function endTestWalkAction(walkId: string): Promise<void> {
+  assertDev();
+  const user = await assertAuthenticated();
+  await endWalk(user.id, { walkId });
+}
+
+export async function forceAutoCloseWalkAction(walkId: string): Promise<void> {
+  assertDev();
+  const user = await assertAuthenticated();
+  const db = getDb();
+  const now = new Date();
+
+  await db
+    .update(walks)
+    .set({
+      status: "AUTO_CLOSED",
+      endTime: now,
+      autoClosedAt: now,
+      closureReason: "AUTO_TIMEOUT",
+      statusUpdatedAt: now,
+      updatedByUserId: user.id,
+      updatedAt: now,
+    })
+    .where(and(eq(walks.id, walkId), eq(walks.status, "LIVE"), isNull(walks.deletedAt)));
+}
+
+export async function listActiveWalksAction(): Promise<
+  { walkId: string; dogId: string; dogName: string; startTime: string }[]
+> {
+  assertDev();
+  const user = await assertAuthenticated();
+  try {
+    const rows = await getActiveWalksByWalker(user.id);
+    return rows.map((r) => ({
+      walkId: r.id,
+      dogId: r.dogId,
+      dogName: r.dogName,
+      startTime: r.startTime.toISOString(),
+    }));
+  } catch {
+    return []; // No walker profile
+  }
+}
+
+// --- Failure simulation ---
+
+export async function forceErrorAction(): Promise<void> {
+  assertDev();
+  await assertAuthenticated();
+  throw new Error("[dev] Simulated server error");
 }
 
 // --- Helpers ---
