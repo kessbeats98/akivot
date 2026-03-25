@@ -31,5 +31,19 @@ export default async function globalSetup(_config: FullConfig) {
 
   // Save cookies + storage
   await context.storageState({ path: STATE_PATH });
+
+  // Seed test data via API (context still holds session cookies)
+  const seedHeaders: Record<string, string> = {};
+  if (process.env.QA_SEED_SECRET) {
+    seedHeaders["x-qa-seed-secret"] = process.env.QA_SEED_SECRET;
+  }
+  const seedRes = await page.request.post(`${baseUrl}/api/qa/seed`, {
+    headers: seedHeaders,
+  });
+  if (!seedRes.ok()) {
+    const body = await seedRes.text();
+    throw new Error(`QA seed failed (${seedRes.status()}): ${body}`);
+  }
+
   await browser.close();
 }

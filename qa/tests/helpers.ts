@@ -65,26 +65,30 @@ export async function assertErrorVisible(page: Page, text: string) {
 // Navigation helpers
 // ---------------------------------------------------------------------------
 
-/** Navigate to walker dashboard in debug mode, wait for debug panel */
+/** Navigate to walker dashboard, wait for page to load */
 export async function gotoDashboard(page: Page) {
-  await page.goto("/walker/dashboard?debug=true", { timeout: T.nav });
-  await page.waitForSelector("text=DEBUG", { timeout: T.visible });
+  await page.goto("/walker/dashboard", { timeout: T.nav });
   await assertUrl(page, "/walker/dashboard");
 }
 
-export async function waitForDebugPanel(page: Page) {
-  await page.waitForSelector("text=DEBUG", { timeout: T.visible });
+/** No-op: DebugPanel no longer required. Kept for call-site compatibility. */
+export async function waitForDebugPanel(_page: Page) {
+  // DebugPanel dependency removed — seed/reset now use API endpoints
 }
 
 // ---------------------------------------------------------------------------
-// Seed / Reset — via window hooks (debug mode only)
+// Seed / Reset — via API endpoints
 // ---------------------------------------------------------------------------
 
-/** Seed test data, reload, and verify seeded state */
+function qaHeaders(): Record<string, string> {
+  const secret = process.env.QA_SEED_SECRET;
+  return secret ? { "x-qa-seed-secret": secret } : {};
+}
+
+/** Reload dashboard and verify seeded state (data seeded in globalSetup) */
 export async function seedAndReload(page: Page) {
-  await page.evaluate(() => (window as any).__akivotSeed());
-  await page.reload({ timeout: T.nav });
-  await waitForDebugPanel(page);
+  await page.goto("/walker/dashboard", { timeout: T.nav });
+  await assertUrl(page, "/walker/dashboard");
   // After seed: start-walk button must exist (dog was assigned)
   await expect(
     page.getByTestId("start-walk"),
@@ -97,9 +101,27 @@ export async function seedAndReload(page: Page) {
   ).not.toBeVisible({ timeout: 1_000 });
 }
 
-/** Reset test data via window hook */
+/** Reset test data via API only (no re-seed) — use when verifying empty state */
+export async function resetOnly(page: Page) {
+  const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
+  const resetRes = await page.request.post(`${baseUrl}/api/qa/reset`, { headers: qaHeaders() });
+  if (!resetRes.ok()) {
+    const body = await resetRes.text();
+    throw new Error(`QA reset failed (${resetRes.status()}): ${body}`);
+  }
+}
+
+/** Reset test data via API, then re-seed for next test */
 export async function reset(page: Page) {
-  await page.evaluate(() => (window as any).__akivotReset());
+  const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
+  const headers = qaHeaders();
+  await resetOnly(page);
+  // Re-seed so next test starts clean-but-ready
+  const seedRes = await page.request.post(`${baseUrl}/api/qa/seed`, { headers });
+  if (!seedRes.ok()) {
+    const body = await seedRes.text();
+    throw new Error(`QA re-seed after reset failed (${seedRes.status()}): ${body}`);
+  }
 }
 
 // ---------------------------------------------------------------------------

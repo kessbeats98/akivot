@@ -3,6 +3,7 @@ import {
   loadScenario,
   seedAndReload,
   reset,
+  resetOnly,
   gotoDashboard,
   waitForDebugPanel,
   waitForSlideOver,
@@ -23,14 +24,6 @@ test.describe.configure({ mode: "serial" });
 
 test.afterEach(async ({ page }) => {
   try {
-    // If a LIVE walk exists the app redirects /walker/dashboard → /walker/live,
-    // so navigate to wherever we land and append ?debug=true to ensure the panel loads.
-    await page.goto("/walker/dashboard?debug=true", { timeout: T.nav });
-    // If redirected to /walker/live, re-navigate with debug flag
-    if (page.url().includes("/walker/live")) {
-      await page.goto("/walker/live?debug=true", { timeout: T.nav });
-    }
-    await waitForDebugPanel(page);
     await reset(page);
   } catch {
     // Best-effort cleanup
@@ -100,11 +93,10 @@ test.describe("start-walk-offline", () => {
   const scenario = loadScenario("start-walk-offline");
 
   test(`[${scenario.tags.join(",")}] force-offline → start walk → blocked with error`, async ({ page }) => {
-    // --- Setup ---
-    await gotoDashboard(page);
+    // --- Setup: requires debug mode for sim-offline-toggle (local dev only) ---
+    await page.goto("/walker/dashboard?debug=true", { timeout: T.nav });
+    await assertUrl(page, "/walker/dashboard");
     await assertNoError(page);
-
-    await seedAndReload(page);
 
     // --- Step 1: enable force-offline ---
     await page.getByTestId("debug-force-offline").click({ timeout: T.action });
@@ -252,10 +244,9 @@ test.describe("reset-data-empty-state", () => {
     await expect(page.getByTestId("start-walk")).toBeVisible({ timeout: T.visible });
     await expect(page.getByTestId("empty-state")).not.toBeVisible({ timeout: 1_000 });
 
-    // --- Step 1: reset ---
-    await reset(page);
-    await page.reload({ timeout: T.nav });
-    await waitForDebugPanel(page);
+    // --- Step 1: reset (no re-seed — we're verifying empty state) ---
+    await resetOnly(page);
+    await page.goto("/walker/dashboard", { timeout: T.nav });
 
     // --- Assertions ---
     // A1: still on dashboard (no navigation)
