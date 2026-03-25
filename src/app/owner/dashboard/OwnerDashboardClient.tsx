@@ -79,7 +79,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
         <div className="px-6 pt-14 pb-4 flex items-center justify-between flex-shrink-0">
           <div className="text-[22px] font-extrabold text-brand tracking-tight">עקבות</div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6" data-testid="empty-state">
           <div className="text-[56px]">🐾</div>
           <div className="text-xl font-bold text-dark">ברוך הבא!</div>
           <div className="text-sm text-muted-color text-center">
