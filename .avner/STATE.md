@@ -1,6 +1,6 @@
 # Project State — Akivot
 
-Updated: 2026-03-25
+Updated: 2026-03-25 (TASK-14 closeout)
 Phase: Production — V1 Live
 Version: DEPLOY-01-done
 
@@ -10,13 +10,13 @@ Version: DEPLOY-01-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-13 complete. BASE_URL targeting works. Production smoke auth passes. Remaining smoke failure is seed/setup (TASK-14), not target-config.
-- Next action: TASK-14 — add API-based globalSetup seed for production-target smoke.
+- Stopped at: TASK-14 complete. qa:smoke 5/5 PASS against preview at commit `2be94f6` on branch `feat/fp-premium-ui`.
+- Next action: Review remaining Commit C files (`walker/dashboard/page.tsx`, `useFcmToken.ts`) + `skills-lock.json`, then merge branch to main when ready. Deferred files are uncommitted working-tree debt — not blocking.
 - Open questions:
   - Production cron schedule pending Vercel Pro upgrade (non-blocker)
 - Last commands run:
-  - `BASE_URL=https://akivot.vercel.app npm run qa:smoke` — auth pass, test fails on missing debug panel seed
-  - TASK-13 commit: `13d0ea8` on branch `feat/fp-premium-ui`
+  - `BASE_URL=https://akivot-git-feat-fp-premium-ui-kessbeats98s-projects.vercel.app npm run qa:smoke` — 5/5 PASS
+  - Last commits: `be44cfb` (qa bypass+fixtures), `a57c1b3` (owner UI), `22369aa` (build fix), `1fb930d` (empty-state testid), `2be94f6` (walker profile error handling)
 - Neon wiring discovery: Vercel `DATABASE_URL` → Neon project `quiet-math-53370251`, **staging branch** `br-wispy-hall-agzj0ep9` (`ep-shy-glade-agbknp45`), NOT the `production` branch.
 - QA account `qa-smoke@akivot.test` created, `email_verified=true` on staging branch. Credentials in gitignored `qa/.env.qa`.
 
@@ -30,15 +30,20 @@ Version: DEPLOY-01-done
 
 ## Backlog
 
-### TASK-14: Add API-based globalSetup seed for production-target smoke (PLANNED)
-**Priority**: P2
-**Status**: PLANNED
-
-Current smoke tests rely on `window.__akivotSeed()` / `window.__akivotReset()` via DebugPanel, which only renders in dev/debug mode. Production builds have no debug panel, so `gotoDashboard` times out waiting for `text=DEBUG`. Fix: add a `globalSetup` API-based seed that creates walker profile, dog, and assignment for the QA user via real server actions or a dedicated dev-gated `/api/qa/seed` endpoint. No debug panel dependency. Scope: `qa/global-setup.ts` + new seed endpoint or server action.
+*(none)*
 
 ---
 
 ## Completed
+
+### ~~TASK-14~~: Add API-based globalSetup seed for production-target smoke (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-03-25)
+**Commits**: `be44cfb` (qa bypass+fixtures), `a57c1b3` (owner UI), `22369aa` (build fix), `1fb930d` (empty-state testid), `2be94f6` (walker profile error handling)
+
+`/api/qa/seed` + `/api/qa/reset` endpoints (guarded by `QA_SEED_SECRET` header + session auth). `globalSetup` calls seed after auth — no DebugPanel dependency. Vercel bypass token support added to `playwright.config.ts` and `qa/global-setup.ts`. `qa/compact-reporter.ts` and all `qa/scenarios/*.json` fixtures committed. Walker dashboard error-handling: missing walker profile returns empty state instead of throwing. Owner dashboard redesign synced with 3 new sub-components. qa:smoke **5/5 PASS** against preview `akivot-git-feat-fp-premium-ui-kessbeats98s-projects.vercel.app` at commit `2be94f6`.
+
+---
 
 ### ~~TASK-13~~: Make qa:smoke target-configurable (✅ DONE)
 **Priority**: P2
