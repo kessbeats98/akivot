@@ -36,6 +36,6 @@ Format:
 - [x] TASK-14 [P2] — API-based globalSetup seed for production smoke
 - [x] TASK-13 [P2] — Make qa:smoke target-configurable
 - [x] DEPLOY-01 [P1] — Production deploy feat/fp-premium-ui
-- [ ] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
+- [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
 - [ ] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)

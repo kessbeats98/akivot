@@ -7,24 +7,24 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
+- TASK-15: Auth UI — login + signup pages using Better Auth client (2026-04-03)
 - TASK-14: API-based globalSetup seed for production-target smoke (2026-03-25)
 - TASK-13: Make qa:smoke target-configurable (2026-03-25)
-- DEPLOY-01: Production deploy feat/fp-premium-ui (2026-03-24)
 
 ## Next 3 Steps
-1. TASK-15: Auth UI (login + signup pages) — unblock real users
-2. TASK-16: Landing page redesign — replace Next.js boilerplate
-3. TASK-17: Role-based redirect after login
+1. TASK-16: Landing page redesign — replace minimal placeholder with Akivot branding
+2. TASK-17: Role-based redirect after login (owner vs walker dashboard)
+3. Deploy TASK-15 to production
 
 ## Open Blockers
-- No auth UI — users can't sign up or log in. /login 404s.
+[none]
 
 ## Active Decisions
-- TASK-15 chosen as highest priority — smallest change that unblocks real users
+[none pending]
 
 ## Current Constraint
-category: "throughput"
-description: "No front door — app has full backend but no auth UI"
+category: "quality"
+description: "Landing page is minimal placeholder — needs branding before marketing"
 
 ## CEO Decisions Log
 - task_id: "TASK-15"
