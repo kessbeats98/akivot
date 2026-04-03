@@ -39,6 +39,7 @@ Format:
 - [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
 - [ ] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
+- [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 
 ---
 
@@ -57,16 +58,21 @@ Format:
 - Currently login hardcodes redirect to `/walker/dashboard`
 
 **Scope**:
-1. Server-side role detection function (check walkerProfiles + dogOwners for userId)
-2. Post-login redirect API/route that returns correct destination
-3. Update login page to redirect based on role
-4. Create `/onboarding` placeholder page for users with no role
-5. Update existing dashboard pages' auth guards if needed
+1. getUserRole(userId) — query walkerProfiles + dogOwners → `"walker" | "owner" | "both" | "none"`
+2. getRedirectPath() server action — gets session, calls getUserRole, returns path
+3. Update login page — call getRedirectPath() after signIn, router.push(path)
+4. /onboarding placeholder — two buttons, no logic
+5. Build check
+
+**Decisions**:
+- "both" → walker priority, no chooser page
+- /onboarding → placeholder only (two buttons, no logic)
+- Role guards on dashboards → TASK-19, out of scope
 
 **Acceptance Criteria**:
 - [ ] User with walkerProfile → redirects to `/walker/dashboard` after login
 - [ ] User with dogOwners → redirects to `/owner/dashboard` after login
-- [ ] User with both → redirects to `/walker/dashboard` (walker takes priority, TBD)
+- [ ] User with both → redirects to `/walker/dashboard` (walker priority)
 - [ ] User with neither → redirects to `/onboarding`
 - [ ] `npm run build` passes with 0 errors
 - [ ] All new text in Hebrew
