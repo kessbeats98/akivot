@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/auth-client";
+import { getRedirectPath } from "@/lib/auth/get-redirect-path-action";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,7 +29,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/walker/dashboard");
+    const path = await getRedirectPath();
+    router.push(path);
   }
 
   return (
