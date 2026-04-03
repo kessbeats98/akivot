@@ -1,6 +1,6 @@
 # Project State — Akivot
 
-Updated: 2026-03-25 (TASK-14 closeout)
+Updated: 2026-03-26 (walker polish applied locally; production smoke pass)
 Phase: Production — V1 Live
 Version: DEPLOY-01-done
 
@@ -10,15 +10,18 @@ Version: DEPLOY-01-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: TASK-14 complete. qa:smoke 5/5 PASS against preview at commit `2be94f6` on branch `feat/fp-premium-ui`.
-- Next action: Review remaining Commit C files (`walker/dashboard/page.tsx`, `useFcmToken.ts`) + `skills-lock.json`, then merge branch to main when ready. Deferred files are uncommitted working-tree debt — not blocking.
+- Stopped at: Walker dashboard UI polish written locally. **These changes exist only as uncommitted working-tree edits** — NOT staged, NOT committed, NOT deployed. Main/production is at `9102c48` and does NOT include them.
+- Dirty files (local only, not on main):
+  - `src/app/walker/dashboard/WalkerDashboardClient.tsx` — time-aware greeting, merged dog card + CTA, icon/copy/spacing fixes
+  - `src/app/walker/live/WalkerLiveClient.tsx` — SVG checkmark, copy edits, disabled nav opacity
+- Next action: Open fresh session, `git diff` both files, decide whether to commit as-is, revert any item, or adjust — then commit only if approved.
 - Open questions:
-  - Production cron schedule pending Vercel Pro upgrade (non-blocker)
+  - Production cron schedule pending Vercel Pro upgrade (non-blocker, unchanged)
 - Last commands run:
-  - `BASE_URL=https://akivot-git-feat-fp-premium-ui-kessbeats98s-projects.vercel.app npm run qa:smoke` — 5/5 PASS
-  - Last commits: `be44cfb` (qa bypass+fixtures), `a57c1b3` (owner UI), `22369aa` (build fix), `1fb930d` (empty-state testid), `2be94f6` (walker profile error handling)
-- Neon wiring discovery: Vercel `DATABASE_URL` → Neon project `quiet-math-53370251`, **staging branch** `br-wispy-hall-agzj0ep9` (`ep-shy-glade-agbknp45`), NOT the `production` branch.
-- QA account `qa-smoke@akivot.test` created, `email_verified=true` on staging branch. Credentials in gitignored `qa/.env.qa`.
+  - `BASE_URL=https://akivot.vercel.app npm run qa:smoke` — 5/5 PASS (production, 2026-03-26)
+  - `npm run build` — ✓ Compiled 4.2s, 0 errors, 20 routes (local, after polish changes)
+- Neon wiring confirmed: Vercel `DATABASE_URL` → Neon staging branch `br-wispy-hall-agzj0ep9`. QA account `qa-smoke@akivot.test` aligned. Credentials in gitignored `qa/.env.qa`.
+- feat/fp-premium-ui: **merged to main** at `9102c48`. Production deploy READY. Branch still checked out locally.
 
 ---
 
@@ -204,6 +207,7 @@ Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schem
 
 | Date | Env | Commit | Status | Notes |
 |------|-----|--------|--------|-------|
+| 2026-03-26 | Production | `9102c48` | ✅ LIVE | Merge feat/fp-premium-ui → main; qa:smoke 5/5 PASS on akivot.vercel.app; walker polish NOT included (local only) |
 | 2026-03-24 | Production | `48f1b1c5` | ✅ LIVE | DEPLOY-01 — feat/fp-premium-ui + build fix; manual checks 7/7 pass; smoke gap (TASK-13) |
 | 2026-03-23 | Staging | `322b728` | ✅ Migration 0005 applied | BUG-01 + FEAT-01; index verified, 0 dupes |
 | 2026-03-13 | Production | `ed2017c` | ✅ LIVE | TASK-10 — nullable actor/updated_by, fail-closed cron secret; post-rotation GO |
