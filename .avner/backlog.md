@@ -38,7 +38,7 @@ Format:
 - [x] DEPLOY-01 [P1] — Production deploy feat/fp-premium-ui
 - [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
-- [ ] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
+- [x] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
 - [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 
 ---

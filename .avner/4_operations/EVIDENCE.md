@@ -32,3 +32,34 @@
 - Import path: `better-auth/react` (not `better-auth/client/react` — Turbopack resolves package.json exports, not file paths)
 - No schema changes, no new API routes — purely client-side UI calling existing `/api/auth/[...all]`
 - Login redirects to `/walker/dashboard` (TASK-17 will add role-based routing)
+
+---
+
+## TASK-17: Role-Based Redirect After Login
+
+**Date**: 2026-04-03
+**Branch**: `feat/task-15-auth-ui` (same branch, stacked)
+**Commits**: 5 (getUserRole, getRedirectPath action, login update, onboarding, governance)
+
+### Files Created/Modified
+- `src/lib/auth/get-user-role.ts` — queries walkerProfiles + dogOwners, returns "walker"|"owner"|"both"|"none"
+- `src/lib/auth/get-redirect-path-action.ts` — "use server", gets session → getUserRole → path string
+- `src/app/login/page.tsx` — replaced hardcoded redirect with getRedirectPath() call
+- `src/app/onboarding/page.tsx` — placeholder with two role buttons (בעל כלב / דוגווקר)
+
+### Acceptance Criteria Verification
+- [x] User with walkerProfile → redirects to `/walker/dashboard`
+- [x] User with dogOwners → redirects to `/owner/dashboard`
+- [x] User with both → redirects to `/walker/dashboard` (walker priority)
+- [x] User with neither → redirects to `/onboarding`
+- [x] `npm run build` passes with 0 errors (23 routes)
+- [x] All new text in Hebrew
+
+### Build Output
+- 0 errors, 23 routes (added /onboarding)
+- /onboarding static-prerendered (○)
+
+### Notes
+- No schema changes, no new API routes — server action reads existing tables
+- "both" users get walker priority — no chooser page
+- Role guards on dashboards deferred to TASK-19

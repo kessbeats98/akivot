@@ -7,14 +7,14 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
+- TASK-17: Role-based redirect after login — server action approach (2026-04-03)
 - TASK-15: Auth UI — login + signup pages using Better Auth client (2026-04-03)
 - TASK-14: API-based globalSetup seed for production-target smoke (2026-03-25)
-- TASK-13: Make qa:smoke target-configurable (2026-03-25)
 
 ## Next 3 Steps
 1. TASK-16: Landing page redesign — replace minimal placeholder with Akivot branding
-2. TASK-17: Role-based redirect after login (owner vs walker dashboard)
-3. Deploy TASK-15 to production
+2. TASK-19: Role guards on dashboard pages
+3. Deploy TASK-15 + TASK-17 to production
 
 ## Open Blockers
 [none]

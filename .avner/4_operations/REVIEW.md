@@ -26,3 +26,25 @@ All 6 criteria met. See EVIDENCE.md for details.
 
 ### Decision
 **GO** — ship as-is. Smallest viable auth UI that unblocks real users.
+
+---
+
+## TASK-17: Role-Based Redirect — Review
+
+**Date**: 2026-04-03
+**Verdict**: GO
+**Risk**: LOW
+
+### Diff Analysis
+- 3 new files, 1 modified file (login/page.tsx)
+- No schema changes, no migrations
+- getUserRole does 2 parallel queries (walkerProfiles + dogOwners) — efficient
+- Server action pattern: clean separation, no API route overhead
+- Onboarding is placeholder only — correct scoping
+
+### Concerns
+- Onboarding buttons link to dashboards that may error for role-less users → TASK-19 handles this
+- No tests — acceptable for now given low risk and manual verification path
+
+### Decision
+**GO** — role routing works, onboarding placeholder scoped correctly.
