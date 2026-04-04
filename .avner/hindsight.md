@@ -16,3 +16,4 @@ Format: `- [YYYY-MM-DD] [TASK-ID] PATTERN|ANTIPATTERN|FIX: [one line]`
 - [2026-03-10] [TASK-09] ANTIPATTERN: Vercel Hobby plan rejects frequent crons — check plan limits in Decisions phase
 - [2026-03-10] [TASK-09] FIX: staging deploy blocked by cron config — empty crons array as Hobby workaround
 - [2026-04-03] [TASK-15] FIX: better-auth client import is `better-auth/react` not `better-auth/client/react` — Turbopack resolves package.json exports
+- [2026-04-03] [TASK-18] PATTERN: reuse existing repo functions (createDog) for onboarding — avoids duplicating tx logic

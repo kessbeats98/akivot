@@ -48,3 +48,27 @@ All 6 criteria met. See EVIDENCE.md for details.
 
 ### Decision
 **GO** — role routing works, onboarding placeholder scoped correctly.
+
+---
+
+## TASK-18: Real Onboarding Flow — Review
+
+**Date**: 2026-04-03
+**Verdict**: GO
+**Risk**: MEDIUM (DB writes)
+
+### Diff Analysis
+- 3 new/modified files, 1 new REQ doc
+- Owner flow reuses existing createDog() — battle-tested tx pattern
+- Walker flow: direct insert with auto-generated inviteCode (randomBytes)
+- Server component gate: checks role before rendering wizard, redirects if profile exists
+- Client wizard: clean step state machine (role → owner/walker form)
+- Error handling: try/catch with user-facing Hebrew messages
+
+### Concerns
+- inviteCode uniqueness relies on randomBytes(6) — 48 bits of entropy, collision extremely unlikely at current scale. DB UNIQUE constraint is safety net.
+- No input sanitization beyond trim + length check — acceptable for V1, Drizzle parameterizes queries
+- Walker form only has displayName — minimal but sufficient for V1
+
+### Decision
+**GO** — completes signup→onboarding→dashboard pipeline for both roles.

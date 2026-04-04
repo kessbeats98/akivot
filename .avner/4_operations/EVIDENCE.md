@@ -63,3 +63,36 @@
 - No schema changes, no new API routes — server action reads existing tables
 - "both" users get walker priority — no chooser page
 - Role guards on dashboards deferred to TASK-19
+
+---
+
+## TASK-18: Real Onboarding Flow
+
+**Date**: 2026-04-03
+**Branch**: `feat/task-18-onboarding`
+**Commits**: 4 (REQ-18 + governance, onboarding actions, wizard rewrite, governance)
+
+### Files Created/Modified
+- `.avner/REQ-18-onboarding.md` — requirement spec
+- `src/app/onboarding/actions.ts` — server actions: getOnboardingState, createOwnerProfileAction, createWalkerProfileAction
+- `src/app/onboarding/OnboardingWizard.tsx` — client wizard: role select → owner form / walker form
+- `src/app/onboarding/page.tsx` — server component: checks existing profile, redirects or renders wizard
+
+### Acceptance Criteria Verification
+- [x] Fresh user sees role selection at /onboarding
+- [x] Owner flow: inserts dog + dogOwners via existing createDog() → redirects to /owner/dashboard
+- [x] Walker flow: inserts walkerProfiles with auto-generated inviteCode → redirects to /walker/dashboard
+- [x] Existing profile → server redirect, no re-onboarding
+- [x] Both flows end on correct role dashboard
+- [x] `npm run build` passes with 0 errors (23 routes)
+
+### Build Output
+- 0 errors, 23 routes
+- /onboarding now dynamic (ƒ) — reads session server-side
+- Service worker built successfully
+
+### Notes
+- Reuses existing createDog() from dogsRepo for owner flow (tx: dog + dogOwner)
+- Walker inviteCode: randomBytes(6).toString("hex") — 12 char hex string
+- Dog size field omitted — no schema column exists (noted in REQ-18 out-of-scope)
+- No schema changes, no migrations

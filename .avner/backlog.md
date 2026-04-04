@@ -39,6 +39,7 @@ Format:
 - [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
 - [x] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
+- [x] TASK-18 [P0] — Real onboarding flow: profile creation wizard (owner + walker)
 - [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 
 ---
