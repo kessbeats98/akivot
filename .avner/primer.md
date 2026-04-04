@@ -7,29 +7,33 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
+- TASK-18: Real onboarding flow — profile creation wizard (2026-04-03)
 - TASK-17: Role-based redirect after login — server action approach (2026-04-03)
 - TASK-15: Auth UI — login + signup pages using Better Auth client (2026-04-03)
-- TASK-14: API-based globalSetup seed for production-target smoke (2026-03-25)
 
 ## Next 3 Steps
-1. TASK-18: Real onboarding flow — replace placeholder with profile creation wizard
-2. TASK-16: Landing page redesign — replace minimal placeholder with Akivot branding
-3. TASK-19: Role guards on dashboard pages
+1. TASK-16: Landing page redesign — replace minimal placeholder with Akivot branding
+2. TASK-19: Role guards on dashboard pages
+3. Deploy TASK-15 + TASK-17 + TASK-18 to production
 
 ## Open Blockers
-- Fresh users land on /onboarding but can't create profiles — placeholder only
+[none]
 
 ## Active Decisions
-- TASK-18 chosen over TASK-16 — onboarding is a harder blocker than landing page
+[none pending]
 
 ## Current Constraint
-category: "throughput"
-description: "Fresh users can sign up but can't onboard — no profile creation flow"
+category: "quality"
+description: "Landing page is minimal placeholder — needs branding before marketing"
 
 ## CEO Decisions Log
 - task_id: "TASK-18"
   verdict: "GO"
-  reasoning: "unblocks fresh user onboarding, completes auth→dashboard pipeline"
+  reasoning: "completes signup→onboarding→dashboard pipeline"
+  timestamp: "2026-04-03"
+- task_id: "TASK-17"
+  verdict: "GO"
+  reasoning: "role-based redirect removes hardcoded walker path"
   timestamp: "2026-04-03"
 - task_id: "TASK-15"
   verdict: "GO"
