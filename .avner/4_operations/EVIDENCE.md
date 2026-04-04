@@ -96,3 +96,23 @@
 - Walker inviteCode: randomBytes(6).toString("hex") — 12 char hex string
 - Dog size field omitted — no schema column exists (noted in REQ-18 out-of-scope)
 - No schema changes, no migrations
+
+---
+
+## BUG-02: Start-Walk Confirm Button Enabled With No Dog Selected
+
+**Date**: 2026-04-05
+**Branch**: `fix/bug-02`
+**PR**: #6
+**Commits**: 1
+
+### Files Modified
+- `src/app/walker/dashboard/WalkerDashboardClient.tsx` — both dog card onClick handlers changed from `setSelectedDogs([dog.dogId])` to `setSelectedDogs([])` before opening SlideOver
+
+### Verification
+- [x] `qa:smoke` — 5/5 PASS
+- [x] Test #1 (`start-walk-success`) confirms button `toBeDisabled()` before dog selection
+- [x] 2-line diff, no side effects
+
+### Root Cause
+Dog card click handlers pre-selected the clicked dog before opening the SlideOver, so confirm button was immediately enabled. Fix: clear selection on open, let user select inside dialog.
