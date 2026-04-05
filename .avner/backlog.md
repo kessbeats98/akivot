@@ -46,6 +46,38 @@ Format:
 
 ---
 
+## REQ-19: Role Guards on Dashboard Pages
+
+**What**: Server-side route protection for /walker/* and /owner/* routes
+**R-ids**: R-AUTH-03 (implicit: users without matching profile cannot access role-specific dashboards)
+**Risk**: LOW — no schema changes, no new API, read-only profile checks
+
+**Context**:
+- `getCurrentUser()` returns session user or null (no role info)
+- `getUserRole(userId)` already exists — returns "walker"|"owner"|"both"|"none"
+- Walker/owner layouts (`layout.tsx`) have zero auth logic today
+- Dashboard pages call `getCurrentUser()` but never check role
+- An owner can navigate to `/walker/dashboard` and hit broken state
+
+**Scope**:
+1. Walker routes: unauthenticated → /login, no walker profile → /onboarding
+2. Owner routes: unauthenticated → /login, no owner profile → /onboarding
+3. Users with matching role pass through normally
+4. Reuse existing `getCurrentUser()` + `getUserRole()`
+5. No schema changes, no new flows, no UI changes
+
+**Acceptance Criteria**:
+- [ ] Unauthenticated → /walker/dashboard → redirect /login
+- [ ] Unauthenticated → /owner/dashboard → redirect /login
+- [ ] Owner-only → /walker/dashboard → redirect /onboarding
+- [ ] Walker-only → /owner/dashboard → redirect /onboarding
+- [ ] Valid walker → /walker/dashboard → no redirect
+- [ ] Valid owner → /owner/dashboard → no redirect
+- [ ] `npm run build` passes
+- [ ] `qa:smoke` still passes
+
+**Out of Scope**: empty states, landing page, onboarding changes, visual redesign
+
 ## REQ-17: Role-Based Redirect After Login
 
 **What**: After signIn() succeeds, route user to correct dashboard based on their role
