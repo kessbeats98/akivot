@@ -7,14 +7,14 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
+- BUG-02: Start-walk confirm disabled until dog selected (fix/bug-02, 2026-04-05)
 - TASK-18: Real onboarding flow — profile creation wizard (2026-04-03)
 - TASK-17: Role-based redirect after login — server action approach (2026-04-03)
-- TASK-15: Auth UI — login + signup pages using Better Auth client (2026-04-03)
 
 ## Next 3 Steps
-1. TASK-16: Landing page redesign — replace minimal placeholder with Akivot branding
-2. TASK-19: Role guards on dashboard pages
-3. Deploy TASK-15 + TASK-17 + TASK-18 to production
+1. TASK-19: Role guards on dashboard pages
+2. TASK-21: Empty states for owner + walker dashboards
+3. Deploy to production
 
 ## Open Blockers
 [none]
@@ -23,8 +23,8 @@
 [none pending]
 
 ## Current Constraint
-category: "quality"
-description: "Landing page is minimal placeholder — needs branding before marketing"
+category: ux
+description: "Owner + walker dashboards are empty — no CTA for first action"
 
 ## CEO Decisions Log
 - task_id: "TASK-18"
