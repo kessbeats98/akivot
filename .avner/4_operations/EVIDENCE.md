@@ -116,3 +116,32 @@
 
 ### Root Cause
 Dog card click handlers pre-selected the clicked dog before opening the SlideOver, so confirm button was immediately enabled. Fix: clear selection on open, let user select inside dialog.
+
+---
+
+## TASK-19: Role Guards on Dashboard Pages
+
+**Date**: 2026-04-05
+**Branch**: `feat/task-19-role-guards`
+**Commits**: 1
+
+### Files Modified
+- `src/app/walker/layout.tsx` — async guard: no session → /login, no walker/both role → /onboarding
+- `src/app/owner/layout.tsx` — async guard: no session → /login, no owner/both role → /onboarding
+- `qa/tests/smoke.spec.ts` — test 5 updated: after reset (walker profile deleted), assert redirect to /onboarding
+- `.avner/backlog.md` — added REQ-19 spec
+
+### Acceptance Criteria Verification
+- [x] Unauthenticated → /walker/dashboard → redirect /login
+- [x] Unauthenticated → /owner/dashboard → redirect /login
+- [x] Owner-only → /walker/dashboard → redirect /onboarding
+- [x] Walker-only → /owner/dashboard → redirect /onboarding
+- [x] Valid walker → /walker/dashboard → no redirect (smoke tests 1-4 pass)
+- [x] Valid owner → /owner/dashboard → no redirect (no regression)
+- [x] `npm run build` passes with 0 errors
+- [x] `qa:smoke` — 5/5 PASS
+
+### Notes
+- Guards placed in layout.tsx (not middleware) — covers all child routes
+- Role "both" passes both walker and owner guards
+- Smoke test 5 previously tested empty state on dashboard; now tests role guard redirect after reset deletes walker profile

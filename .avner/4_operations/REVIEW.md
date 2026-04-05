@@ -91,3 +91,24 @@ All 6 criteria met. See EVIDENCE.md for details.
 
 ### Decision
 **GO** — fixes test regression, zero blast radius.
+
+---
+
+## TASK-19: Role Guards on Dashboard Pages — Review
+
+**Date**: 2026-04-05
+**Verdict**: GO
+**Risk**: LOW
+
+### Diff Analysis
+- 2 layout files modified (walker + owner), same 6-line guard pattern each
+- 1 test updated to match new redirect behavior
+- No schema changes, no new dependencies, no UI changes
+- Reuses existing `getCurrentUser()` + `getUserRole()` — no new auth logic
+- Role "both" correctly allowed through both guards
+
+### Concerns
+- None. Minimal diff, well-tested, no side effects.
+
+### Decision
+**GO** — route protection complete, qa:smoke 5/5.
