@@ -234,7 +234,7 @@ test.describe("double-start-race", () => {
 test.describe("reset-data-empty-state", () => {
   const scenario = loadScenario("reset-data-empty-state");
 
-  test(`[${scenario.tags.join(",")}] seed → reset → empty state, no dogs`, async ({ page }) => {
+  test(`[${scenario.tags.join(",")}] seed → reset → role guard redirects to onboarding`, async ({ page }) => {
     // --- Setup: seed first so there's data to reset ---
     await gotoDashboard(page);
     await assertNoError(page);
@@ -242,29 +242,16 @@ test.describe("reset-data-empty-state", () => {
 
     // Confirm seeded state: start-walk visible, not empty
     await expect(page.getByTestId("start-walk")).toBeVisible({ timeout: T.visible });
-    await expect(page.getByTestId("empty-state")).not.toBeVisible({ timeout: 1_000 });
 
-    // --- Step 1: reset (no re-seed — we're verifying empty state) ---
+    // --- Step 1: reset (deletes walker profile + all data) ---
     await resetOnly(page);
     await page.goto("/walker/dashboard", { timeout: T.nav });
 
     // --- Assertions ---
-    // A1: still on dashboard (no navigation)
-    await assertUrl(page, "/walker/dashboard");
+    // A1: role guard redirects to /onboarding (no walker profile after reset)
+    await assertUrl(page, "/onboarding");
 
-    // A2: empty state visible
-    await expect(page.getByTestId("empty-state"), "Empty state should be visible").toBeVisible({ timeout: T.visible });
-
-    // A3: "אין כלבים" text present
-    await expect(page.getByText("אין כלבים"), "No-dogs text should be visible").toBeVisible({ timeout: T.visible });
-
-    // A4: no error
+    // A2: no error
     await assertNoError(page);
-
-    // A5: business invariant — start-walk button must NOT exist (no dogs)
-    await expect(page.getByTestId("start-walk"), "start-walk should not exist without dogs").not.toBeVisible({ timeout: 1_000 });
-
-    // A6: idle message for no-dogs state
-    await expect(page.getByText("ברוך הבא"), "Welcome message should show").toBeVisible({ timeout: T.visible });
   });
 });

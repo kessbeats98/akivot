@@ -39,10 +39,44 @@ Format:
 - [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
 - [x] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
+- [x] TASK-18 [P0] — Real onboarding flow: profile creation wizard (owner + walker)
+- [x] BUG-02 [P1] — Confirm button enabled with no dog selected (WalkerDashboardClient)
+- [x] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 - [x] TASK-21 [P2] — Empty states for owner + walker dashboards (inline add-dog form, informational walker state)
-- [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 
 ---
+
+## REQ-19: Role Guards on Dashboard Pages
+
+**What**: Server-side route protection for /walker/* and /owner/* routes
+**R-ids**: R-AUTH-03 (implicit: users without matching profile cannot access role-specific dashboards)
+**Risk**: LOW — no schema changes, no new API, read-only profile checks
+
+**Context**:
+- `getCurrentUser()` returns session user or null (no role info)
+- `getUserRole(userId)` already exists — returns "walker"|"owner"|"both"|"none"
+- Walker/owner layouts (`layout.tsx`) have zero auth logic today
+- Dashboard pages call `getCurrentUser()` but never check role
+- An owner can navigate to `/walker/dashboard` and hit broken state
+
+**Scope**:
+1. Walker routes: unauthenticated → /login, no walker profile → /onboarding
+2. Owner routes: unauthenticated → /login, no owner profile → /onboarding
+3. Users with matching role pass through normally
+4. Reuse existing `getCurrentUser()` + `getUserRole()`
+5. No schema changes, no new flows, no UI changes
+
+**Acceptance Criteria**:
+- [ ] Unauthenticated → /walker/dashboard → redirect /login
+- [ ] Unauthenticated → /owner/dashboard → redirect /login
+- [ ] Owner-only → /walker/dashboard → redirect /onboarding
+- [ ] Walker-only → /owner/dashboard → redirect /onboarding
+- [ ] Valid walker → /walker/dashboard → no redirect
+- [ ] Valid owner → /owner/dashboard → no redirect
+- [ ] `npm run build` passes
+- [ ] `qa:smoke` still passes
+
+**Out of Scope**: empty states, landing page, onboarding changes, visual redesign
 
 ## REQ-17: Role-Based Redirect After Login
 
