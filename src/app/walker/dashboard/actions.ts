@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { assertAuthenticated } from "@/lib/auth/session";
 import { startWalkSchema, endWalkSchema } from "@/lib/validation/walks";
 import {
@@ -42,6 +43,7 @@ export async function startWalkAction(dogId: string, _formData: FormData): Promi
   const walkId = await startWalk(user.id, input);
   console.log("[walker/dashboard] walk started:", walkId);
   revalidatePath("/walker/dashboard");
+  redirect("/walker/live");
   // 30s grace period — only notify if walk is still LIVE (guards accidental starts)
   if (walkId) {
     void (async () => {
