@@ -166,9 +166,10 @@ export function WalkerDashboardClient({
             <div className="text-sm text-muted-color">אין הליכה פעילה כרגע</div>
           </div>
         ) : (
-          <div data-testid="empty-state" className="text-center pt-3 pb-1">
-            <div className="text-xl font-bold text-dark mb-1">ברוך הבא</div>
-            <div className="text-sm text-muted-color">אין כלבים משויכים כרגע</div>
+          <div data-testid="empty-state" className="flex flex-col items-center justify-center pt-3 pb-1">
+            <div className="text-[56px]">🐾</div>
+            <div className="text-xl font-bold text-dark mb-1">ממתינים לשיוך כלב</div>
+            <div className="text-sm text-muted-color text-center">ברגע שבעל הכלב ישייך אותך, הכלבים וההליכות יופיעו כאן</div>
           </div>
         )}
 

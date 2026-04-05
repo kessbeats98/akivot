@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import type { DogWithWalkers, ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
-import { getWalkHistoryForDogAction } from "./actions";
+import { getWalkHistoryForDogAction, createDogAction } from "./actions";
 import { OwnerDogSelector } from "./components/OwnerDogSelector";
 import { OwnerCurrentStatusCard } from "./components/OwnerCurrentStatusCard";
 import { OwnerHistorySection } from "./components/OwnerHistorySection";
@@ -82,9 +82,24 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6" data-testid="empty-state">
           <div className="text-[56px]">🐾</div>
           <div className="text-xl font-bold text-dark">ברוך הבא!</div>
-          <div className="text-sm text-muted-color text-center">
-            אין כלבים רשומים עדיין. הוסף כלב כדי להתחיל.
+          <div className="text-sm text-muted-color text-center mb-2">
+            הוסף את הכלב שלך כדי להתחיל
           </div>
+          <form action={createDogAction} className="flex items-center gap-2 w-full max-w-xs">
+            <input
+              type="text"
+              name="name"
+              required
+              placeholder="שם הכלב"
+              className="flex-1 rounded-2xl border border-gray-300 px-4 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+            <button
+              type="submit"
+              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors"
+            >
+              הוספה
+            </button>
+          </form>
         </div>
       </div>
     );

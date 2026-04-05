@@ -112,3 +112,30 @@ All 6 criteria met. See EVIDENCE.md for details.
 
 ### Decision
 **GO** — route protection complete, qa:smoke 5/5.
+
+---
+
+## TASK-21: Empty States — Review
+
+**Date**: 2026-04-05
+**Verdict**: GO
+**Risk**: MEDIUM (as declared — wires existing write-path into new UI surface)
+
+### Diff Analysis
+- 2 modified files (owner + walker dashboard clients), 1 governance file (backlog)
+- ~20 lines added, ~8 lines removed in dashboard files
+- No new files, no new dependencies, no schema changes, no API changes, no server-action changes
+
+### Scope Compliance
+- [x] Only empty-state blocks modified — no changes outside those blocks
+- [x] No auth, role-guard, onboarding, or layout files touched
+- [x] `actions.ts` untouched — `createDogAction` used as-is
+- [x] No second-dog flow introduced (TASK-20 boundary respected)
+- [x] No breed/birthDate/notes fields added (name-only form)
+
+### Concerns
+- Form uses native HTML `<form action={...}>` with no client-side loading/error state — acceptable for MVP, progressive enhancement via `useFormStatus` can come later if needed
+- `createDogAction` validation errors surface as uncaught — acceptable since name field has `required` attribute and min(1) schema; max(100) is unlikely in practice
+
+### Decision
+**GO** — surgical scope, existing action reused, no risk surfaces changed.

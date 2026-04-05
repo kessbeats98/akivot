@@ -7,12 +7,12 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
-- TASK-19: Role guards on walker/owner dashboard layouts (feat/task-19-role-guards, 2026-04-05)
-- BUG-02: Start-walk confirm disabled until dog selected (fix/bug-02, 2026-04-05)
-- TASK-18: Real onboarding flow — profile creation wizard (2026-04-03)
+- TASK-21: Empty states for owner + walker dashboards — inline add-dog form, informational walker state (2026-04-05)
+- TASK-19: Role guards on walker/owner dashboard layouts (2026-04-05)
+- BUG-02: Start-walk confirm disabled until dog selected (2026-04-05)
 
 ## Next 3 Steps
-1. TASK-21: Empty states for owner + walker dashboards
+1. TASK-16: Landing page redesign — replace placeholder with Akivot branding
 2. TASK-20: Owner — add second dog flow
 3. Deploy to production
 
@@ -23,10 +23,14 @@
 [none pending]
 
 ## Current Constraint
-category: ux
-description: "Owner + walker dashboards are empty — no CTA for first action"
+category: "quality"
+description: "Landing page is minimal placeholder — needs branding before marketing"
 
 ## CEO Decisions Log
+- task_id: "TASK-21"
+  verdict: "GO"
+  reasoning: "surgical UX fix, reuses existing write-path, no risk surfaces changed"
+  timestamp: "2026-04-05"
 - task_id: "TASK-18"
   verdict: "GO"
   reasoning: "completes signup→onboarding→dashboard pipeline"
