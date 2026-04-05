@@ -181,7 +181,7 @@ export function WalkerDashboardClient({
             <button
               data-testid="start-walk"
               onClick={() => {
-                setSelectedDogs([firstDog.dogId]);
+                setSelectedDogs([]);
                 setIsStartWalkOpen(true);
                 setError(null);
               }}
@@ -218,7 +218,7 @@ export function WalkerDashboardClient({
                   <button
                     key={dog.dogWalkerId}
                     onClick={() => {
-                      setSelectedDogs([dog.dogId]);
+                      setSelectedDogs([]);
                       setIsStartWalkOpen(true);
                       setError(null);
                     }}

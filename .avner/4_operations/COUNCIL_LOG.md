@@ -42,3 +42,11 @@
 - Evidence: build 0 errors, onboarding wizard works, both role flows insert correctly, see EVIDENCE.md
 - Action: PROCEED
 ---
+
+### 2026-04-05 — BUG-02 — CEO CODEX
+- Verdict: GO
+- Normalized: PASS
+- Risk: LOW
+- Evidence: qa:smoke 5/5 PASS, 2-line fix, confirm button now disabled until dog selected
+- Action: PROCEED
+---

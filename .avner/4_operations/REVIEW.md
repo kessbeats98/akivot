@@ -72,3 +72,22 @@ All 6 criteria met. See EVIDENCE.md for details.
 
 ### Decision
 **GO** — completes signup→onboarding→dashboard pipeline for both roles.
+
+---
+
+## BUG-02: Start-Walk Confirm Disabled Fix — Review
+
+**Date**: 2026-04-05
+**Verdict**: GO
+**Risk**: LOW
+
+### Diff Analysis
+- 1 file, 2 lines changed (identical pattern in 2 handlers)
+- `setSelectedDogs([dogId])` → `setSelectedDogs([])` — clear instead of pre-select
+- No new dependencies, no schema changes, no API changes
+
+### Concerns
+- None. Minimal, surgical fix. qa:smoke 5/5 confirms correctness.
+
+### Decision
+**GO** — fixes test regression, zero blast radius.
