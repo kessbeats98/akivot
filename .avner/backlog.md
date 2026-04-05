@@ -39,6 +39,7 @@ Format:
 - [x] TASK-15 [P0] — Auth UI: login + signup pages using Better Auth client SDK
 - [ ] TASK-16 [P1] — Landing page: replace Next.js boilerplate with Akivot branding
 - [x] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
+- [x] TASK-21 [P2] — Empty states for owner + walker dashboards (inline add-dog form, informational walker state)
 - [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 
 ---
@@ -76,3 +77,25 @@ Format:
 - [ ] User with neither → redirects to `/onboarding`
 - [ ] `npm run build` passes with 0 errors
 - [ ] All new text in Hebrew
+
+---
+
+## REQ-21: Empty States for Owner + Walker Dashboards
+
+**What**: Replace weak zero-data dashboard states — owner gets inline add-dog form, walker gets informational "waiting for assignment" message
+**R-ids**: R-OWN-EMPTY-01, R-WLK-EMPTY-01
+**Risk**: MEDIUM — wires existing `createDogAction` into owner empty state UI. No auth/role/onboarding changes.
+
+**Scope**:
+1. Owner empty state — inline add-dog form (name input + submit) using existing `createDogAction`
+2. Walker empty state — icon + "ממתינים לשיוך כלב" headline + explanation (no CTA)
+3. Visual consistency across both empty states
+
+**Acceptance Criteria**:
+- [x] Owner 0-dogs state: icon + headline + inline add-dog form with name input + submit
+- [x] Submitting form calls `createDogAction`, revalidates, empty state disappears
+- [x] No second "add another dog" UX outside empty state
+- [x] Walker 0-dogs state: icon + "ממתינים לשיוך כלב" + explanation
+- [x] Walker empty state has no primary CTA
+- [x] Walker `data-testid="empty-state"` preserved
+- [x] `npm run build` passes

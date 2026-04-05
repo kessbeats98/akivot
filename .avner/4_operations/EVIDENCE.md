@@ -63,3 +63,35 @@
 - No schema changes, no new API routes — server action reads existing tables
 - "both" users get walker priority — no chooser page
 - Role guards on dashboards deferred to TASK-19
+
+---
+
+## TASK-21: Empty States for Owner + Walker Dashboards
+
+**Date**: 2026-04-05
+**Branch**: working tree (no branch yet)
+**Commits**: pending
+
+### Files Created/Modified
+- `src/app/owner/dashboard/OwnerDashboardClient.tsx` — replaced empty state (lines 76-104) with inline add-dog form using existing `createDogAction`
+- `src/app/walker/dashboard/WalkerDashboardClient.tsx` — replaced bare text empty state (lines 168-173) with icon + headline + explanation
+- `.avner/backlog.md` — added REQ-21 + TASK-21 entry
+
+### Acceptance Criteria Verification
+- [x] Owner 0-dogs state: 🐾 + "ברוך הבא!" + name input + teal "הוספה" button
+- [x] Form calls `createDogAction` via `<form action={createDogAction}>`, revalidation built into action
+- [x] No "add another dog" UX outside empty state — form only renders when `!selectedDog` (dogs.length === 0)
+- [x] Walker 0-dogs state: 🐾 + "ממתינים לשיוך כלב" + "ברגע שבעל הכלב ישייך אותך..."
+- [x] Walker empty state has no CTA button — informational only
+- [x] Walker `data-testid="empty-state"` preserved
+- [x] `npm run build` passes with 0 errors
+- [x] No files in `src/lib/auth/`, `src/app/login/`, `src/app/onboarding/`, or `actions.ts` touched
+
+### Build Output
+- 0 errors, all routes intact
+- Service worker built successfully
+
+### Notes
+- `createDogAction` takes FormData, only `name` required (breed/birthDate/notes optional per `createDogSchema`)
+- No new imports beyond adding `createDogAction` to existing actions import
+- Walker empty state is purely informational — walkers cannot self-assign dogs
