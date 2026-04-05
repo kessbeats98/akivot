@@ -41,7 +41,7 @@ Format:
 - [x] TASK-17 [P2] — Role-based redirect after login (owner vs walker dashboard)
 - [x] TASK-18 [P0] — Real onboarding flow: profile creation wizard (owner + walker)
 - [x] BUG-02 [P1] — Confirm button enabled with no dog selected (WalkerDashboardClient)
-- [ ] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
+- [x] TASK-19 [P3] — Role guards on dashboard pages (redirect if user lacks that role)
 - [ ] TASK-21 [P2] — Empty states for owner + walker dashboards (CTA for first action)
 
 ---

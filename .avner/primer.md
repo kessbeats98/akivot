@@ -7,13 +7,13 @@
 - Non-goals: native app, multi-currency, real-time GPS tracking
 
 ## Last 3 Completed Tasks
+- TASK-19: Role guards on walker/owner dashboard layouts (feat/task-19-role-guards, 2026-04-05)
 - BUG-02: Start-walk confirm disabled until dog selected (fix/bug-02, 2026-04-05)
 - TASK-18: Real onboarding flow — profile creation wizard (2026-04-03)
-- TASK-17: Role-based redirect after login — server action approach (2026-04-03)
 
 ## Next 3 Steps
-1. TASK-19: Role guards on dashboard pages
-2. TASK-21: Empty states for owner + walker dashboards
+1. TASK-21: Empty states for owner + walker dashboards
+2. TASK-20: Owner — add second dog flow
 3. Deploy to production
 
 ## Open Blockers
