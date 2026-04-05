@@ -1,6 +1,6 @@
 # Project State — Akivot
 
-Updated: 2026-03-26 (walker polish applied locally; production smoke pass)
+Updated: 2026-04-05 (TASK-21 merged; repo clean; worktree closed)
 Phase: Production — V1 Live
 Version: DEPLOY-01-done
 
@@ -10,18 +10,15 @@ Version: DEPLOY-01-done
 ---
 
 ## Session Continuity (Mini-Handoff)
-- Stopped at: Walker dashboard UI polish written locally. **These changes exist only as uncommitted working-tree edits** — NOT staged, NOT committed, NOT deployed. Main/production is at `9102c48` and does NOT include them.
-- Dirty files (local only, not on main):
-  - `src/app/walker/dashboard/WalkerDashboardClient.tsx` — time-aware greeting, merged dog card + CTA, icon/copy/spacing fixes
-  - `src/app/walker/live/WalkerLiveClient.tsx` — SVG checkmark, copy edits, disabled nav opacity
-- Next action: Open fresh session, `git diff` both files, decide whether to commit as-is, revert any item, or adjust — then commit only if approved.
+- Stopped at: TASK-21 merged and closed. Repo is clean. No in-progress work.
+- Next action: Open a fresh planning session to choose the next task. No in-progress task is currently active.
 - Open questions:
   - Production cron schedule pending Vercel Pro upgrade (non-blocker, unchanged)
 - Last commands run:
-  - `BASE_URL=https://akivot.vercel.app npm run qa:smoke` — 5/5 PASS (production, 2026-03-26)
-  - `npm run build` — ✓ Compiled 4.2s, 0 errors, 20 routes (local, after polish changes)
+  - `npm run build` — ✓ Compiled 4.4s, 0 errors, 24 routes (2026-04-05, TASK-21 branch)
+  - PR #8 squash-merged → `6f06568`; PR #1 closed as stale
 - Neon wiring confirmed: Vercel `DATABASE_URL` → Neon staging branch `br-wispy-hall-agzj0ep9`. QA account `qa-smoke@akivot.test` aligned. Credentials in gitignored `qa/.env.qa`.
-- feat/fp-premium-ui: **merged to main** at `9102c48`. Production deploy READY. Branch still checked out locally.
+- stash@{0}: contains out-of-scope local files (agent skills, HTML mocks, QA scratch, 2 orphaned components). Do not pop/drop without reviewing contents.
 
 ---
 
@@ -38,6 +35,15 @@ Version: DEPLOY-01-done
 ---
 
 ## Completed
+
+### ~~TASK-21~~: Empty states for owner and walker dashboards (✅ DONE)
+**Priority**: P2
+**Status**: ✅ DONE (2026-04-05)
+**Commits**: squash `6f06568` (PR #8)
+
+Conditional empty states added to `OwnerDashboardClient` (no dogs registered) and `WalkerDashboardClient` (no assigned dogs). Replaces null/undefined render paths with explicit Hebrew user-facing messages. Build clean (24 routes, 0 errors). EVIDENCE, REVIEW, COUNCIL_LOG in `.avner/4_operations/`.
+
+---
 
 ### ~~TASK-14~~: Add API-based globalSetup seed for production-target smoke (✅ DONE)
 **Priority**: P2
@@ -207,6 +213,7 @@ Next.js 16 + TS + Tailwind + shadcn config, dependencies, lazy DB factory, schem
 
 | Date | Env | Commit | Status | Notes |
 |------|-----|--------|--------|-------|
+| 2026-04-05 | Production | `6f06568` | ✅ LIVE | TASK-21 squash merge — empty states owner/walker dashboards; build 24 routes clean |
 | 2026-03-26 | Production | `9102c48` | ✅ LIVE | Merge feat/fp-premium-ui → main; qa:smoke 5/5 PASS on akivot.vercel.app; walker polish NOT included (local only) |
 | 2026-03-24 | Production | `48f1b1c5` | ✅ LIVE | DEPLOY-01 — feat/fp-premium-ui + build fix; manual checks 7/7 pass; smoke gap (TASK-13) |
 | 2026-03-23 | Staging | `322b728` | ✅ Migration 0005 applied | BUG-01 + FEAT-01; index verified, 0 dupes |
