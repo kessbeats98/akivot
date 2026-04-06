@@ -45,10 +45,10 @@ export function OwnerWalkListView({ walks }: Props) {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
               filter === f.key
-                ? "bg-brand text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-gray-800/10 text-gray-800"
+                : "bg-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
             {f.label}

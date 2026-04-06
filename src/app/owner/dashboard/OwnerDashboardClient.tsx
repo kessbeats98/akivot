@@ -198,7 +198,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
         {/* History section */}
         <div>
-          <h2 className="text-sm font-bold text-dark mb-3">היסטוריית טיולים</h2>
+          <h2 className="text-sm font-bold text-dark mb-3">טיולים אחרונים</h2>
           {historyLoading ? (
             <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
               <span className="material-symbols-rounded text-brand/40 text-3xl animate-spin">progress_activity</span>
