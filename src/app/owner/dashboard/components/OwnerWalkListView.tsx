@@ -36,18 +36,20 @@ function applyFilter(walks: DogWalkHistoryItem[], filter: FilterKey): DogWalkHis
 
 export function OwnerWalkListView({ walks }: Props) {
   const [filter, setFilter] = useState<FilterKey>("all");
-  const filtered = applyFilter(walks, filter);
+  const showFilters = walks.length >= 5;
+  const effectiveFilter: FilterKey = showFilters ? filter : "all";
+  const filtered = applyFilter(walks, effectiveFilter);
 
   return (
     <div className="flex flex-col gap-4">
-      {walks.length >= 5 && (
+      {showFilters && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                filter === f.key
+                effectiveFilter === f.key
                   ? "bg-gray-800/10 text-gray-800"
                   : "bg-transparent text-gray-400 hover:text-gray-600"
               }`}
