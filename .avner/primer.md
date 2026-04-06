@@ -23,8 +23,9 @@
 [none pending]
 
 ## Current Constraint
-category: "quality"
-description: "Landing page is minimal placeholder — needs branding before marketing"
+FREEZE: No code. Founder must complete Cold Walkthrough Part A + Part B.
+Document every friction point. Classify A/B/C/D/E. Do not fix anything.
+NEXT ACTION: Order 1 — Cold Walkthrough on https://akivot.vercel.app
 
 ## CEO Decisions Log
 - task_id: "TASK-21"
