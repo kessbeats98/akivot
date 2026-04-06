@@ -25,6 +25,12 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState(() => new Date());
+  const [showFullHistory, setShowFullHistory] = useState(false);
+
+  // Reset history view when dog changes
+  useEffect(() => {
+    setShowFullHistory(false);
+  }, [selectedDogId]);
 
   // Auto-refresh every 30s
   useEffect(() => {
@@ -74,6 +80,9 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const lastCompletedWalk =
     walkHistory.find((w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED") ?? null;
   const hasHistory = walkHistory.some(
+    (w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED"
+  );
+  const completedWalks = walkHistory.filter(
     (w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED"
   );
 
@@ -201,8 +210,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
         {/* History section — shown only while loading or when completed walks exist */}
         {(historyLoading || hasHistory) && (
-          <div>
-            <h2 className="text-sm font-bold text-dark mb-3">טיולים אחרונים</h2>
+          <div className="flex flex-col gap-2">
             {historyLoading ? (
               <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
                 <span className="material-symbols-rounded text-brand/40 text-3xl animate-spin">progress_activity</span>
@@ -223,8 +231,38 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
                 <div className="text-sm font-semibold text-[#991b1b]">{historyError}</div>
                 <div className="text-xs text-[#991b1b] opacity-70">לחץ לנסות שוב</div>
               </button>
-            ) : (
+            ) : showFullHistory ? (
               <OwnerHistorySection walks={walkHistory} />
+            ) : (
+              <>
+                {completedWalks.slice(0, 3).map((walk) => (
+                  <div key={walk.id} className="bg-white rounded-2xl px-4 py-3 border border-gray-100 shadow-sm flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-dark">
+                          {format(new Date(walk.startTime), "d בMMM", { locale: he })}
+                        </span>
+                        <span className="font-numbers text-xs text-gray-400">
+                          {format(new Date(walk.startTime), "HH:mm")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="material-symbols-rounded text-gray-400 text-xs">directions_walk</span>
+                        <span className="text-xs text-gray-500">{walk.walkerName}</span>
+                        {walk.durationMinutes != null && (
+                          <span className="font-numbers text-xs text-gray-400 mr-1">· {walk.durationMinutes} דק&apos;</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setShowFullHistory(true)}
+                  className="text-xs text-muted-color w-full text-center py-1"
+                >
+                  כל הטיולים →
+                </button>
+              </>
             )}
           </div>
         )}
