@@ -161,6 +161,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           dogName={selectedDog.name}
           liveWalk={liveWalk}
           lastCompletedWalk={lastCompletedWalk}
+          hasActiveWalker={hasActiveWalker}
         />
 
         {/* Assign-walker CTA */}
@@ -171,7 +172,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           >
             <span className="material-symbols-rounded text-amber-600 text-xl">person_add</span>
             <div className="flex-1">
-              <div className="text-sm font-bold text-amber-900">אין מוביל משויך ל{selectedDog.name}</div>
+              <div className="text-sm font-bold text-amber-900">{selectedDog.name} ללא מוביל משויך</div>
               <div className="text-xs text-amber-700 mt-0.5">לחץ לשיוך מוביל</div>
             </div>
             <span className="material-symbols-rounded text-amber-400 text-lg">chevron_left</span>

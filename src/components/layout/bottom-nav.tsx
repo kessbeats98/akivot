@@ -21,7 +21,10 @@ export function BottomNav() {
     <div className="fixed bottom-6 left-0 right-0 px-6 z-50 flex justify-center">
       <nav className="bg-dark/90 backdrop-blur-xl rounded-organic p-2 flex items-center gap-2 shadow-2xl border border-white/10">
         {navItems.map((item) => {
-          const isActive = pathname === item.path;
+          const isActive =
+            item.path === "/walker/dashboard"
+              ? pathname === "/walker/dashboard"
+              : pathname.startsWith(item.path);
           return (
             <Link
               key={item.path}

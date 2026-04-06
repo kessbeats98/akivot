@@ -8,6 +8,7 @@ interface Props {
   dogName: string;
   liveWalk: ActiveLiveWalk | null;
   lastCompletedWalk: DogWalkHistoryItem | null;
+  hasActiveWalker?: boolean;
 }
 
 const pad = (n: number) => n.toString().padStart(2, "0");
@@ -30,7 +31,7 @@ function LiveTimer({ startTime }: { startTime: string | Date }) {
   return <span>{pad(h)}:{pad(m)}:{pad(s)}</span>;
 }
 
-export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk }: Props) {
+export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, hasActiveWalker }: Props) {
   // Walking state — matches HTML .status-card.walking
   if (liveWalk) {
     const startLabel = new Date(liveWalk.startTime).toLocaleTimeString("he-IL", {
@@ -144,7 +145,7 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk }:
       <div className="text-[56px] mb-4">🐾</div>
       <div className="text-xl font-bold text-dark mb-2">אין טיול מתוכנן</div>
       <div className="text-[15px] text-muted-color">
-        שייך מוביל כדי להתחיל
+        {hasActiveWalker ? "כשתהיה הליכה — תראה אותה כאן" : "שייך מוביל כדי להתחיל"}
       </div>
     </div>
   );
