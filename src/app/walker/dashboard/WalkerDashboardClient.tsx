@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SlideOver } from "@/components/ui/slide-over";
 import type { AssignedDog } from "@/lib/services/walks/types";
@@ -78,9 +77,8 @@ export function WalkerDashboardClient({
     );
   };
 
-  const handleStartWalk = useCallback(async () => {
-    const dogId = selectedDogs[0];
-    if (!dogId || isStarting) return; // double-start guard
+  const startWalkForDog = useCallback(async (dogId: string) => {
+    if (isStarting) return;
     if (!navigator.onLine || debug.forceOffline) {
       setError("אין חיבור לאינטרנט — נסה שוב כשיש חיבור");
       return;
@@ -92,13 +90,16 @@ export function WalkerDashboardClient({
       const fd = new FormData();
       await startWalkAction(dogId, fd);
       console.log("[walker/dashboard] startWalk success — redirecting to /walker/live");
-      // startWalkAction calls revalidatePath + redirect on success
     } catch (err) {
       const msg = getActionError(err, { action: "startWalk", dogId });
       setError(msg);
       setIsStarting(false);
     }
-  }, [selectedDogs, isStarting, startWalkAction, debug.forceOffline]);
+  }, [isStarting, startWalkAction, debug.forceOffline]);
+
+  const handleStartWalk = useCallback(async () => {
+    if (selectedDogs[0]) await startWalkForDog(selectedDogs[0]);
+  }, [selectedDogs, startWalkForDog]);
 
   const formatPrice = (price: string, currency: string) => {
     if (currency === "ILS") return `₪${price}`;
@@ -125,7 +126,7 @@ export function WalkerDashboardClient({
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-5 pb-[100px] flex flex-col gap-3 overflow-y-auto">
+      <div className="flex-1 px-5 pb-28 flex flex-col gap-3 overflow-y-auto">
 
         {/* Offline indicator */}
         {(isOffline || debug.forceOffline) && (
@@ -178,13 +179,17 @@ export function WalkerDashboardClient({
           const firstDog = assignedDogs[0]!;
           return (
           <>
-            {/* First dog card — taps to open start-walk */}
+            {/* First dog card — direct start for 1 dog, chooser for multi */}
             <button
               data-testid="start-walk"
               onClick={() => {
-                setSelectedDogs([]);
-                setIsStartWalkOpen(true);
-                setError(null);
+                if (assignedDogs.length === 1) {
+                  startWalkForDog(firstDog.dogId);
+                } else {
+                  setSelectedDogs([]);
+                  setIsStartWalkOpen(true);
+                  setError(null);
+                }
               }}
               className="bg-white border border-[var(--border)] rounded-[18px] p-4 flex items-center gap-3 cursor-pointer transition-colors hover:bg-stone100 text-right w-full"
             >
@@ -219,7 +224,7 @@ export function WalkerDashboardClient({
                   <button
                     key={dog.dogWalkerId}
                     onClick={() => {
-                      setSelectedDogs([]);
+                      setSelectedDogs([dog.dogId]);
                       setIsStartWalkOpen(true);
                       setError(null);
                     }}
@@ -247,22 +252,6 @@ export function WalkerDashboardClient({
           </>
           );
         })()}
-      </div>
-
-      {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-[var(--border)] px-5 pt-2.5 pb-[30px] flex justify-around z-40">
-        <button className="flex flex-col items-center gap-1 bg-transparent border-none cursor-pointer text-brand">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span className="text-[11px] font-semibold">בית</span>
-        </button>
-        <Link href="/walker/dogs" className="flex flex-col items-center gap-1 text-muted-color hover:text-brand transition-colors">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span className="text-[11px] font-semibold">לקוחות</span>
-        </Link>
-        <Link href="/walker/settings" className="flex flex-col items-center gap-1 text-muted-color hover:text-brand transition-colors">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          <span className="text-[11px] font-semibold">הגדרות</span>
-        </Link>
       </div>
 
       <DebugPanel

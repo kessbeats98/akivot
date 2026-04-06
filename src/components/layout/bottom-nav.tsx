@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { path: "/walker/dashboard", icon: "home", label: "בית" },
-  { path: "/walker/calendar", icon: "calendar_month", label: "יומן" },
-  { path: "/walker/dogs", icon: "pets", label: "כלבים" },
+  { path: "/walker/dogs", icon: "pets", label: "לקוחות" },
   { path: "/walker/billing", icon: "account_balance_wallet", label: "כספים", badge: true },
 ];
 
