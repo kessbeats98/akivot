@@ -40,21 +40,23 @@ export function OwnerWalkListView({ walks }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              filter === f.key
-                ? "bg-gray-800/10 text-gray-800"
-                : "bg-transparent text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      {walks.length >= 5 && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                filter === f.key
+                  ? "bg-gray-800/10 text-gray-800"
+                  : "bg-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="bg-brand/5 rounded-[2rem] p-6 flex flex-col items-center gap-2">
