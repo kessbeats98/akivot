@@ -22,6 +22,10 @@ export function OwnerDogsClient({ dogs }: Props) {
       {/* Topbar */}
       <div className="px-6 pt-14 pb-4 flex items-center justify-between flex-shrink-0">
         <div className="text-[22px] font-extrabold text-brand tracking-tight">הכלבים שלי</div>
+        <Link href="/owner/dashboard" className="flex items-center gap-1 text-brand font-medium text-sm">
+          <span className="material-symbols-rounded text-base">chevron_right</span>
+          חזרה
+        </Link>
       </div>
 
       <div className="flex-1 px-6 pb-24 flex flex-col gap-5">
