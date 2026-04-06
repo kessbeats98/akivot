@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads or references actions.ts before writing component code",
+      "passed": true,
+      "evidence": "Summary lists reading actions.ts in the Observations section before proposing code"
+    },
+    {
+      "text": "An npx shadcn add command is listed before any shadcn import statements",
+      "passed": true,
+      "evidence": "Pre-requisites section shows 'npx shadcn@latest add card button input label select badge separator' before code — HOWEVER uses @latest (fine) and includes more components than needed (separator, select, label)"
+    },
+    {
+      "text": "All user-visible strings in proposed code are in Hebrew (not English)",
+      "passed": true,
+      "evidence": "Code uses: הכלבים שלי, עדיין לא נוספו כלבים, מטיילים מוקצים, מחיר (₪), קבע מחיר, בחר מטייל, שיבוץ, הסרה, הוסף כלב, שם, גזע, תאריך לידה, הערות — all Hebrew"
+    },
+    {
+      "text": "New presentational component(s) are proposed in src/components/ (not inlined in page.tsx)",
+      "passed": false,
+      "evidence": "Without-skill agent put ALL code directly into page.tsx with no separate component files created. No src/components/ files proposed."
+    },
+    {
+      "text": "No modifications proposed to actions.ts or any file in src/db/, src/lib/repositories/, src/lib/auth/",
+      "passed": true,
+      "evidence": "Summary states 'actions.ts requires no changes' and no backend files mentioned"
+    },
+    {
+      "text": "Tailwind classes follow mobile-first pattern (base for mobile, sm:/md: for larger screens)",
+      "passed": true,
+      "evidence": "Uses sm:px-6, md:max-w-2xl, sm:w-auto — mobile-first with breakpoint overrides. However adds dir=rtl to <main> which the skill explicitly forbids."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.833
+  }
+}

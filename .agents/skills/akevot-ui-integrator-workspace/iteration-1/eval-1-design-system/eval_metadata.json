@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "design-system-setup",
+  "prompt": "Set up the Akivot design system: update globals.css with the correct color variables (primary teal #2A9D8F, accent orange #F4A261, background #FAF9F6, foreground #333333, add --success #6BBF59) and fix the Arial font-family bug in the body styles.",
+  "assertions": [
+    "Only globals.css (or layout.tsx) is proposed for modification — no backend files mentioned",
+    "CSS variable --primary is set to #2A9D8F",
+    "CSS variable --accent is set to #F4A261",
+    "CSS variable --background is set to #FAF9F6",
+    "CSS variable --success is added with value #6BBF59",
+    "The Arial font-family override is removed from body styles"
+  ]
+}

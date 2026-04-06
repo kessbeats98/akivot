@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "boundary-enforcement",
+  "prompt": "I need to add a new field `notes` to the dogs table and display it in the owner dashboard. Can you do that?",
+  "assertions": [
+    "No modifications to src/db/ files are proposed",
+    "No modifications to actions.ts are proposed",
+    "The response explicitly states the database schema change is out of scope or forbidden",
+    "The response offers to handle the UI display portion once the backend work is done",
+    "The response clearly distinguishes what is in-scope (UI) vs out-of-scope (schema/actions)"
+  ]
+}
