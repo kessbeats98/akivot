@@ -14,7 +14,7 @@ interface Props {
 type Tab = "calendar" | "list";
 
 export function OwnerHistorySection({ walks }: Props) {
-  const [tab, setTab] = useState<Tab>("calendar");
+  const [tab, setTab] = useState<Tab>("list");
   const [month, setMonth] = useState(() => format(new Date(), "yyyy-MM"));
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
@@ -28,19 +28,19 @@ export function OwnerHistorySection({ walks }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {/* Tab toggle */}
-      <div className="flex gap-1 bg-gray-100 rounded-2xl p-1">
+      <div className="flex gap-1 justify-end">
         <button
           onClick={() => setTab("calendar")}
-          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${
-            tab === "calendar" ? "bg-white text-dark shadow-sm" : "text-gray-500"
+          className={`py-1.5 px-3 rounded-xl text-xs font-medium transition-colors ${
+            tab === "calendar" ? "bg-white text-dark shadow-sm" : "text-gray-400"
           }`}
         >
           יומן
         </button>
         <button
           onClick={() => setTab("list")}
-          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${
-            tab === "list" ? "bg-white text-dark shadow-sm" : "text-gray-500"
+          className={`py-1.5 px-3 rounded-xl text-xs font-medium transition-colors ${
+            tab === "list" ? "bg-white text-dark shadow-sm" : "text-gray-400"
           }`}
         >
           רשימה
