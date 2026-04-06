@@ -12,7 +12,9 @@ interface Props {
   dog: DogWithWalkers;
   walkHistory: DogWalkHistoryItem[];
   stats: DogStats;
+  availableWalkers: { id: string; displayName: string }[];
   updateDogAction: (formData: FormData) => Promise<void>;
+  assignWalkerAction: (formData: FormData) => Promise<void>;
 }
 
 const STATUS_BADGE: Record<WalkStatus, { label: string; cls: string }> = {
@@ -48,7 +50,7 @@ function formatMinutes(totalMinutes: number): string {
   return `${hours} שע'`;
 }
 
-export function DogProfileClient({ dog, walkHistory, stats, updateDogAction }: Props) {
+export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, updateDogAction, assignWalkerAction }: Props) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(dog.imageUrl);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
@@ -162,10 +164,10 @@ export function DogProfileClient({ dog, walkHistory, stats, updateDogAction }: P
       )}
 
       {/* Walkers */}
-      {dog.walkers.length > 0 && (
-        <section className="px-6 mb-6">
-          <h3 className="font-bold text-lg text-dark mb-3">דוגווקרים</h3>
-          <div className="flex flex-col gap-2">
+      <section className="px-6 mb-6">
+        <h3 className="font-bold text-lg text-dark mb-3">דוגווקרים</h3>
+        {dog.walkers.length > 0 ? (
+          <div className="flex flex-col gap-2 mb-4">
             {dog.walkers.map((w) => (
               <div
                 key={w.dogWalkerId}
@@ -183,8 +185,34 @@ export function DogProfileClient({ dog, walkHistory, stats, updateDogAction }: P
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="text-sm text-gray-400 mb-4">אין דוגווקרים משויכים עדיין</p>
+        )}
+
+        {/* Assign new walker */}
+        {availableWalkers.length > 0 && (
+          <form action={assignWalkerAction} className="flex items-center gap-2">
+            <select
+              name="walkerProfileId"
+              required
+              className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-sm text-right bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+            >
+              <option value="">בחר דוגווקר</option>
+              {availableWalkers.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.displayName}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors whitespace-nowrap"
+            >
+              שיוך
+            </button>
+          </form>
+        )}
+      </section>
 
       {/* Diary */}
       <section className="px-6 mb-8">
