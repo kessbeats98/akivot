@@ -51,3 +51,7 @@ next-env.d.ts
 # NOTE: drizzle/ is NOT ignored — migration files must be version-controlled
 
 .vercel
+*.png
+*.jpg
+body.txt
+ui html/
