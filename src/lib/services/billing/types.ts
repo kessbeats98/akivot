@@ -48,5 +48,6 @@ export type OwnerPaymentPeriod = {
   paidAt: Date | null;
   createdAt: Date;
   walkerDisplayName: string;
+  pendingWalkCount: number; // walks completed but not yet tagged to this period
   entries: OwnerPaymentEntry[];
 };

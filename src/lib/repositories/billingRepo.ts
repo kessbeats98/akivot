@@ -1,4 +1,4 @@
-import { eq, and, isNull, inArray } from "drizzle-orm";
+import { eq, and, isNull, inArray, count } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { paymentPeriods, paymentEntries, walks, dogWalkers, walkerProfiles, dogs, dogOwners } from "@/db/schema";
 import { logAudit } from "@/lib/repositories/auditRepo";
@@ -235,7 +235,28 @@ export async function getOwnerPaymentPeriodsEnriched(ownerUserId: string): Promi
     walkMap = new Map(walkRows.map((w) => [w.id, w]));
   }
 
-  // 5. Merge
+  // 5. Pending walk counts per open period (walks completed but not yet tagged)
+  const pendingCountMap = new Map<string, number>();
+  for (const p of periods) {
+    if (p.status === "OPEN" || p.status === "REOPENED") {
+      const [row] = await db
+        .select({ cnt: count() })
+        .from(walks)
+        .innerJoin(dogOwners, and(
+          eq(dogOwners.dogId, walks.dogId),
+          eq(dogOwners.ownerUserId, p.ownerUserId),
+        ))
+        .where(and(
+          eq(walks.walkerProfileId, p.walkerProfileId),
+          eq(walks.status, "COMPLETED"),
+          isNull(walks.paymentPeriodId),
+          isNull(walks.deletedAt),
+        ));
+      pendingCountMap.set(p.id, row?.cnt ?? 0);
+    }
+  }
+
+  // 6. Merge
   return periods.map((p): OwnerPaymentPeriod => ({
     id: p.id,
     status: p.status as OwnerPaymentPeriod["status"],
@@ -244,6 +265,7 @@ export async function getOwnerPaymentPeriodsEnriched(ownerUserId: string): Promi
     paidAt: p.paidAt,
     createdAt: p.createdAt,
     walkerDisplayName: walkerMap.get(p.walkerProfileId) ?? "מטייל לא ידוע",
+    pendingWalkCount: pendingCountMap.get(p.id) ?? 0,
     entries: entries
       .filter((e) => e.paymentPeriodId === p.id)
       .map((e): OwnerPaymentEntry => {

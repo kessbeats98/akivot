@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
 import { OwnerPaymentEntriesList } from "./OwnerPaymentEntriesList";
+import { closePeriodAction } from "../actions";
 
 const formatCurrency = (amount: string) =>
   new Intl.NumberFormat("he-IL", {
@@ -45,7 +46,13 @@ export function OwnerCurrentPaymentCard({ period }: Props) {
         <div className="flex justify-between items-end">
           <div>
             <p className="font-bold text-dark text-sm">{period.walkerDisplayName}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{period.entries.length} פריטים</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {period.pendingWalkCount > 0
+                ? `${period.pendingWalkCount} טיולים ממתינים`
+                : period.entries.length > 0
+                  ? `${period.entries.length} פריטים`
+                  : "אין טיולים עדיין"}
+            </p>
           </div>
           <p className="text-2xl font-black font-numbers text-brand">
             {formatCurrency(period.totalAmount)}
@@ -58,6 +65,17 @@ export function OwnerCurrentPaymentCard({ period }: Props) {
           <div className="pt-4">
             <OwnerPaymentEntriesList entries={period.entries} />
           </div>
+          {period.pendingWalkCount > 0 && (
+            <form action={closePeriodAction.bind(null, period.id)} className="mt-4">
+              <input type="hidden" name="lockVersion" value={period.lockVersion} />
+              <button
+                type="submit"
+                className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-base shadow-glow-brand transition-transform active:scale-95"
+              >
+                סגור תקופה וקבל תשלום ({period.pendingWalkCount} טיולים)
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>

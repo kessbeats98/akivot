@@ -24,6 +24,13 @@ export async function getOwnerPaymentsAction(): Promise<OwnerPaymentPeriod[]> {
   return getOwnerPaymentPeriodsEnriched(user.id);
 }
 
+// Used by billing page — ensures open periods exist then returns enriched data
+export async function getOwnerBillingPageAction(): Promise<OwnerPaymentPeriod[]> {
+  const user = await assertAuthenticated();
+  await ensureOpenPeriods(user.id);
+  return getOwnerPaymentPeriodsEnriched(user.id);
+}
+
 // periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
 export async function closePeriodAction(periodId: string, formData: FormData): Promise<void> {
   const user = await assertAuthenticated();
