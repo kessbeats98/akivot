@@ -73,6 +73,9 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const liveWalkDogIds = new Set(liveWalks.map((w) => w.dogId));
   const lastCompletedWalk =
     walkHistory.find((w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED") ?? null;
+  const hasHistory = walkHistory.some(
+    (w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED"
+  );
 
   if (!selectedDog) {
     return (
@@ -196,33 +199,35 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           </div>
         )}
 
-        {/* History section */}
-        <div>
-          <h2 className="text-sm font-bold text-dark mb-3">טיולים אחרונים</h2>
-          {historyLoading ? (
-            <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
-              <span className="material-symbols-rounded text-brand/40 text-3xl animate-spin">progress_activity</span>
-            </div>
-          ) : historyError ? (
-            <button
-              onClick={() => {
-                setHistoryError(null);
-                setHistoryLoading(true);
-                getWalkHistoryForDogAction(selectedDogId)
-                  .then(setWalkHistory)
-                  .catch(() => setHistoryError("שגיאה בטעינת היסטוריית טיולים"))
-                  .finally(() => setHistoryLoading(false));
-              }}
-              className="bg-[var(--red-light)] border border-[#fca5a5] rounded-[18px] p-6 flex flex-col items-center gap-2 w-full"
-            >
-              <div className="text-2xl">⚠️</div>
-              <div className="text-sm font-semibold text-[#991b1b]">{historyError}</div>
-              <div className="text-xs text-[#991b1b] opacity-70">לחץ לנסות שוב</div>
-            </button>
-          ) : (
-            <OwnerHistorySection walks={walkHistory} />
-          )}
-        </div>
+        {/* History section — shown only while loading or when completed walks exist */}
+        {(historyLoading || hasHistory) && (
+          <div>
+            <h2 className="text-sm font-bold text-dark mb-3">טיולים אחרונים</h2>
+            {historyLoading ? (
+              <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
+                <span className="material-symbols-rounded text-brand/40 text-3xl animate-spin">progress_activity</span>
+              </div>
+            ) : historyError ? (
+              <button
+                onClick={() => {
+                  setHistoryError(null);
+                  setHistoryLoading(true);
+                  getWalkHistoryForDogAction(selectedDogId)
+                    .then(setWalkHistory)
+                    .catch(() => setHistoryError("שגיאה בטעינת היסטוריית טיולים"))
+                    .finally(() => setHistoryLoading(false));
+                }}
+                className="bg-[var(--red-light)] border border-[#fca5a5] rounded-[18px] p-6 flex flex-col items-center gap-2 w-full"
+              >
+                <div className="text-2xl">⚠️</div>
+                <div className="text-sm font-semibold text-[#991b1b]">{historyError}</div>
+                <div className="text-xs text-[#991b1b] opacity-70">לחץ לנסות שוב</div>
+              </button>
+            ) : (
+              <OwnerHistorySection walks={walkHistory} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
