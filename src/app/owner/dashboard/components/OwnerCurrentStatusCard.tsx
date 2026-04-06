@@ -121,7 +121,7 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, h
         <div className="text-5xl font-extrabold text-dark mb-2 relative z-10">🏠</div>
 
         <div className="text-[15px] text-muted-color mb-5 relative z-10">
-          {dogName} מחכה לטיול הבא
+          {dogName} נח בבית
         </div>
 
         {lastCompletedWalk.walkerName && (
@@ -130,7 +130,7 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, h
               {lastCompletedWalk.walkerName.charAt(0)}
             </div>
             <div className="text-right">
-              <div className="text-xs text-muted-color">המוביל הקבוע</div>
+              <div className="text-xs text-muted-color">עם המוביל</div>
               <div className="text-[15px] font-bold text-dark">{lastCompletedWalk.walkerName}</div>
             </div>
           </div>

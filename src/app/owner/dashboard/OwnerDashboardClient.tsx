@@ -184,11 +184,11 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
         {/* Last walk summary */}
         {lastCompletedWalk && (
-          <div className="bg-stone100 rounded-2xl px-[18px] py-3.5 flex items-center justify-between">
+          <div className="rounded-2xl px-[18px] py-3.5 flex items-center justify-between">
             <div className="text-sm text-muted-color">
               הטיול האחרון: {format(new Date(lastCompletedWalk.startTime), "d בMMM, HH:mm", { locale: he })}
             </div>
-            <div className="font-numbers text-[15px] font-bold text-brand">
+            <div className="font-numbers text-[15px] font-medium text-muted-color">
               {lastCompletedWalk.durationMinutes != null
                 ? `${lastCompletedWalk.durationMinutes} דק׳`
                 : "—"}
