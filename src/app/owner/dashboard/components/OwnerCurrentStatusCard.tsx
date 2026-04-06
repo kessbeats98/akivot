@@ -140,13 +140,23 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, h
   }
 
   // New user, no walks — matches HTML screen-new
+  // No walker: amber tint (matches assign-walker CTA palette)
+  // Walker assigned but no walks yet: neutral stone
+  if (!hasActiveWalker) {
+    return (
+      <div className="rounded-[28px] px-7 py-10 text-center relative overflow-hidden bg-amber-50 border border-amber-200">
+        <div className="text-[56px] mb-4">🐾</div>
+        <div className="text-xl font-bold text-dark mb-2">אין טיול מתוכנן</div>
+        <div className="text-[15px] text-muted-color">שייך מוביל כדי להתחיל</div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-[28px] px-7 py-10 text-center relative overflow-hidden bg-stone100 border border-[var(--border)]">
       <div className="text-[56px] mb-4">🐾</div>
       <div className="text-xl font-bold text-dark mb-2">אין טיול מתוכנן</div>
-      <div className="text-[15px] text-muted-color">
-        {hasActiveWalker ? "כשתהיה הליכה — תראה אותה כאן" : "שייך מוביל כדי להתחיל"}
-      </div>
+      <div className="text-[15px] text-muted-color">כשתהיה הליכה — תראה אותה כאן</div>
     </div>
   );
 }

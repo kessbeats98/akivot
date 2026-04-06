@@ -84,23 +84,26 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           <div className="text-[56px]">🐾</div>
           <div className="text-xl font-bold text-dark">ברוך הבא!</div>
           <div className="text-sm text-muted-color text-center mb-2">
-            הוסף את הכלב שלך כדי להתחיל
+            הוסף את הכלב הראשון — ואנחנו נדאג לשאר
           </div>
-          <form action={createDogAction} className="flex items-center gap-2 w-full max-w-xs">
-            <input
-              type="text"
-              name="name"
-              required
-              placeholder="שם הכלב"
-              className="flex-1 rounded-2xl border border-gray-300 px-4 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand"
-            />
-            <button
-              type="submit"
-              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors"
-            >
-              הוספה
-            </button>
-          </form>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 w-full max-w-xs">
+            <form action={createDogAction} className="flex items-center gap-2">
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="שם הכלב"
+                className="flex-1 rounded-2xl border border-gray-300 px-4 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+              <button
+                type="submit"
+                className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors"
+              >
+                הוספה
+              </button>
+            </form>
+            <div className="text-xs text-muted-color text-center mt-3">אפשר להוסיף כלבים נוספים בהמשך</div>
+          </div>
         </div>
       </div>
     );
@@ -172,8 +175,8 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           >
             <span className="material-symbols-rounded text-amber-600 text-xl">person_add</span>
             <div className="flex-1">
-              <div className="text-sm font-bold text-amber-900">{selectedDog.name} ללא מוביל משויך</div>
-              <div className="text-xs text-amber-700 mt-0.5">לחץ לשיוך מוביל</div>
+              <div className="text-sm font-bold text-amber-900">עדיין לא שויך מוביל ל{selectedDog.name}</div>
+              <div className="text-xs text-amber-700 mt-0.5">שייך מוביל כדי שאפשר יהיה להתחיל טיולים</div>
             </div>
             <span className="material-symbols-rounded text-amber-400 text-lg">chevron_left</span>
           </Link>
@@ -191,17 +194,6 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
                 : "—"}
             </div>
           </div>
-        )}
-
-        {/* History button */}
-        {walkHistory.length > 0 && (
-          <Link
-            href={`/owner/dog-profile/${selectedDogId}`}
-            className="bg-transparent border-none text-brand text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 py-3 hover:opacity-80"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            צפייה בהיסטוריה
-          </Link>
         )}
 
         {/* History section */}
