@@ -144,7 +144,7 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk }:
       <div className="text-[56px] mb-4">🐾</div>
       <div className="text-xl font-bold text-dark mb-2">אין טיול מתוכנן</div>
       <div className="text-[15px] text-muted-color">
-        כשתהיה הליכה — תראה אותה כאן
+        שייך מוביל כדי להתחיל
       </div>
     </div>
   );

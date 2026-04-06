@@ -69,6 +69,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
   const selectedDog = dogs.find((d) => d.id === selectedDogId);
   const liveWalk = liveWalks.find((w) => w.dogId === selectedDogId) ?? null;
+  const hasActiveWalker = (selectedDog?.walkers ?? []).some((w) => w.isActive);
   const liveWalkDogIds = new Set(liveWalks.map((w) => w.dogId));
   const lastCompletedWalk =
     walkHistory.find((w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED") ?? null;
@@ -118,7 +119,14 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
               "🐕"
             )}
           </div>
-          <div className="text-lg font-bold text-dark">{selectedDog.name}</div>
+          <div>
+            <div className="text-lg font-bold text-dark">{selectedDog.name}</div>
+            {dogs.length === 1 && (
+              <Link href="/owner/dogs" className="text-xs text-muted-color hover:text-brand transition-colors">
+                ניהול כלבים
+              </Link>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {notificationsButton}
@@ -135,12 +143,17 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
       <div className="flex-1 px-6 pb-10 flex flex-col gap-5 overflow-y-auto">
         {/* Dog selector (multi-dog) */}
         {dogs.length > 1 && (
-          <OwnerDogSelector
-            dogs={dogs}
-            selectedDogId={selectedDogId}
-            liveWalkDogIds={liveWalkDogIds}
-            onSelect={setSelectedDogId}
-          />
+          <>
+            <OwnerDogSelector
+              dogs={dogs}
+              selectedDogId={selectedDogId}
+              liveWalkDogIds={liveWalkDogIds}
+              onSelect={setSelectedDogId}
+            />
+            <Link href="/owner/dogs" className="text-xs text-muted-color text-center -mt-2 hover:text-brand transition-colors">
+              ניהול כלבים
+            </Link>
+          </>
         )}
 
         {/* Status card */}
@@ -149,6 +162,21 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           liveWalk={liveWalk}
           lastCompletedWalk={lastCompletedWalk}
         />
+
+        {/* Assign-walker CTA */}
+        {!hasActiveWalker && !liveWalk && (
+          <Link
+            href={`/owner/dog-profile/${selectedDogId}`}
+            className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-3"
+          >
+            <span className="material-symbols-rounded text-amber-600 text-xl">person_add</span>
+            <div className="flex-1">
+              <div className="text-sm font-bold text-amber-900">אין מוביל משויך ל{selectedDog.name}</div>
+              <div className="text-xs text-amber-700 mt-0.5">לחץ לשיוך מוביל</div>
+            </div>
+            <span className="material-symbols-rounded text-amber-400 text-lg">chevron_left</span>
+          </Link>
+        )}
 
         {/* Last walk summary */}
         {lastCompletedWalk && (
