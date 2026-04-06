@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { path: "/owner/dashboard", icon: "pets", label: "הכלבים" },
+  { path: "/owner/dogs", icon: "pets", label: "הכלבים" },
   { path: "/owner/calendar", icon: "calendar_month", label: "יומן" },
   { path: "/owner/billing", icon: "account_balance_wallet", label: "תשלום" },
   { path: "/owner/settings", icon: "settings", label: "הגדרות" },
