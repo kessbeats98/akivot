@@ -324,15 +324,9 @@ export function WalkerLiveClient({ walkId, dogName, startTime, endWalkAction }: 
             </div>
           )}
 
-          <div className="bg-brand-light rounded-[18px] p-5 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#14532d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
-            </div>
-            <div className="text-lg font-bold text-brand-dark mb-1">טיול מוצלח!</div>
-            <div className="text-sm text-brand-dark/70">{dogName} איתך</div>
-            <div className="mt-4 font-numbers text-2xl font-bold text-brand-dark">
-              {timerText}
-            </div>
+          <div className="text-center">
+            <div className="font-numbers text-3xl font-bold text-dark">{timerText}</div>
+            <div className="text-xs text-muted-color mt-1">{dogName}</div>
           </div>
 
           <div className="space-y-2">
