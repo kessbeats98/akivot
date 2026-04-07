@@ -71,10 +71,8 @@ export function WalkerDashboardClient({
     };
   }, []);
 
-  const toggleDog = (dogId: string) => {
-    setSelectedDogs((prev) =>
-      prev.includes(dogId) ? prev.filter((id) => id !== dogId) : [...prev, dogId],
-    );
+  const selectDog = (dogId: string) => {
+    setSelectedDogs([dogId]);
   };
 
   const startWalkForDog = useCallback(async (dogId: string) => {
@@ -267,43 +265,37 @@ export function WalkerDashboardClient({
           )}
 
           <div className="flex flex-col gap-3">
-            {assignedDogs.map((dog) => (
-              <button
-                key={dog.dogWalkerId}
-                onClick={() => toggleDog(dog.dogId)}
-                disabled={isStarting}
-                className={`relative p-4 rounded-[18px] border-2 transition-all flex items-center gap-3 text-right ${
-                  selectedDogs.includes(dog.dogId)
-                    ? "border-brand bg-brand-light"
-                    : "border-gray-100 bg-white"
-                } ${isStarting ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-extrabold flex-shrink-0 ${
-                  selectedDogs.includes(dog.dogId)
-                    ? "bg-brand-dark text-white"
-                    : "bg-brand-light text-brand-dark"
-                }`}>
-                  {dog.dogName.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-dark">{dog.dogName}</div>
-                  {dog.dogBreed && (
-                    <div className="text-xs text-muted-color mt-0.5">{dog.dogBreed}</div>
-                  )}
-                  {dog.ownerName && (
-                    <div className="text-xs text-muted-color">{dog.ownerName}</div>
-                  )}
-                </div>
-                <div className="font-numbers text-sm font-bold text-amber flex-shrink-0">
-                  {formatPrice(dog.currentPrice, dog.currency)}
-                </div>
-                {selectedDogs.includes(dog.dogId) && (
-                  <div className="absolute top-2 left-2 w-6 h-6 bg-brand rounded-full flex items-center justify-center text-white">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {assignedDogs.map((dog) => {
+              const isSelected = selectedDogs[0] === dog.dogId;
+              return (
+                <button
+                  key={dog.dogWalkerId}
+                  onClick={() => selectDog(dog.dogId)}
+                  disabled={isStarting}
+                  className={`p-4 rounded-[18px] border-2 transition-all flex items-center gap-3 text-right ${
+                    isSelected ? "border-brand bg-brand-light" : "border-gray-100 bg-white"
+                  } ${isStarting ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-extrabold flex-shrink-0 ${
+                    isSelected ? "bg-brand-dark text-white" : "bg-brand-light text-brand-dark"
+                  }`}>
+                    {dog.dogName.charAt(0)}
                   </div>
-                )}
-              </button>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-dark">{dog.dogName}</div>
+                    {dog.dogBreed && (
+                      <div className="text-xs text-muted-color mt-0.5">{dog.dogBreed}</div>
+                    )}
+                    {dog.ownerName && (
+                      <div className="text-xs text-muted-color">{dog.ownerName}</div>
+                    )}
+                  </div>
+                  <div className="font-numbers text-sm font-bold text-amber flex-shrink-0">
+                    {formatPrice(dog.currentPrice, dog.currency)}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <button
