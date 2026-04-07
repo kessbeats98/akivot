@@ -58,22 +58,26 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   // Load walk history on mount and dog selection change
   useEffect(() => {
     if (!selectedDogId) return;
+    let stale = false;
     setHistoryLoading(true);
     setHistoryError(null);
     setHistoryDogId(null);
     console.log("[owner/dashboard] loading walk history for dog:", selectedDogId);
     getWalkHistoryForDogAction(selectedDogId)
       .then((data) => {
+        if (stale) return;
         setWalkHistory(data);
         setHistoryDogId(selectedDogId);
         console.log("[owner/dashboard] walk history loaded:", data.length, "walks");
       })
       .catch((err) => {
+        if (stale) return;
         console.error("[owner/dashboard] walk history load failed:", err);
         setHistoryError("שגיאה בטעינת היסטוריית טיולים");
         setWalkHistory([]);
       })
-      .finally(() => setHistoryLoading(false));
+      .finally(() => { if (!stale) setHistoryLoading(false); });
+    return () => { stale = true; };
   }, [selectedDogId]);
 
   const selectedDog = dogs.find((d) => d.id === selectedDogId);
