@@ -163,7 +163,7 @@ test.describe("PART A — New user signup / login flow", () => {
 
   test("A4 — Login with existing verified owner account", async () => {
     // Part A tests the signup form UI. For the login + dashboard steps,
-    // we use the pre-existing owner account (danielayalo4@gmail.com) since
+    // we use a pre-existing verified owner account (OWNER_EMAIL) since
     // the new account requires email verification we can't automate against production.
     const t = Date.now();
 
