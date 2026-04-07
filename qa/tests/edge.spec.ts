@@ -6,12 +6,13 @@ import {
   gotoDashboard,
   waitForDebugPanel,
   waitForSlideOver,
-  selectFirstDog,
   startWalkFull,
   assertUrl,
   assertNoError,
   T,
 } from "./helpers";
+
+const isRemote = /^https?:\/\/(?!localhost|127\.0\.0\.1)/.test(process.env.BASE_URL ?? "");
 
 // ---------------------------------------------------------------------------
 // Config
@@ -158,10 +159,8 @@ test.describe("edge-offline-recovery", () => {
     await page.getByTestId("debug-force-offline").click({ timeout: T.action });
     await expect(offlineBanner, "Offline banner should appear").toBeVisible({ timeout: T.visible });
 
-    // --- Step 2: attempt start walk (should fail) ---
+    // --- Step 2: attempt start walk (1-dog direct-start: offline check fires immediately) ---
     await page.getByTestId("start-walk").click({ timeout: T.action });
-    await selectFirstDog(page);
-    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
 
     // Assert: still on dashboard, error visible
     await assertUrl(page, "/walker/dashboard");
@@ -177,9 +176,8 @@ test.describe("edge-offline-recovery", () => {
     await page.getByTestId("debug-force-offline").click({ timeout: T.action });
     await expect(offlineBanner, "Offline banner should disappear").not.toBeVisible({ timeout: T.visible });
 
-    // --- Step 4: retry via still-open SlideOver ---
-    // handleStartWalk sets error(null) on each call (line 89), so retry clears previous error
-    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
+    // --- Step 4: retry — click start-walk again (online now, isStarting=false) ---
+    await page.getByTestId("start-walk").click({ timeout: T.action });
 
     // --- Assertions ---
     // A1: navigation to live
@@ -271,6 +269,7 @@ test.describe("edge-auto-close", () => {
   const scenario = loadScenario("edge-auto-close");
 
   test(`[${scenario.tags.join(",")}] auto-closed walk redirects to dashboard`, async ({ page }) => {
+    test.skip(isRemote, "edge-auto-close: Test Mode panel uses assertDev() — disabled in production. Run against local dev server.");
     // --- Setup: seed + start walk ---
     await gotoDashboard(page);
     await seedAndReload(page);

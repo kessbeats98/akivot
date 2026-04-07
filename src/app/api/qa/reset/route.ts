@@ -55,9 +55,11 @@ export async function POST(req: NextRequest) {
         .select({ id: walks.id })
         .from(walks)
         .where(
-          dogIds.length > 0
-            ? sql`${walks.dogId} IN ${dogIds}`
-            : sql`${walks.walkerProfileId} = ${wp!.id}`,
+          dogIds.length > 0 && wp
+            ? sql`${walks.dogId} IN ${dogIds} OR ${walks.walkerProfileId} = ${wp.id}`
+            : dogIds.length > 0
+              ? sql`${walks.dogId} IN ${dogIds}`
+              : sql`${walks.walkerProfileId} = ${wp!.id}`,
         );
       const walkIds = walkRows.map((r) => r.id);
       if (walkIds.length > 0) {
@@ -88,7 +90,12 @@ export async function POST(req: NextRequest) {
     result.paymentPeriods = pp.rowCount ?? 0;
 
     // Walks
-    if (dogIds.length > 0) {
+    if (dogIds.length > 0 && wp) {
+      const w = await tx.delete(walks).where(
+        sql`${walks.dogId} IN ${dogIds} OR ${walks.walkerProfileId} = ${wp.id}`,
+      );
+      result.walks = w.rowCount ?? 0;
+    } else if (dogIds.length > 0) {
       const w = await tx.delete(walks).where(sql`${walks.dogId} IN ${dogIds}`);
       result.walks = w.rowCount ?? 0;
     } else if (wp) {
@@ -103,8 +110,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Dog walkers
-    if (dogIds.length > 0) {
+    if (dogIds.length > 0 && wp) {
+      const dwDel = await tx.delete(dogWalkers).where(
+        sql`${dogWalkers.dogId} IN ${dogIds} OR ${dogWalkers.walkerProfileId} = ${wp.id}`,
+      );
+      result.dogWalkers = dwDel.rowCount ?? 0;
+    } else if (dogIds.length > 0) {
       const dwDel = await tx.delete(dogWalkers).where(sql`${dogWalkers.dogId} IN ${dogIds}`);
+      result.dogWalkers = dwDel.rowCount ?? 0;
+    } else if (wp) {
+      const dwDel = await tx.delete(dogWalkers).where(eq(dogWalkers.walkerProfileId, wp.id));
       result.dogWalkers = dwDel.rowCount ?? 0;
     }
 

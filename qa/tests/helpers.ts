@@ -157,11 +157,9 @@ export async function selectFirstDog(page: Page) {
 // Full walk lifecycle helpers (used by multiple tests)
 // ---------------------------------------------------------------------------
 
-/** Full start-walk flow: open SlideOver → select dog → confirm → arrive at /walker/live */
+/** Full start-walk flow: direct-start (1 dog seeded — no chooser SlideOver) */
 export async function startWalkFull(page: Page) {
   await page.getByTestId("start-walk").click({ timeout: T.action });
-  await selectFirstDog(page);
-  await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
   await page.waitForURL("**/walker/live**", { timeout: T.nav });
   await assertUrl(page, "/walker/live");
   await assertNoError(page);

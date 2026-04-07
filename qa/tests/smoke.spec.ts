@@ -7,7 +7,6 @@ import {
   gotoDashboard,
   waitForDebugPanel,
   waitForSlideOver,
-  selectFirstDog,
   startWalkFull,
   assertUrl,
   assertNoError,
@@ -46,22 +45,8 @@ test.describe("start-walk-success", () => {
     await assertUrl(page, "/walker/dashboard");
     await assertNoError(page);
 
-    // --- Step 1: open SlideOver ---
+    // --- Step 1: direct-start (1 dog seeded) ---
     await page.getByTestId("start-walk").click({ timeout: T.action });
-    const dialog = await waitForSlideOver(page);
-    // SlideOver title visible
-    await expect(dialog.getByText("בחירת כלב לטיול")).toBeVisible({ timeout: T.visible });
-    // Confirm button should be disabled (no dog selected yet)
-    await expect(page.getByTestId("start-walk-confirm")).toBeDisabled({ timeout: 1_000 });
-    await assertUrl(page, "/walker/dashboard"); // no navigation yet
-
-    // --- Step 2: select dog ---
-    await selectFirstDog(page);
-    // Confirm button should now be enabled
-    await expect(page.getByTestId("start-walk-confirm")).toBeEnabled({ timeout: 1_000 });
-
-    // --- Step 3: confirm start ---
-    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
 
     // --- Assertions ---
     // A1: navigation — redirected to /walker/live
@@ -104,10 +89,8 @@ test.describe("start-walk-offline", () => {
     await expect(page.getByText("אין חיבור לאינטרנט")).toBeVisible({ timeout: T.visible });
     await assertUrl(page, "/walker/dashboard");
 
-    // --- Step 2: attempt start walk ---
+    // --- Step 2: attempt start walk (1-dog direct-start: offline check fires immediately) ---
     await page.getByTestId("start-walk").click({ timeout: T.action });
-    await selectFirstDog(page);
-    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
 
     // --- Assertions ---
     // A1: NO navigation — still on dashboard
@@ -116,16 +99,13 @@ test.describe("start-walk-offline", () => {
     await page.waitForTimeout(1_000);
     await assertUrl(page, "/walker/dashboard");
 
-    // A2: error banner with offline message inside SlideOver
+    // A2: error banner with offline message
     await assertErrorVisible(page, "אין חיבור לאינטרנט");
 
     // A3: start-walk button still exists (UI remains valid)
     await expect(page.getByTestId("start-walk"), "start-walk should still exist").toBeVisible({ timeout: T.visible });
 
-    // A4: confirm button should still be visible (SlideOver didn't close)
-    await expect(page.getByTestId("start-walk-confirm"), "confirm button still visible in SlideOver").toBeVisible({ timeout: 1_000 });
-
-    // A5: business invariant — NOT on /walker/live
+    // A4: business invariant — NOT on /walker/live
     expect(page.url()).not.toContain("/walker/live");
   });
 });
@@ -195,12 +175,8 @@ test.describe("double-start-race", () => {
     await assertNoError(page);
     await seedAndReload(page);
 
-    // --- Step 1: open SlideOver, select dog ---
-    await page.getByTestId("start-walk").click({ timeout: T.action });
-    await selectFirstDog(page);
-
-    // --- Step 2: double-click confirm (race condition) ---
-    await page.getByTestId("start-walk-confirm").dblclick({ timeout: T.action });
+    // --- Race condition: double-click direct-start (second click hits isStarting guard) ---
+    await page.getByTestId("start-walk").dblclick({ timeout: T.action });
 
     // --- Assertions ---
     // A1: navigation — ends up on /walker/live
