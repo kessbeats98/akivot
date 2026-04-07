@@ -22,6 +22,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const router = useRouter();
   const [selectedDogId, setSelectedDogId] = useState<string>(dogs[0]?.id ?? "");
   const [walkHistory, setWalkHistory] = useState<DogWalkHistoryItem[]>([]);
+  const [historyDogId, setHistoryDogId] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState(() => new Date());
@@ -59,10 +60,12 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
     if (!selectedDogId) return;
     setHistoryLoading(true);
     setHistoryError(null);
+    setHistoryDogId(null);
     console.log("[owner/dashboard] loading walk history for dog:", selectedDogId);
     getWalkHistoryForDogAction(selectedDogId)
       .then((data) => {
         setWalkHistory(data);
+        setHistoryDogId(selectedDogId);
         console.log("[owner/dashboard] walk history loaded:", data.length, "walks");
       })
       .catch((err) => {
@@ -208,8 +211,8 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           </div>
         )}
 
-        {/* History section — shown only while loading or when completed walks exist */}
-        {(historyLoading || hasHistory) && (
+        {/* History section — shown only while loading or when history for THIS dog is ready */}
+        {(historyLoading || (historyDogId === selectedDogId && hasHistory)) && (
           <div className="flex flex-col gap-2">
             {historyLoading ? (
               <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
