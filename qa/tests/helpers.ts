@@ -146,8 +146,8 @@ export async function waitForSlideOver(page: Page) {
 /** Select the first dog card inside an open SlideOver */
 export async function selectFirstDog(page: Page) {
   const dialog = await waitForSlideOver(page);
-  // Dog cards use: relative p-4 rounded-[18px] border-2
-  const dogCard = dialog.locator("button.relative").first();
+  // Dog cards use: p-4 rounded-[18px] border-2 (no .relative)
+  const dogCard = dialog.locator("button[class*='border-2']").first();
   await dogCard.click({ timeout: T.action });
   // Verify selection: the card should now have border-brand class
   await expect(dogCard, "Dog card should show selected state").toHaveClass(/border-brand/, { timeout: 1_000 });

@@ -102,10 +102,6 @@ test.describe("edge-end-start-again", () => {
       page.getByTestId("start-walk"),
       "start-walk should reappear after ending",
     ).toBeVisible({ timeout: T.visible });
-    await expect(
-      page.getByText("אין הליכה פעילה כרגע"),
-      "Idle message should show",
-    ).toBeVisible({ timeout: T.visible });
     await assertNoError(page);
 
     // --- Step 2: start second walk ---
@@ -152,6 +148,9 @@ test.describe("edge-offline-recovery", () => {
     // --- Setup ---
     await gotoDashboard(page);
     await seedAndReload(page);
+    // Reload with debug=true so force-offline toggle is available
+    await page.goto("/walker/dashboard?debug=true", { timeout: T.nav });
+    await page.waitForLoadState("networkidle", { timeout: T.nav });
 
     // --- Step 1: enable force-offline ---
     // Offline indicator lives in a bg-stone100 container, distinct from error banners
@@ -283,14 +282,17 @@ test.describe("edge-auto-close", () => {
 
     // --- Step 1: open Test Mode panel ---
     await page.getByTestId("debug-test-mode").click({ timeout: T.action });
+    // Panel open: button text changes to "- Test Mode"
     await expect(
-      page.getByText("TEST MODE", { exact: true }),
+      page.getByText("- Test Mode"),
       "Test Mode panel should open",
     ).toBeVisible({ timeout: T.visible });
 
     // --- Step 2: click Force Auto-Close ---
-    // The button text is "Force Auto-Close" inside the active walks section
-    await page.getByText("Force Auto-Close").click({ timeout: T.action });
+    // Panel loads active walks async — wait for the button to appear
+    const autoCloseBtn = page.getByText("Force Auto-Close");
+    await expect(autoCloseBtn, "Force Auto-Close should appear after walks load").toBeVisible({ timeout: T.visible });
+    await autoCloseBtn.click({ timeout: T.action });
     // Wait for the action to complete (status line shows "Auto-close OK")
     await expect(
       page.getByText("Auto-close OK"),

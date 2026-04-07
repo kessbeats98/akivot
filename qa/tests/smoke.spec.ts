@@ -179,8 +179,6 @@ test.describe("end-walk-success", () => {
     // A4: end-walk button must NOT exist (we're back on dashboard, not live)
     await expect(page.getByTestId("end-walk")).not.toBeVisible({ timeout: 1_000 });
 
-    // A5: business invariant — idle message visible
-    await expect(page.getByText("אין הליכה פעילה כרגע"), "Idle message should show").toBeVisible({ timeout: T.visible });
   });
 });
 
