@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -18,6 +18,9 @@ interface Props {
   notificationsButton: ReactNode;
 }
 
+const HISTORY_LOAD_ERROR_MESSAGE =
+  "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05d8\u05e2\u05d9\u05e0\u05ea \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05ea \u05d8\u05d9\u05d5\u05dc\u05d9\u05dd";
+
 export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: Props) {
   const router = useRouter();
   const [selectedDogId, setSelectedDogId] = useState<string>(dogs[0]?.id ?? "");
@@ -27,11 +30,44 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState(() => new Date());
   const [showFullHistory, setShowFullHistory] = useState(false);
+  const historyRequestIdRef = useRef(0);
+
+  const loadHistoryForDog = (dogId: string) => {
+    const requestId = historyRequestIdRef.current + 1;
+    historyRequestIdRef.current = requestId;
+    setHistoryLoading(true);
+    setHistoryError(null);
+    setHistoryDogId(null);
+    console.log("[owner/dashboard] loading walk history for dog:", dogId);
+    getWalkHistoryForDogAction(dogId)
+      .then((data) => {
+        if (historyRequestIdRef.current !== requestId) return;
+        setWalkHistory(data);
+        setHistoryDogId(dogId);
+        console.log("[owner/dashboard] walk history loaded:", data.length, "walks");
+      })
+      .catch((err) => {
+        if (historyRequestIdRef.current !== requestId) return;
+        console.error("[owner/dashboard] walk history load failed:", err);
+        setHistoryError(HISTORY_LOAD_ERROR_MESSAGE);
+        setWalkHistory([]);
+      })
+      .finally(() => {
+        if (historyRequestIdRef.current !== requestId) return;
+        setHistoryLoading(false);
+      });
+  };
 
   // Reset history view when dog changes
   useEffect(() => {
     setShowFullHistory(false);
   }, [selectedDogId]);
+
+  useEffect(() => {
+    return () => {
+      historyRequestIdRef.current += 1;
+    };
+  }, []);
 
   // Auto-refresh every 30s
   useEffect(() => {
@@ -58,26 +94,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   // Load walk history on mount and dog selection change
   useEffect(() => {
     if (!selectedDogId) return;
-    let stale = false;
-    setHistoryLoading(true);
-    setHistoryError(null);
-    setHistoryDogId(null);
-    console.log("[owner/dashboard] loading walk history for dog:", selectedDogId);
-    getWalkHistoryForDogAction(selectedDogId)
-      .then((data) => {
-        if (stale) return;
-        setWalkHistory(data);
-        setHistoryDogId(selectedDogId);
-        console.log("[owner/dashboard] walk history loaded:", data.length, "walks");
-      })
-      .catch((err) => {
-        if (stale) return;
-        console.error("[owner/dashboard] walk history load failed:", err);
-        setHistoryError("שגיאה בטעינת היסטוריית טיולים");
-        setWalkHistory([]);
-      })
-      .finally(() => { if (!stale) setHistoryLoading(false); });
-    return () => { stale = true; };
+    loadHistoryForDog(selectedDogId);
   }, [selectedDogId]);
 
   const selectedDog = dogs.find((d) => d.id === selectedDogId);
@@ -92,6 +109,10 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
   const completedWalks = walkHistory.filter(
     (w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED"
   );
+  const showHistorySection =
+    historyLoading ||
+    Boolean(historyError) ||
+    (historyDogId === selectedDogId && hasHistory);
 
   if (!selectedDog) {
     return (
@@ -215,8 +236,8 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           </div>
         )}
 
-        {/* History section — shown only while loading or when history for THIS dog is ready */}
-        {(historyLoading || (historyDogId === selectedDogId && hasHistory)) && (
+        {/* History section */}
+        {showHistorySection && (
           <div className="flex flex-col gap-2">
             {historyLoading ? (
               <div className="bg-white rounded-[2rem] p-8 flex items-center justify-center border border-gray-100">
@@ -225,12 +246,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
             ) : historyError ? (
               <button
                 onClick={() => {
-                  setHistoryError(null);
-                  setHistoryLoading(true);
-                  getWalkHistoryForDogAction(selectedDogId)
-                    .then(setWalkHistory)
-                    .catch(() => setHistoryError("שגיאה בטעינת היסטוריית טיולים"))
-                    .finally(() => setHistoryLoading(false));
+                  loadHistoryForDog(selectedDogId);
                 }}
                 className="bg-[var(--red-light)] border border-[#fca5a5] rounded-[18px] p-6 flex flex-col items-center gap-2 w-full"
               >
