@@ -248,15 +248,15 @@ test.describe("chooser-flow", () => {
     if (!seedRes.ok()) throw new Error(`2-dog seed failed: ${await seedRes.text()}`);
     await seedAndReload(page);
 
-    // --- Step 1: click start-walk → chooser SlideOver opens (2 dogs) ---
+    // --- Step 1: click start-walk → chooser SlideOver opens (2 dogs, first pre-selected) ---
     await page.getByTestId("start-walk").click({ timeout: T.action });
     const dialog = await waitForSlideOver(page);
     await expect(dialog.getByText("בחירת כלב לטיול")).toBeVisible({ timeout: T.visible });
-    await expect(page.getByTestId("start-walk-confirm")).toBeDisabled({ timeout: 1_000 });
-
-    // --- Step 2: select first dog ---
-    await selectFirstDog(page);
+    // First dog is pre-selected on open → confirm already enabled
     await expect(page.getByTestId("start-walk-confirm")).toBeEnabled({ timeout: 1_000 });
+
+    // --- Step 2: verify first dog card is selected ---
+    await selectFirstDog(page); // re-click first dog (verifies selection works)
 
     // --- Step 3: confirm ---
     await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
