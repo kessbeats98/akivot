@@ -34,6 +34,18 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "cold-walkthrough",
+      testMatch: "**/cold-walkthrough.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "https://akivot.vercel.app",
+        storageState: undefined,
+        trace: "on",
+        screenshot: "on",
+        video: "retain-on-failure",
+      },
+    },
   ],
   ...(isRemote
     ? {}
