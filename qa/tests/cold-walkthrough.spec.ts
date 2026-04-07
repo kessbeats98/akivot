@@ -6,8 +6,8 @@
  *
  * Run with:
  *   BASE_URL=https://akivot.vercel.app \
- *   WALKER_EMAIL=kessbeats@gmail.com \
- *   WALKER_PASSWORD=1QAZ2WSX \
+ *   WALKER_EMAIL=<real-walker-email> \
+ *   WALKER_PASSWORD=<real-walker-password> \
  *   npx playwright test qa/tests/cold-walkthrough.spec.ts --project=cold-walkthrough --reporter=list
  */
 
@@ -18,8 +18,27 @@ import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 // ---------------------------------------------------------------------------
 
 const BASE = process.env.BASE_URL ?? "https://akivot.vercel.app";
-const WALKER_EMAIL = process.env.WALKER_EMAIL ?? "kessbeats@gmail.com";
-const WALKER_PASSWORD = process.env.WALKER_PASSWORD ?? "1QAZ2WSX";
+
+// Part A owner account — must be supplied via env.
+const OWNER_EMAIL = process.env.OWNER_EMAIL;
+const OWNER_PASSWORD = process.env.OWNER_PASSWORD;
+
+// Part B walker account — must be supplied via env.
+// Fail fast here so the error is clear, not buried in a B1 login failure.
+const WALKER_EMAIL = process.env.WALKER_EMAIL;
+const WALKER_PASSWORD = process.env.WALKER_PASSWORD;
+
+if (!OWNER_EMAIL || !OWNER_PASSWORD) {
+  throw new Error(
+    "Cold walkthrough Part A requires OWNER_EMAIL and OWNER_PASSWORD env vars."
+  );
+}
+if (!WALKER_EMAIL || !WALKER_PASSWORD) {
+  throw new Error(
+    "Cold walkthrough Part B requires WALKER_EMAIL and WALKER_PASSWORD env vars. " +
+    "Set them to a real production walker account that has a dog assigned."
+  );
+}
 
 // Unique signup email for Part A (new user, no prior state)
 const SIGNUP_EMAIL = `walkthrough-${Date.now()}@sholef.co.il`;
@@ -152,8 +171,8 @@ test.describe("PART A — New user signup / login flow", () => {
     await page.waitForLoadState("networkidle", { timeout: T.nav });
     await screenshot(page, "A4-login");
 
-    await page.getByLabel(/email|מייל/i).first().fill("danielayalo4@gmail.com");
-    await page.getByLabel(/password|סיסמה/i).first().fill("1QAZ2WSX");
+    await page.getByLabel(/email|מייל/i).first().fill(OWNER_EMAIL!);
+    await page.getByLabel(/password|סיסמה/i).first().fill(OWNER_PASSWORD!);
     await page.getByRole("button", { name: /sign.?in|login|כניסה/i }).first().click({ timeout: T.action });
 
     await page.waitForLoadState("networkidle", { timeout: T.nav });
