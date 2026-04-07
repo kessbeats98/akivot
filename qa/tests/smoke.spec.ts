@@ -7,10 +7,12 @@ import {
   gotoDashboard,
   waitForDebugPanel,
   waitForSlideOver,
+  selectFirstDog,
   startWalkFull,
   assertUrl,
   assertNoError,
   assertErrorVisible,
+  qaHeaders,
   T,
 } from "./helpers";
 
@@ -226,6 +228,45 @@ test.describe("reset-data-empty-state", () => {
     await assertUrl(page, "/onboarding");
 
     // A2: no error
+    await assertNoError(page);
+  });
+});
+
+// ===========================================================================
+// 6. chooser-flow
+// ===========================================================================
+
+test.describe("chooser-flow", () => {
+  test("[smoke,chooser] 2 dogs seeded → chooser opens → select → confirm → live", async ({ page }) => {
+    // --- Setup: clean slate → 2-dog seed ---
+    await resetOnly(page);
+    const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
+    const seedRes = await page.request.post(`${baseUrl}/api/qa/seed`, {
+      headers: qaHeaders(),
+      data: { count: 2 },
+    });
+    if (!seedRes.ok()) throw new Error(`2-dog seed failed: ${await seedRes.text()}`);
+    await seedAndReload(page);
+
+    // --- Step 1: click start-walk → chooser SlideOver opens (2 dogs) ---
+    await page.getByTestId("start-walk").click({ timeout: T.action });
+    const dialog = await waitForSlideOver(page);
+    await expect(dialog.getByText("בחירת כלב לטיול")).toBeVisible({ timeout: T.visible });
+    await expect(page.getByTestId("start-walk-confirm")).toBeDisabled({ timeout: 1_000 });
+
+    // --- Step 2: select first dog ---
+    await selectFirstDog(page);
+    await expect(page.getByTestId("start-walk-confirm")).toBeEnabled({ timeout: 1_000 });
+
+    // --- Step 3: confirm ---
+    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
+
+    // --- Assertions ---
+    await page.waitForURL("**/walker/live**", { timeout: T.nav });
+    await assertUrl(page, "/walker/live");
+    await expect(page.getByText(/^00:/).first()).toBeVisible({ timeout: T.visible });
+    await expect(page.getByText("בהליכה עכשיו")).toBeVisible({ timeout: T.visible });
+    await expect(page.getByTestId("end-walk")).toBeVisible({ timeout: T.visible });
     await assertNoError(page);
   });
 });

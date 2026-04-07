@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+  let count = 1;
+  try {
+    const body = await req.json().catch(() => ({}));
+    if (typeof body?.count === "number" && body.count >= 1 && body.count <= 5) {
+      count = body.count;
+    }
+  } catch { /* ignore parse errors, use default */ }
+
   const db = getDb();
   const now = new Date();
 
@@ -50,47 +58,54 @@ export async function POST(req: NextRequest) {
       walkerProfileId = wp!.id;
     }
 
-    // 2. Dog "QA Dog" owned by this user — get or create
-    const existingDogs = await tx
-      .select({ id: dogs.id })
-      .from(dogs)
-      .innerJoin(dogOwners, and(eq(dogOwners.dogId, dogs.id), eq(dogOwners.ownerUserId, user.id)))
-      .where(eq(dogs.name, "QA Dog"))
-      .limit(1);
+    // 2. Dogs — get or create N dogs
+    const dogIds: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const dogName = count === 1 ? "QA Dog" : `QA Dog ${i + 1}`;
 
-    let dogId: string;
-    if (existingDogs.length > 0) {
-      dogId = existingDogs[0]!.id;
-    } else {
-      const [dog] = await tx
-        .insert(dogs)
-        .values({ name: "QA Dog", isActive: true, updatedAt: now })
-        .returning({ id: dogs.id });
-      dogId = dog!.id;
+      const existingDogs = await tx
+        .select({ id: dogs.id })
+        .from(dogs)
+        .innerJoin(dogOwners, and(eq(dogOwners.dogId, dogs.id), eq(dogOwners.ownerUserId, user.id)))
+        .where(eq(dogs.name, dogName))
+        .limit(1);
 
-      await tx.insert(dogOwners).values({ dogId, ownerUserId: user.id, isPrimary: true });
+      let dogId: string;
+      if (existingDogs.length > 0) {
+        dogId = existingDogs[0]!.id;
+      } else {
+        const [dog] = await tx
+          .insert(dogs)
+          .values({ name: dogName, isActive: true, updatedAt: now })
+          .returning({ id: dogs.id });
+        dogId = dog!.id;
+
+        await tx.insert(dogOwners).values({ dogId, ownerUserId: user.id, isPrimary: true });
+      }
+
+      // 3. Walker assignment — get or create
+      const [existingDw] = await tx
+        .select({ id: dogWalkers.id })
+        .from(dogWalkers)
+        .where(and(eq(dogWalkers.dogId, dogId), eq(dogWalkers.walkerProfileId, walkerProfileId)))
+        .limit(1);
+
+      if (!existingDw) {
+        await tx.insert(dogWalkers).values({
+          dogId,
+          walkerProfileId,
+          currentPrice: "50.00",
+          currency: "ILS",
+          isActive: true,
+          startedAt: now,
+          updatedAt: now,
+        });
+      }
+
+      dogIds.push(dogId);
     }
 
-    // 3. Walker assignment — get or create
-    const [existingDw] = await tx
-      .select({ id: dogWalkers.id })
-      .from(dogWalkers)
-      .where(and(eq(dogWalkers.dogId, dogId), eq(dogWalkers.walkerProfileId, walkerProfileId)))
-      .limit(1);
-
-    if (!existingDw) {
-      await tx.insert(dogWalkers).values({
-        dogId,
-        walkerProfileId,
-        currentPrice: "50.00",
-        currency: "ILS",
-        isActive: true,
-        startedAt: now,
-        updatedAt: now,
-      });
-    }
-
-    return { dogId, walkerProfileId };
+    return { dogId: dogIds[0]!, dogIds, walkerProfileId };
   });
 
   return Response.json(result, { status: 200 });

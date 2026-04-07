@@ -81,7 +81,7 @@ export async function waitForDebugPanel(_page: Page) {
 // Seed / Reset — via API endpoints
 // ---------------------------------------------------------------------------
 
-function qaHeaders(): Record<string, string> {
+export function qaHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   if (process.env.QA_SEED_SECRET) headers["x-qa-seed-secret"] = process.env.QA_SEED_SECRET;
   if (process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {

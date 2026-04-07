@@ -43,6 +43,14 @@ export default async function globalSetup(_config: FullConfig) {
   if (process.env.QA_SEED_SECRET) {
     seedHeaders["x-qa-seed-secret"] = process.env.QA_SEED_SECRET;
   }
+  const resetRes = await page.request.post(`${baseUrl}/api/qa/reset`, {
+    headers: seedHeaders,
+  });
+  if (!resetRes.ok()) {
+    const body = await resetRes.text();
+    throw new Error(`QA reset in global-setup failed (${resetRes.status()}): ${body}`);
+  }
+
   const seedRes = await page.request.post(`${baseUrl}/api/qa/seed`, {
     headers: seedHeaders,
   });
