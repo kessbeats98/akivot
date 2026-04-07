@@ -106,13 +106,6 @@ export function WalkerDashboardClient({
     return `${price} ${currency}`;
   };
 
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "בוקר טוב";
-    if (h < 17) return "אחר הצהריים טוב";
-    return "ערב טוב";
-  };
-
   const dismissError = () => setError(null);
 
   return (
@@ -160,17 +153,12 @@ export function WalkerDashboardClient({
           </button>
         )}
 
-        {/* Idle message */}
-        {assignedDogs.length > 0 ? (
-          <div className="text-center pt-3 pb-1">
-            <div className="text-xl font-bold text-dark mb-1">{getGreeting()}, {userName}</div>
-            <div className="text-sm text-muted-color">אין הליכה פעילה כרגע</div>
-          </div>
-        ) : (
-          <div data-testid="empty-state" className="flex flex-col items-center justify-center pt-3 pb-1">
-            <div className="text-[56px]">🐾</div>
-            <div className="text-xl font-bold text-dark mb-1">ממתינים לשיוך כלב</div>
-            <div className="text-sm text-muted-color text-center">ברגע שבעל הכלב ישייך אותך, הכלבים וההליכות יופיעו כאן</div>
+        {/* Empty state */}
+        {assignedDogs.length === 0 && (
+          <div data-testid="empty-state" className="flex flex-col items-center justify-center pt-10 pb-4 gap-3">
+            <div className="text-[48px]">🐾</div>
+            <div className="text-lg font-bold text-dark text-center">אין כלבים משויכים</div>
+            <div className="text-sm text-muted-color text-center max-w-[220px]">כשבעל כלב ישייך אותך, הכלב יופיע כאן</div>
           </div>
         )}
 
@@ -179,76 +167,55 @@ export function WalkerDashboardClient({
           const firstDog = assignedDogs[0]!;
           return (
           <>
-            {/* First dog card — direct start for 1 dog, chooser for multi */}
+            {/* First dog card — direct start for 1 dog, pre-selected chooser for multi */}
             <button
               data-testid="start-walk"
               onClick={() => {
                 if (assignedDogs.length === 1) {
                   startWalkForDog(firstDog.dogId);
                 } else {
-                  setSelectedDogs([]);
+                  setSelectedDogs([firstDog.dogId]);
                   setIsStartWalkOpen(true);
                   setError(null);
                 }
               }}
               className="bg-white border border-[var(--border)] rounded-[18px] p-4 flex items-center gap-3 cursor-pointer transition-colors hover:bg-stone100 text-right w-full"
             >
-              <div className="w-[46px] h-[46px] rounded-[14px] bg-brand-light flex items-center justify-center flex-shrink-0">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="M4 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="M18 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="M7 14a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="M15 14a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="M12 11c-2.2 0-4 1.5-4 4 0 1.5.5 2.5 1.5 3.5l.5.5h4l.5-.5c1-1 1.5-2 1.5-3.5 0-2.5-1.8-4-4-4z"/></svg>
-              </div>
               <div className="flex-1 min-w-0 text-right">
-                <div className="text-[11px] text-muted-color mb-0.5">הבא בתור</div>
-                <div className="text-base font-bold text-dark">{firstDog.dogName}</div>
+                <div className="text-[17px] font-extrabold text-dark leading-tight">{firstDog.dogName}</div>
                 {firstDog.ownerName && (
                   <div className="text-xs text-muted-color mt-0.5">{firstDog.ownerName}</div>
                 )}
-              </div>
-              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                <div className="font-numbers text-lg font-bold text-amber">
+                <div className="font-numbers text-xs text-muted-color mt-1">
                   {formatPrice(firstDog.currentPrice, firstDog.currency)}
                 </div>
-                <div className="bg-brand text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                  התחל
-                </div>
+              </div>
+              <div className="bg-brand text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-1.5 flex-shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                התחל
               </div>
             </button>
 
-            {/* Rest of day list */}
-            {assignedDogs.length > 1 && (
-              <div className="bg-white border border-[var(--border)] rounded-[18px] overflow-hidden">
-                <div className="text-[12px] font-semibold text-muted-color px-[18px] py-3 border-b border-stone100">
-                  כלבים נוספים
+            {/* Secondary dogs */}
+            {assignedDogs.slice(1).map((dog) => (
+              <button
+                key={dog.dogWalkerId}
+                onClick={() => {
+                  setSelectedDogs([dog.dogId]);
+                  setIsStartWalkOpen(true);
+                  setError(null);
+                }}
+                className="flex items-center justify-between px-3 py-3 rounded-[14px] hover:bg-stone100 transition-colors w-full text-right"
+              >
+                <div>
+                  <div className="text-[14px] font-semibold text-dark">{dog.dogName}</div>
+                  {dog.ownerName && <div className="text-[11px] text-muted-color mt-0.5">{dog.ownerName}</div>}
                 </div>
-                {assignedDogs.slice(1).map((dog) => (
-                  <button
-                    key={dog.dogWalkerId}
-                    onClick={() => {
-                      setSelectedDogs([dog.dogId]);
-                      setIsStartWalkOpen(true);
-                      setError(null);
-                    }}
-                    className="flex items-center justify-between px-[18px] py-3.5 border-b border-stone100 last:border-b-0 cursor-pointer transition-colors hover:bg-stone100 w-full text-right"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[var(--border)] flex-shrink-0" />
-                      <div>
-                        <div className="text-[15px] font-semibold text-dark">{dog.dogName}</div>
-                        {dog.ownerName && (
-                          <div className="text-[11px] text-muted-color mt-0.5">{dog.ownerName}</div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-numbers text-sm font-semibold text-muted-color">
-                        {formatPrice(dog.currentPrice, dog.currency)}
-                      </div>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+                <div className="font-numbers text-xs text-muted-color">
+                  {formatPrice(dog.currentPrice, dog.currency)}
+                </div>
+              </button>
+            ))}
           </>
           );
         })()}
