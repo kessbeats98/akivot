@@ -6,9 +6,13 @@
  *
  * Run with:
  *   BASE_URL=https://akivot.vercel.app \
- *   WALKER_EMAIL=<real-walker-email> \
- *   WALKER_PASSWORD=<real-walker-password> \
+ *   OWNER_EMAIL=<dedicated-owner-fixture-email> \
+ *   OWNER_PASSWORD=<dedicated-owner-fixture-password> \
+ *   WALKER_EMAIL=<dedicated-walker-fixture-email> \
+ *   WALKER_PASSWORD=<dedicated-walker-fixture-password> \
  *   npx playwright test qa/tests/cold-walkthrough.spec.ts --project=cold-walkthrough --reporter=list
+ *
+ * Credentials must be stored in qa/.env.qa (gitignored). Never hardcode them here.
  */
 
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
