@@ -15,6 +15,7 @@ interface Props {
   availableWalkers: { id: string; displayName: string }[];
   updateDogAction: (formData: FormData) => Promise<void>;
   assignWalkerAction: (formData: FormData) => Promise<void>;
+  setPriceActions: Record<string, (formData: FormData) => Promise<void>>;
 }
 
 const STATUS_BADGE: Record<WalkStatus, { label: string; cls: string }> = {
@@ -50,7 +51,7 @@ function formatMinutes(totalMinutes: number): string {
   return `${hours} שע'`;
 }
 
-export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, updateDogAction, assignWalkerAction }: Props) {
+export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, updateDogAction, assignWalkerAction, setPriceActions }: Props) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(dog.imageUrl);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
@@ -168,22 +169,51 @@ export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, up
         <h3 className="font-bold text-lg text-dark mb-3">דוגווקרים</h3>
         {dog.walkers.length > 0 ? (
           <div className="flex flex-col gap-2 mb-4">
-            {dog.walkers.map((w) => (
-              <div
-                key={w.dogWalkerId}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex items-center gap-3"
-              >
-                <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand">
-                  <span className="material-symbols-rounded text-lg">directions_walk</span>
+            {dog.walkers.map((w) => {
+              const priceIsZero = !w.currentPrice || w.currentPrice === "0.00";
+              const setPriceAction = setPriceActions[w.dogWalkerId];
+              return (
+                <div
+                  key={w.dogWalkerId}
+                  className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex flex-col gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand">
+                      <span className="material-symbols-rounded text-lg">directions_walk</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-dark text-sm">{w.displayName}</p>
+                      <p className="text-[11px] text-gray-400">
+                        {w.isActive ? "פעיל" : "לא פעיל"}
+                        {!priceIsZero && (
+                          <span className="mr-2 text-brand font-numbers">{formatCurrency(w.currentPrice)}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  {w.isActive && priceIsZero && setPriceAction && (
+                    <form action={setPriceAction} className="flex items-center gap-2 pt-1 border-t border-amber-100">
+                      <span className="material-symbols-rounded text-amber-500 text-base">payments</span>
+                      <input
+                        type="number"
+                        name="price"
+                        required
+                        min="1"
+                        step="1"
+                        placeholder="מחיר לטיול (₪)"
+                        className="flex-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                      >
+                        קבע מחיר
+                      </button>
+                    </form>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-dark text-sm">{w.displayName}</p>
-                  <p className="text-[11px] text-gray-400">
-                    {w.isActive ? "פעיל" : "לא פעיל"}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-gray-400 mb-4">אין דוגווקרים משויכים עדיין</p>

@@ -1,0 +1,27 @@
+{
+  "id": "TASK-0101-OWNER-SETUP-COMPLETION",
+  "status": "success",
+  "phase": "execute",
+  "summary": "Phase 1 owner setup completion implemented. Four setup states now fully wired: (1) no dog → add-dog form (pre-existing); (2) dog with no active walker → amber assign-walker CTA (pre-existing); (3) active walker with 0.00/missing price → amber set-price CTA on dashboard + inline price form on dog-profile page; (4) active walker with valid non-zero price → calm green 'all ready' status card. currentPrice exposed from DB through DogWithWalkers type. setPriceAction imported from dashboard/actions into dog-profile page and bound per dogWalkerId.",
+  "files_changed": [
+    "src/lib/repositories/dogsRepo.ts",
+    "src/app/owner/dashboard/OwnerDashboardClient.tsx",
+    "src/app/owner/dashboard/components/OwnerCurrentStatusCard.tsx",
+    "src/app/owner/dog-profile/[dogId]/DogProfileClient.tsx",
+    "src/app/owner/dog-profile/[dogId]/page.tsx",
+    "src/app/owner/dashboard/actions.ts"
+  ],
+  "commands_run": [
+    "npx tsc --noEmit",
+    "npx eslint src/lib/repositories/dogsRepo.ts src/app/owner/dashboard/OwnerDashboardClient.tsx src/app/owner/dashboard/components/OwnerCurrentStatusCard.tsx src/app/owner/dog-profile/[dogId]/DogProfileClient.tsx src/app/owner/dog-profile/[dogId]/page.tsx --max-warnings=0"
+  ],
+  "tests_run": [],
+  "tests_passed": [],
+  "tests_failed": [],
+  "blockers": [],
+  "scope_deviations": [
+    "src/app/owner/dashboard/actions.ts touched minimally: added revalidatePath('/owner/dog-profile', 'layout') to setPriceAction so dog-profile page reflects price change immediately. This file is within the allowed src/app/owner/dashboard directory.",
+    "Lint check exited non-zero due to 5 pre-existing errors and 3 pre-existing warnings in touched files (react-hooks/set-state-in-effect in OwnerDashboardClient lines 63+97, react-hooks/purity in OwnerCurrentStatusCard line 80, react/no-unescaped-entities + @next/next/no-img-element in DogProfileClient). Zero new lint issues introduced by this task's changes."
+  ],
+  "follow_up_recommendation": "Phase 2: enforce price > 0 on walker start — blocked-start UX when walker attempts to start a walk with no price set. Requires walker-side changes explicitly out of scope here. Also: revalidatePath in setPriceAction currently revalidates all dog-profile pages; consider narrowing to the specific dog path if per-dog revalidation becomes desirable."
+}

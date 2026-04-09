@@ -9,6 +9,8 @@ interface Props {
   liveWalk: ActiveLiveWalk | null;
   lastCompletedWalk: DogWalkHistoryItem | null;
   hasActiveWalker?: boolean;
+  setupComplete?: boolean;
+  activeWalkerName?: string | null;
 }
 
 const pad = (n: number) => n.toString().padStart(2, "0");
@@ -31,7 +33,7 @@ function LiveTimer({ startTime }: { startTime: string | Date }) {
   return <span>{pad(h)}:{pad(m)}:{pad(s)}</span>;
 }
 
-export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, hasActiveWalker }: Props) {
+export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, hasActiveWalker, setupComplete, activeWalkerName }: Props) {
   // Walking state — matches HTML .status-card.walking
   if (liveWalk) {
     const startLabel = new Date(liveWalk.startTime).toLocaleTimeString("he-IL", {
@@ -148,6 +150,23 @@ export function OwnerCurrentStatusCard({ dogName, liveWalk, lastCompletedWalk, h
         <div className="text-[56px] mb-4">🐾</div>
         <div className="text-xl font-bold text-dark mb-2">אין טיול מתוכנן</div>
         <div className="text-[15px] text-muted-color">שייך מוביל כדי להתחיל</div>
+      </div>
+    );
+  }
+
+  // Setup complete, no walk history yet — calm ready state
+  if (setupComplete) {
+    return (
+      <div className="rounded-[28px] px-7 py-10 text-center relative overflow-hidden bg-emerald-50 border border-emerald-200">
+        <div className="flex items-center justify-center gap-2.5 mb-4">
+          <div className="w-3 h-3 rounded-full bg-emerald-400" />
+          <span className="text-[15px] font-semibold text-emerald-800">הכול מוכן</span>
+        </div>
+        <div className="text-[56px] mb-4">✅</div>
+        <div className="text-xl font-bold text-dark mb-2">{dogName} מוכן לטיול</div>
+        {activeWalkerName && (
+          <div className="text-[15px] text-emerald-700">המוביל {activeWalkerName} מוגדר ומחיר נקבע</div>
+        )}
       </div>
     );
   }

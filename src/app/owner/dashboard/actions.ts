@@ -72,6 +72,7 @@ export async function setPriceAction(dogWalkerId: string, formData: FormData): P
   const input = setPriceSchema.parse({ dogWalkerId, price: formData.get("price") });
   await setDogWalkerPrice(input.dogWalkerId, input.price);
   revalidatePath("/owner/dashboard");
+  revalidatePath("/owner/dog-profile", "layout");
 }
 
 // dogId bound via .bind(null, dogId); FormData: walkerProfileId*

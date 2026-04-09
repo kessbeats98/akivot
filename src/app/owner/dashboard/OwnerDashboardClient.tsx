@@ -99,7 +99,10 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
   const selectedDog = dogs.find((d) => d.id === selectedDogId);
   const liveWalk = liveWalks.find((w) => w.dogId === selectedDogId) ?? null;
-  const hasActiveWalker = (selectedDog?.walkers ?? []).some((w) => w.isActive);
+  const activeWalker = (selectedDog?.walkers ?? []).find((w) => w.isActive) ?? null;
+  const hasActiveWalker = activeWalker !== null;
+  const priceIsZero = activeWalker !== null && (!activeWalker.currentPrice || activeWalker.currentPrice === "0.00");
+  const setupComplete = hasActiveWalker && !priceIsZero;
   const liveWalkDogIds = new Set(liveWalks.map((w) => w.dogId));
   const lastCompletedWalk =
     walkHistory.find((w) => w.status === "COMPLETED" || w.status === "AUTO_CLOSED") ?? null;
@@ -205,6 +208,8 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           liveWalk={liveWalk}
           lastCompletedWalk={lastCompletedWalk}
           hasActiveWalker={hasActiveWalker}
+          setupComplete={setupComplete}
+          activeWalkerName={activeWalker?.displayName ?? null}
         />
 
         {/* Assign-walker CTA */}
@@ -217,6 +222,21 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
             <div className="flex-1">
               <div className="text-sm font-bold text-amber-900">עדיין לא שויך מוביל ל{selectedDog.name}</div>
               <div className="text-xs text-amber-700 mt-0.5">שייך מוביל כדי שאפשר יהיה להתחיל טיולים</div>
+            </div>
+            <span className="material-symbols-rounded text-amber-400 text-lg">chevron_left</span>
+          </Link>
+        )}
+
+        {/* Set-price CTA */}
+        {hasActiveWalker && priceIsZero && !liveWalk && (
+          <Link
+            href={`/owner/dog-profile/${selectedDogId}`}
+            className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-3"
+          >
+            <span className="material-symbols-rounded text-amber-600 text-xl">payments</span>
+            <div className="flex-1">
+              <div className="text-sm font-bold text-amber-900">טרם נקבע מחיר לטיול</div>
+              <div className="text-xs text-amber-700 mt-0.5">קבע מחיר כדי שניתן יהיה להתחיל טיולים</div>
             </div>
             <span className="material-symbols-rounded text-amber-400 text-lg">chevron_left</span>
           </Link>

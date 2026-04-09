@@ -11,7 +11,7 @@ export type DogWithWalkers = {
   birthDate: string | null;
   imageUrl: string | null;
   notes: string | null;
-  walkers: { dogWalkerId: string; walkerProfileId: string; displayName: string; isActive: boolean }[];
+  walkers: { dogWalkerId: string; walkerProfileId: string; displayName: string; isActive: boolean; currentPrice: string }[];
 };
 
 /** All active dogs owned by a user, with assigned walkers. */
@@ -24,6 +24,7 @@ export async function getDogsByOwner(ownerUserId: string): Promise<DogWithWalker
       walkerProfileId: dogWalkers.walkerProfileId,
       walkerDisplayName: walkerProfiles.displayName,
       walkerIsActive: dogWalkers.isActive,
+      walkerCurrentPrice: dogWalkers.currentPrice,
     })
     .from(dogOwners)
     .innerJoin(dogs, eq(dogs.id, dogOwners.dogId))
@@ -50,6 +51,7 @@ export async function getDogsByOwner(ownerUserId: string): Promise<DogWithWalker
         walkerProfileId: row.walkerProfileId,
         displayName: row.walkerDisplayName ?? "",
         isActive: row.walkerIsActive ?? false,
+        currentPrice: row.walkerCurrentPrice ?? "0.00",
       });
     }
   }
@@ -134,6 +136,7 @@ export async function getDogById(dogId: string, ownerUserId: string): Promise<Do
       walkerProfileId: dogWalkers.walkerProfileId,
       walkerDisplayName: walkerProfiles.displayName,
       walkerIsActive: dogWalkers.isActive,
+      walkerCurrentPrice: dogWalkers.currentPrice,
     })
     .from(dogs)
     .leftJoin(dogWalkers, eq(dogWalkers.dogId, dogs.id))
@@ -160,6 +163,7 @@ export async function getDogById(dogId: string, ownerUserId: string): Promise<Do
         walkerProfileId: row.walkerProfileId,
         displayName: row.walkerDisplayName ?? "",
         isActive: row.walkerIsActive ?? false,
+        currentPrice: row.walkerCurrentPrice ?? "0.00",
       });
     }
   }
