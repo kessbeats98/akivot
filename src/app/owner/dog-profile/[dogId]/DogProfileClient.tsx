@@ -37,12 +37,14 @@ function formatAge(birthDate: string | null): string {
 
 const formatCurrency = (amount: string | null) => {
   if (!amount) return "";
+  const n = Number(amount);
+  const hasCents = n % 1 !== 0;
   return new Intl.NumberFormat("he-IL", {
     style: "currency",
     currency: "ILS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(n);
 };
 
 function formatMinutes(totalMinutes: number): string {
@@ -191,25 +193,33 @@ export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, up
                       </p>
                     </div>
                   </div>
-                  {w.isActive && priceIsZero && setPriceAction && (
-                    <form action={setPriceAction} className="flex items-center gap-2 pt-1 border-t border-amber-100">
-                      <span className="material-symbols-rounded text-amber-500 text-base">payments</span>
-                      <input
-                        type="number"
-                        name="price"
-                        required
-                        min="1"
-                        step="1"
-                        placeholder="מחיר לטיול (₪)"
-                        className="flex-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-300"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
-                      >
-                        קבע מחיר
-                      </button>
-                    </form>
+                  {w.isActive && setPriceAction && (
+                    <div className="flex flex-col gap-1.5 pt-1 border-t border-amber-100">
+                      {!priceIsZero && (
+                        <p className="text-[11px] text-amber-600 text-right">
+                          שינוי מחיר ישפיע על טיולים שלא שולמו
+                        </p>
+                      )}
+                      <form action={setPriceAction} className="flex items-center gap-2">
+                        <span className="material-symbols-rounded text-amber-500 text-base">payments</span>
+                        <input
+                          type="number"
+                          name="price"
+                          required
+                          min="0.01"
+                          step="0.01"
+                          defaultValue={priceIsZero ? "" : w.currentPrice ?? ""}
+                          placeholder="מחיר לטיול (₪)"
+                          className="flex-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        />
+                        <button
+                          type="submit"
+                          className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                        >
+                          {priceIsZero ? "קבע מחיר" : "עדכן מחיר"}
+                        </button>
+                      </form>
+                    </div>
                   )}
                 </div>
               );
