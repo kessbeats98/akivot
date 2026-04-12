@@ -23,6 +23,24 @@ export async function endWalkFromLiveAction(walkId: string, fd: FormData) {
   redirect("/walker/dashboard")
 }
 
+export async function triggerGraceNotificationAction(walkId: string): Promise<void> {
+  const user = await assertAuthenticated()
+  const db = getDb()
+
+  const [row] = await db
+    .select({ status: walks.status })
+    .from(walks)
+    .innerJoin(walkerProfiles, eq(walkerProfiles.id, walks.walkerProfileId))
+    .where(and(eq(walks.id, walkId), eq(walkerProfiles.userId, user.id)))
+    .limit(1)
+
+  if (!row) return // walk not found or does not belong to this walker
+  if (row.status !== "LIVE") return // already ended — skip
+
+  // KNOWN: multi-tab double-fire. V1.2 fix: graceNotifiedAt column.
+  void notifyWalkEvent(walkId, "WALK_STARTED")
+}
+
 export async function checkWalkStatusAction(walkId: string): Promise<{ status: string }> {
   const user = await assertAuthenticated()
   const db = getDb()

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { differenceInSeconds } from "date-fns";
 import { SlideOver } from "@/components/ui/slide-over";
 import { getActionError } from "@/lib/action-utils";
-import { checkWalkStatusAction } from "./actions";
+import { checkWalkStatusAction, triggerGraceNotificationAction } from "./actions";
 import { useDebugMode } from "@/lib/hooks/useDebugMode";
 import { DebugPanel } from "@/components/DebugPanel";
 import { resetTestDataAction } from "@/app/dev/actions";
@@ -61,6 +61,16 @@ export function WalkerLiveClient({ walkId, dogName, startTime, endWalkAction }: 
       window.removeEventListener("online", goOnline);
     };
   }, []);
+
+  // Grace window: fire WALK_STARTED notification 30s after actual walk start
+  useEffect(() => {
+    const elapsedMs = Date.now() - new Date(startTime).getTime();
+    const remainingMs = Math.max(0, 30_000 - elapsedMs);
+    const t = setTimeout(() => {
+      void triggerGraceNotificationAction(walkId);
+    }, remainingMs);
+    return () => clearTimeout(t);
+  }, [walkId, startTime]);
 
   useEffect(() => {
     console.log("[walker/live] mounted", { walkId, dogName, startTime });
