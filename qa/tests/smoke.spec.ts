@@ -233,11 +233,11 @@ test.describe("reset-data-empty-state", () => {
 });
 
 // ===========================================================================
-// 6. chooser-flow
+// 6. chooser-flow (Phase 3: access via "בחר כלב אחר" link, not start-walk click)
 // ===========================================================================
 
 test.describe("chooser-flow", () => {
-  test("[smoke,chooser] 2 dogs seeded → chooser opens → select → confirm → live", async ({ page }) => {
+  test("[smoke,chooser] 2 dogs → בחר כלב אחר → chooser opens → confirm → live", async ({ page }) => {
     // --- Setup: clean slate → 2-dog seed ---
     await resetOnly(page);
     const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
@@ -248,15 +248,16 @@ test.describe("chooser-flow", () => {
     if (!seedRes.ok()) throw new Error(`2-dog seed failed: ${await seedRes.text()}`);
     await seedAndReload(page);
 
-    // --- Step 1: click start-walk → chooser SlideOver opens (2 dogs, first pre-selected) ---
-    await page.getByTestId("start-walk").click({ timeout: T.action });
+    // --- Step 1: tap "בחר כלב אחר" → chooser SlideOver opens ---
+    // Phase 3: start-walk does direct-start. Chooser is now accessed via the secondary link.
+    await page.getByText("בחר כלב אחר ›").click({ timeout: T.action });
     const dialog = await waitForSlideOver(page);
     await expect(dialog.getByText("בחירת כלב לטיול")).toBeVisible({ timeout: T.visible });
-    // First dog is pre-selected on open → confirm already enabled
+    // Primary dog pre-selected on open → confirm already enabled
     await expect(page.getByTestId("start-walk-confirm")).toBeEnabled({ timeout: 1_000 });
 
     // --- Step 2: verify first dog card is selected ---
-    await selectFirstDog(page); // re-click first dog (verifies selection works)
+    await selectFirstDog(page);
 
     // --- Step 3: confirm ---
     await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
