@@ -93,10 +93,10 @@ export async function notifyWalkEvent(
     if (ownerRows.length === 0) return;
 
     const payload: NotificationPayload = {
-      title: type === "WALK_STARTED" ? "Walk started" : "Walk completed",
+      title: type === "WALK_STARTED" ? "הטיול התחיל" : "הטיול הסתיים",
       body: type === "WALK_STARTED"
-        ? "Your dog's walk has started."
-        : "Your dog's walk has been completed.",
+        ? "הטיול של הכלב שלך התחיל."
+        : "הטיול של הכלב שלך הסתיים.",
       data: { walkId, type },
     };
 
