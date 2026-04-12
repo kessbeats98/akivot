@@ -104,6 +104,8 @@ export function WalkerDashboardClient({
     return `${price} ${currency}`;
   };
 
+  const isPriceUnset = (price: string) => !price || price === "0.00";
+
   const dismissError = () => setError(null);
 
   return (
@@ -162,72 +164,92 @@ export function WalkerDashboardClient({
 
         {/* Dog queue */}
         {assignedDogs.length > 0 && (() => {
-          const firstDog = assignedDogs[0]!;
+          const primaryDog =
+            assignedDogs.find((dog) => !isPriceUnset(dog.currentPrice)) ?? assignedDogs[0]!;
+          const secondaryDogs = assignedDogs.filter(
+            (dog) => dog.dogWalkerId !== primaryDog.dogWalkerId,
+          );
           return (
           <>
-            {assignedDogs.length > 1 && (
-              <div className="text-[11px] text-muted-color px-1">
-                {assignedDogs.length} כלבים היום
-              </div>
-            )}
             <div className="flex flex-col gap-2">
-              {/* Primary dog card — direct start for 1 dog, pre-selected chooser for multi */}
-              <button
-                data-testid="start-walk"
-                onClick={() => {
-                  if (isStarting) return;
-                  if (assignedDogs.length === 1) {
-                    startWalkForDog(firstDog.dogId);
-                  } else {
-                    setSelectedDogs([firstDog.dogId]);
-                    setIsStartWalkOpen(true);
-                    setError(null);
-                  }
-                }}
-                disabled={isStarting}
-                className={`bg-white border border-[var(--border)] rounded-[18px] p-4 flex items-center gap-3 transition-colors text-right w-full ${isStarting ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:bg-stone100"}`}
-              >
-                <div className="flex-1 min-w-0 text-right">
-                  <div className="text-[17px] font-extrabold text-dark leading-tight">{firstDog.dogName}</div>
-                  {firstDog.ownerName && (
-                    <div className="text-xs text-muted-color mt-0.5">{firstDog.ownerName}</div>
-                  )}
-                  <div className="font-numbers text-xs text-muted-color mt-1">
-                    {formatPrice(firstDog.currentPrice, firstDog.currency)}
+              {/* Primary dog card — prefer the first actionable dog, fall back to the first assigned dog */}
+              {isPriceUnset(primaryDog.currentPrice) ? (
+                <div
+                  data-testid="start-walk-blocked"
+                  className="bg-white border border-[var(--border)] rounded-[18px] p-4 flex items-center gap-3 text-right w-full"
+                >
+                  <div className="flex-1 min-w-0 text-right">
+                    <div className="text-[17px] font-extrabold text-dark leading-tight">{primaryDog.dogName}</div>
+                    {primaryDog.ownerName && (
+                      <div className="text-xs text-muted-color mt-0.5">{primaryDog.ownerName}</div>
+                    )}
+                    <div className="text-xs text-muted-color mt-1">מחיר לא הוגדר</div>
+                  </div>
+                  <div className="text-xs text-muted-color px-3 py-2 rounded-full bg-stone-100 flex-shrink-0">
+                    ממתין להגדרת מחיר
                   </div>
                 </div>
-                <div className={`text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-1.5 flex-shrink-0 transition-opacity ${isStarting ? "bg-brand/60" : "bg-brand"}`}>
-                  {isStarting ? (
-                    <span className="material-symbols-rounded text-sm animate-spin">progress_activity</span>
-                  ) : (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <button
+                    data-testid="start-walk"
+                    onClick={() => {
+                      if (isStarting) return;
+                      startWalkForDog(primaryDog.dogId);
+                    }}
+                    disabled={isStarting}
+                    className={`bg-white border border-[var(--border)] rounded-[18px] p-4 flex items-center gap-3 transition-colors text-right w-full ${isStarting ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:bg-stone100"}`}
+                  >
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="text-[17px] font-extrabold text-dark leading-tight">{primaryDog.dogName}</div>
+                      {primaryDog.ownerName && (
+                        <div className="text-xs text-muted-color mt-0.5">{primaryDog.ownerName}</div>
+                      )}
+                      <div className="font-numbers text-xs text-muted-color mt-1">
+                        {formatPrice(primaryDog.currentPrice, primaryDog.currency)}
+                      </div>
+                    </div>
+                    <div className={`text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-1.5 flex-shrink-0 transition-opacity ${isStarting ? "bg-brand/60" : "bg-brand"}`}>
+                      {isStarting ? (
+                        <span className="material-symbols-rounded text-sm animate-spin">progress_activity</span>
+                      ) : (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      )}
+                      {isStarting ? "מתחיל..." : "התחל"}
+                    </div>
+                  </button>
+                  {assignedDogs.length > 1 && (
+                    <button
+                      onClick={() => {
+                        setSelectedDogs([primaryDog.dogId]);
+                        setIsStartWalkOpen(true);
+                        setError(null);
+                      }}
+                      className="text-[12px] text-muted-color text-left px-1 py-0.5 w-fit hover:text-brand transition-colors"
+                    >
+                      בחר כלב אחר ›
+                    </button>
                   )}
-                  {isStarting ? "מתחיל..." : "התחל"}
                 </div>
-              </button>
+              )}
 
-              {/* Secondary dogs */}
+              {/* Secondary dogs — read-only */}
               {assignedDogs.length > 1 && (
                 <div className="text-[11px] text-muted-color px-1 pt-1">לאחר מכן</div>
               )}
-              {assignedDogs.slice(1).map((dog) => (
-                <button
+              {secondaryDogs.map((dog) => (
+                <div
                   key={dog.dogWalkerId}
-                  onClick={() => {
-                    setSelectedDogs([dog.dogId]);
-                    setIsStartWalkOpen(true);
-                    setError(null);
-                  }}
-                  className="flex items-center justify-between px-3 py-3 rounded-[14px] hover:bg-stone100 transition-colors w-full text-right"
+                  className="flex items-center justify-between px-3 py-3 rounded-[14px] w-full text-right"
                 >
                   <div>
                     <div className="text-[14px] font-semibold text-dark">{dog.dogName}</div>
                     {dog.ownerName && <div className="text-[11px] text-muted-color mt-0.5">{dog.ownerName}</div>}
                   </div>
                   <div className="font-numbers text-xs text-muted-color">
-                    {formatPrice(dog.currentPrice, dog.currency)}
+                    {isPriceUnset(dog.currentPrice) ? "ממתין להגדרת מחיר" : formatPrice(dog.currentPrice, dog.currency)}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </>
@@ -252,7 +274,10 @@ export function WalkerDashboardClient({
       {/* Start Walk SlideOver */}
       <SlideOver
         isOpen={isStartWalkOpen}
-        onClose={() => { setIsStartWalkOpen(false); setError(null); }}
+        onClose={() => {
+          setIsStartWalkOpen(false);
+          setError(null);
+        }}
         title="בחירת כלב לטיול"
       >
         <div className="flex flex-col gap-6">
@@ -267,14 +292,15 @@ export function WalkerDashboardClient({
           <div className="flex flex-col gap-3">
             {assignedDogs.map((dog) => {
               const isSelected = selectedDogs[0] === dog.dogId;
+              const priceBlocked = isPriceUnset(dog.currentPrice);
               return (
                 <button
                   key={dog.dogWalkerId}
-                  onClick={() => selectDog(dog.dogId)}
-                  disabled={isStarting}
+                  onClick={() => !priceBlocked && selectDog(dog.dogId)}
+                  disabled={isStarting || priceBlocked}
                   className={`p-4 rounded-[18px] border-2 transition-all flex items-center gap-3 text-right ${
                     isSelected ? "border-brand bg-brand-light" : "border-gray-100 bg-white"
-                  } ${isStarting ? "opacity-50 cursor-not-allowed" : ""}`}
+                  } ${isStarting || priceBlocked ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-extrabold flex-shrink-0 ${
                     isSelected ? "bg-brand-dark text-white" : "bg-brand-light text-brand-dark"
@@ -291,19 +317,27 @@ export function WalkerDashboardClient({
                     )}
                   </div>
                   <div className="font-numbers text-sm font-bold text-amber flex-shrink-0">
-                    {formatPrice(dog.currentPrice, dog.currency)}
+                    {priceBlocked ? (
+                      <span className="text-muted-color font-normal">ממתין להגדרת מחיר</span>
+                    ) : (
+                      formatPrice(dog.currentPrice, dog.currency)
+                    )}
                   </div>
                 </button>
               );
             })}
           </div>
 
+          {(() => {
+            const selectedDog = assignedDogs.find((d) => d.dogId === selectedDogs[0]);
+            const confirmBlocked = !selectedDog || isPriceUnset(selectedDog.currentPrice);
+            return (
           <button
             data-testid="start-walk-confirm"
             onClick={handleStartWalk}
-            disabled={selectedDogs.length === 0 || isStarting}
+            disabled={selectedDogs.length === 0 || isStarting || confirmBlocked}
             className={`w-full py-4 rounded-2xl font-bold text-[17px] text-center transition-all flex items-center justify-center gap-2.5 ${
-              selectedDogs.length > 0 && !isStarting
+              selectedDogs.length > 0 && !isStarting && !confirmBlocked
                 ? "bg-brand text-white shadow-glow-brand"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
@@ -317,6 +351,8 @@ export function WalkerDashboardClient({
               </>
             )}
           </button>
+            );
+          })()}
         </div>
       </SlideOver>
     </div>
