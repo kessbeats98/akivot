@@ -6,6 +6,7 @@ import { assertAuthenticated } from "@/lib/auth/session"
 import { endWalkSchema } from "@/lib/validation/walks"
 import { endWalk } from "@/lib/repositories/walksRepo"
 import { notifyWalkEvent } from "@/lib/services/notifications/fcmService"
+import { hasSuccessfulDelivery } from "@/lib/repositories/notificationsRepo"
 import { getDb } from "@/db/drizzle"
 import { walks, walkerProfiles } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
@@ -37,7 +38,9 @@ export async function triggerGraceNotificationAction(walkId: string): Promise<vo
   if (!row) return // walk not found or does not belong to this walker
   if (row.status !== "LIVE") return // already ended — skip
 
-  // KNOWN: multi-tab double-fire. V1.2 fix: graceNotifiedAt column.
+  // Dedupe: skip if WALK_STARTED was already delivered (handles refresh + multi-tab)
+  if (await hasSuccessfulDelivery(walkId, "WALK_STARTED")) return
+
   void notifyWalkEvent(walkId, "WALK_STARTED")
 }
 

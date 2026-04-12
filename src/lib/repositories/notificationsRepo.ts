@@ -1,4 +1,4 @@
-import { eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { userDevices, notificationDeliveries } from "@/db/schema";
 import type { RegisterDeviceInput } from "@/lib/validation/devices";
@@ -68,6 +68,26 @@ export async function getActiveDevicesForUser(userId: string): Promise<DeviceReg
       ...r,
       platform: r.platform as "WEB_DESKTOP",
     }));
+}
+
+export async function hasSuccessfulDelivery(
+  walkId: string,
+  type: "WALK_STARTED" | "WALK_COMPLETED",
+): Promise<boolean> {
+  const db = getDb();
+  const [row] = await db
+    .select({ id: notificationDeliveries.id })
+    .from(notificationDeliveries)
+    .where(
+      and(
+        eq(notificationDeliveries.notificationType, type),
+        eq(notificationDeliveries.entityType, "WALK"),
+        eq(notificationDeliveries.entityId, walkId),
+        eq(notificationDeliveries.status, "SENT"),
+      ),
+    )
+    .limit(1);
+  return !!row;
 }
 
 export async function logDelivery(input: LogDeliveryInput): Promise<void> {
