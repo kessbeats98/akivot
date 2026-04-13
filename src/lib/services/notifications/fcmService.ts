@@ -6,6 +6,7 @@ import {
   invalidateDevice,
   logDelivery,
 } from "@/lib/repositories/notificationsRepo";
+import { config } from "@/lib/config";
 import type { NotificationPayload, SendResult } from "./types";
 
 // Lazy singleton — never called at import time (env vars not available at build)
@@ -53,6 +54,11 @@ export async function sendToDevice(token: string, payload: NotificationPayload):
         body: payload.body,
       },
       data: payload.data,
+      webpush: {
+        fcmOptions: {
+          link: config.app.url,
+        },
+      },
     });
 
     return { success: true, messageId };
