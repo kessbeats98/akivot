@@ -58,8 +58,14 @@ export function useFcmToken(): UseFcmTokenResult {
       const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
       const messaging = getMessaging(app);
 
-      const registration = await navigator.serviceWorker.ready;
-      console.log("[fcm] service worker ready");
+      // Reuse an existing SW registration if one is already active for this script.
+      // Re-registering the same SW causes FCM to issue a new token, which immediately
+      // invalidates the previous one — producing stale device rows and TOKEN_INVALID failures.
+      const swUrl = `/firebase-messaging-sw.js`;
+      const existing = await navigator.serviceWorker.getRegistration(swUrl);
+      const params = new URLSearchParams(firebaseConfig as Record<string, string>).toString();
+      const registration = existing ?? await navigator.serviceWorker.register(`${swUrl}?${params}`);
+      console.log("[fcm] service worker registered");
 
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,

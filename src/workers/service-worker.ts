@@ -1,58 +1,15 @@
 /// <reference lib="webworker" />
 export {};
 
-// SW globals — must declare before imports so the type is available everywhere.
-declare const self: ServiceWorkerGlobalScope;
-
 // Service Worker — Akivot PWA
 // Cache-First: static assets (_next/static, /icons)
 // Network-First: everything else
 // Background Sync: pending media uploads (tag "media-upload")
-// FCM: background push handling merged here (owns scope /)
 //
 // DB name constants duplicated here intentionally — SW is a separate compiled
 // bundle and cannot import from app code.
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
-
-// Firebase config — public values, safe to bundle
-const _firebaseConfig = {
-  apiKey:            "AIzaSyCJH-q9EEr8JwGZ269jAqqf1zz1iHaPmgg",
-  authDomain:        "akivot.firebaseapp.com",
-  projectId:         "akivot",
-  storageBucket:     "akivot.firebasestorage.app",
-  messagingSenderId: "415517104392",
-  appId:             "1:415517104392:web:b7d2e3a7d953f81ad374bd",
-};
-
-const _fbApp = getApps().length > 0 ? getApp() : initializeApp(_firebaseConfig);
-
-// Register our notificationclick handler BEFORE getMessaging() to ensure
-// it fires before Firebase's internal handler (which calls stopImmediatePropagation
-// for FCM-managed notifications).
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      if (clientList.length > 0) return clientList[0]!.focus();
-      return self.clients.openWindow("/");
-    }),
-  );
-});
-
-// getMessaging() registers Firebase's push + notificationclick + pushsubscriptionchange listeners.
-const _messaging = getMessaging(_fbApp);
-
-onBackgroundMessage(_messaging, (payload) => {
-  const title = payload.notification?.title ?? "Akivot";
-  const body  = payload.notification?.body  ?? "";
-  self.registration.showNotification(title, {
-    body,
-    icon: "/icons/icon-192x192.png",
-    data: payload.data,
-  });
-});
+declare const self: ServiceWorkerGlobalScope;
 
 // SyncEvent is not in the WebWorker lib — minimal local shim.
 interface SyncEvent extends ExtendableEvent {
