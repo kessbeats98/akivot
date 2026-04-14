@@ -1,3 +1,7 @@
+// Backwards-compatibility shim for devices that still reference
+// /firebase-messaging-sw.js from an older client bundle.
+importScripts("/sw.js");
+/*
 // Firebase Cloud Messaging background message handler.
 // Must be served from root scope (/firebase-messaging-sw.js).
 // Uses compat SDK via importScripts — ESM not supported in service workers.
@@ -31,3 +35,4 @@ self.addEventListener('notificationclick', (event) => {
     }),
   );
 });
+*/
