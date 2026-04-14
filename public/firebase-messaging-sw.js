@@ -20,17 +20,6 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title ?? 'Akivot';
-  const body = payload.notification?.body ?? '';
-
-  self.registration.showNotification(title, {
-    body,
-    icon: '/icons/icon-192x192.png',
-    data: payload.data,
-  });
-});
-
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(

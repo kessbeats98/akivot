@@ -55,6 +55,9 @@ export async function sendToDevice(token: string, payload: NotificationPayload):
       },
       data: payload.data,
       webpush: {
+        notification: {
+          icon: '/icons/icon-192x192.png',
+        },
         fcmOptions: {
           link: config.app.url,
         },
