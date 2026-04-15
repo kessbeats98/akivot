@@ -28,21 +28,10 @@ const OWNER_EMAIL = process.env.OWNER_EMAIL;
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD;
 
 // Part B walker account — must be supplied via env.
-// Fail fast here so the error is clear, not buried in a B1 login failure.
 const WALKER_EMAIL = process.env.WALKER_EMAIL;
 const WALKER_PASSWORD = process.env.WALKER_PASSWORD;
-
-if (!OWNER_EMAIL || !OWNER_PASSWORD) {
-  throw new Error(
-    "Cold walkthrough Part A requires OWNER_EMAIL and OWNER_PASSWORD env vars."
-  );
-}
-if (!WALKER_EMAIL || !WALKER_PASSWORD) {
-  throw new Error(
-    "Cold walkthrough Part B requires WALKER_EMAIL and WALKER_PASSWORD env vars. " +
-    "Set them to a real production walker account that has a dog assigned."
-  );
-}
+const HAS_OWNER_CREDS = Boolean(OWNER_EMAIL && OWNER_PASSWORD);
+const HAS_WALKER_CREDS = Boolean(WALKER_EMAIL && WALKER_PASSWORD);
 
 // Unique signup email for Part A (new user, no prior state)
 const SIGNUP_EMAIL = `walkthrough-${Date.now()}@sholef.co.il`;
@@ -70,6 +59,7 @@ async function note(label: string, start: number) {
 
 test.describe("PART A — New user signup / login flow", () => {
   test.describe.configure({ mode: "serial" });
+  test.skip(!HAS_OWNER_CREDS, "Cold walkthrough Part A requires OWNER_EMAIL and OWNER_PASSWORD.");
 
   let ctx: BrowserContext;
   let page: Page;
@@ -211,6 +201,10 @@ test.describe("PART A — New user signup / login flow", () => {
 
 test.describe("PART B — Core loop (pre-assigned walker)", () => {
   test.describe.configure({ mode: "serial" });
+  test.skip(
+    !HAS_WALKER_CREDS,
+    "Cold walkthrough Part B requires WALKER_EMAIL and WALKER_PASSWORD.",
+  );
 
   let ctx: BrowserContext;
   let page: Page;
@@ -249,24 +243,29 @@ test.describe("PART B — Core loop (pre-assigned walker)", () => {
   test("B2 — See assigned dog on dashboard", async () => {
     const t = Date.now();
 
-    // Ensure on walker dashboard
-    if (!page.url().includes("/walker/dashboard")) {
-      await page.goto(`${BASE}/walker/dashboard`, { timeout: T.nav });
-      await page.waitForLoadState("networkidle", { timeout: T.nav });
-    }
+    // Always navigate explicitly — ensures fresh SSR + hydration, not stale B1 state.
+    await page.goto(`${BASE}/walker/dashboard`, { timeout: T.nav });
+    await page.waitForLoadState("networkidle", { timeout: T.nav });
+
+    // Wait for React to hydrate and render the dog card (up to 10s).
+    const startWalk = page.getByTestId("start-walk");
+    const startWalkBlocked = page.getByTestId("start-walk-blocked");
+    const emptyState = page.getByTestId("empty-state");
+    await Promise.race([
+      startWalk.waitFor({ state: "visible", timeout: 10_000 }),
+      startWalkBlocked.waitFor({ state: "visible", timeout: 10_000 }),
+      emptyState.waitFor({ state: "visible", timeout: 10_000 }),
+    ]).catch(() => {});
 
     await screenshot(page, "B2-walker-dashboard");
     await note("B2 walker dashboard loaded", t);
 
-    // Check for dog assignment or start-walk button
-    const startWalk = page.getByTestId("start-walk");
-    const isVisible = await startWalk.isVisible({ timeout: 5_000 }).catch(() => false);
+    const isVisible = await startWalk.isVisible({ timeout: 1_000 }).catch(() => false);
     console.log(`  → start-walk button visible: ${isVisible}`);
 
     if (!isVisible) {
-      // Look for empty state — Class B issue
-      const emptyState = await page.textContent("body");
-      console.log("  → FRICTION B2: no start-walk button. Body excerpt:", emptyState?.slice(0, 200));
+      const bodyText = await page.textContent("body");
+      console.log("  → FRICTION B2: no start-walk button. Body excerpt:", bodyText?.slice(0, 200));
     }
 
     expect(isVisible, "B2: start-walk button should be visible (dog must be assigned)").toBe(true);
@@ -275,28 +274,29 @@ test.describe("PART B — Core loop (pre-assigned walker)", () => {
   test("B3 — Start a walk", async () => {
     const t = Date.now();
 
+    // Single-dog path: clicking start-walk fires the server action directly (no SlideOver).
+    // Multi-dog path: SlideOver opens → select dog → confirm.
+    // Check which path before clicking.
+    const confirmBtn = page.getByTestId("start-walk-confirm");
+    const slideOverAlreadyOpen = await confirmBtn.isVisible({ timeout: 500 }).catch(() => false);
+
     await page.getByTestId("start-walk").click({ timeout: T.action });
-    await page.waitForLoadState("networkidle", { timeout: T.nav });
-    await screenshot(page, "B3-slideover-open");
+    await screenshot(page, "B3-after-click");
 
-    // SlideOver should open
-    const dialog = page.locator("div[role='dialog']");
-    const dialogVisible = await dialog.isVisible({ timeout: 5_000 }).catch(() => false);
-    console.log(`  → SlideOver opened: ${dialogVisible}`);
-
-    if (dialogVisible) {
-      // Select first dog
-      const dogCard = dialog.locator("button").first();
-      await dogCard.click({ timeout: T.action });
-      await screenshot(page, "B3-dog-selected");
-
-      // Confirm start
-      const confirmBtn = page.getByTestId("start-walk-confirm");
-      await expect(confirmBtn).toBeEnabled({ timeout: 3_000 });
-      await confirmBtn.click({ timeout: T.action });
-    } else {
-      // Direct start without SlideOver
-      console.log("  → FRICTION B3: no SlideOver dialog appeared after start-walk click");
+    // If SlideOver opens after clicking (multi-dog), select first dog card and confirm.
+    if (!slideOverAlreadyOpen) {
+      const confirmVisible = await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false);
+      if (confirmVisible) {
+        // Select first dog in the SlideOver (not the close button)
+        const dogCard = page.getByTestId("start-walk-confirm").locator("..").locator("button").first();
+        await dogCard.click({ timeout: T.action }).catch(() => {});
+        await screenshot(page, "B3-dog-selected");
+        await expect(confirmBtn).toBeEnabled({ timeout: 3_000 });
+        await confirmBtn.click({ timeout: T.action });
+        console.log("  → B3: multi-dog SlideOver path used");
+      } else {
+        console.log("  → B3: single-dog direct-start path (no SlideOver)");
+      }
     }
 
     await note("B3 walk start submitted", t);
