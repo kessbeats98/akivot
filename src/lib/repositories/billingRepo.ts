@@ -2,7 +2,7 @@ import { eq, and, isNull, inArray, count } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { paymentPeriods, paymentEntries, walks, dogWalkers, walkerProfiles, dogs, dogOwners } from "@/db/schema";
 import { logAudit } from "@/lib/repositories/auditRepo";
-import type { ClosePeriodInput } from "@/lib/validation/billing";
+import type { ClosePeriodInput, ReopenPeriodInput } from "@/lib/validation/billing";
 import type { PaymentPeriodWithEntries, OwnerPaymentPeriod, OwnerPaymentEntry } from "@/lib/services/billing/types";
 
 export async function assertPeriodOwnership(periodId: string, ownerUserId: string): Promise<void> {
@@ -158,6 +158,62 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
       entityId: input.periodId,
       action: "CLOSE_PAYMENT_PERIOD",
       afterJson: { status: "PAID", totalAmount, entriesCount: untagged.length },
+    });
+  });
+}
+
+export async function reopenPaymentPeriod(input: ReopenPeriodInput, actorUserId: string): Promise<void> {
+  const db = getDb();
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    const [period] = await tx
+      .select({
+        id: paymentPeriods.id,
+        walkerProfileId: paymentPeriods.walkerProfileId,
+        ownerUserId: paymentPeriods.ownerUserId,
+        status: paymentPeriods.status,
+        lockVersion: paymentPeriods.lockVersion,
+      })
+      .from(paymentPeriods)
+      .where(eq(paymentPeriods.id, input.periodId))
+      .limit(1);
+    if (!period) throw new Error("Period not found");
+    if (period.status !== "PAID") throw new Error("Period not paid");
+    if (period.lockVersion !== input.lockVersion) throw new Error("Conflict");
+
+    // Q2 guard: prevent dual-active-period state.
+    // The partial unique index only covers OPEN, so OPEN + REOPENED can coexist in DB.
+    // OwnerBillingClient renders both — reject reopen if any active period exists for this walker.
+    const [activePeriod] = await tx
+      .select({ id: paymentPeriods.id })
+      .from(paymentPeriods)
+      .where(and(
+        eq(paymentPeriods.walkerProfileId, period.walkerProfileId),
+        eq(paymentPeriods.ownerUserId, period.ownerUserId),
+        inArray(paymentPeriods.status, ["OPEN", "REOPENED"]),
+      ))
+      .limit(1);
+    if (activePeriod) throw new Error("Active period exists");
+
+    const updated = await tx
+      .update(paymentPeriods)
+      .set({ status: "REOPENED", reopenedAt: now, reopenedByUserId: actorUserId, updatedAt: now, lockVersion: period.lockVersion + 1 })
+      .where(and(
+        eq(paymentPeriods.id, input.periodId),
+        eq(paymentPeriods.status, "PAID"),
+        eq(paymentPeriods.lockVersion, input.lockVersion),
+      ))
+      .returning({ id: paymentPeriods.id });
+    if (updated.length === 0) throw new Error("Conflict");
+
+    await logAudit({
+      tx,
+      actorUserId,
+      entityType: "PAYMENT_PERIOD",
+      entityId: input.periodId,
+      action: "REOPEN_PAYMENT_PERIOD",
+      afterJson: { status: "REOPENED" },
     });
   });
 }

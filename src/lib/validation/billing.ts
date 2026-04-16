@@ -11,5 +11,11 @@ export const closePeriodSchema = z.object({
   lockVersion: z.coerce.number().int().nonnegative(),
 });
 
+export const reopenPeriodSchema = z.object({
+  periodId: uuidSchema,
+  lockVersion: z.coerce.number().int().nonnegative(),
+});
+
 export type SetPriceInput = z.infer<typeof setPriceSchema>;
 export type ClosePeriodInput = z.infer<typeof closePeriodSchema>;
+export type ReopenPeriodInput = z.infer<typeof reopenPeriodSchema>;
