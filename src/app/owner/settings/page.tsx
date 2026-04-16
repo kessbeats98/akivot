@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
 import { Info, LogOut, Bell } from "lucide-react";
 
@@ -5,23 +6,21 @@ export default function OwnerSettingsPage() {
   return (
     <div className="animate-in fade-in duration-300 pb-32">
       <header className="px-6 pt-6 pb-4">
-        <h1 className="text-3xl font-black text-dark tracking-tight">הגדרות</h1>
+        <Link href="/owner/dashboard" className="text-sm text-gray-400 block mb-1">← בית</Link>
+        <h1 className="text-lg font-semibold text-gray-500">הגדרות</h1>
       </header>
 
       <main className="px-6 space-y-6">
-        {/* PWA Install */}
-        <section className="bg-dark rounded-[2rem] p-6 text-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Info size={20} className="text-brand-light" />
-            <h3 className="font-bold">התקנה למסך הבית</h3>
-          </div>
+        {/* PWA Install — slim hint, no card */}
+        <section className="flex items-start gap-3 px-1">
+          <Info size={16} className="text-gray-400 mt-0.5 shrink-0" />
           <p className="text-sm text-gray-400 leading-relaxed">
             לחץ על תפריט הדפדפן (⋮) ובחר &quot;הוסף למסך הבית&quot; לגישה מהירה כמו אפליקציה.
           </p>
         </section>
 
-        {/* Notifications */}
-        <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
+        {/* Notifications — primary card, border only */}
+        <section className="bg-white rounded-[2rem] p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell size={20} className="text-brand" />
@@ -34,14 +33,14 @@ export default function OwnerSettingsPage() {
           </div>
         </section>
 
-        {/* Logout */}
-        <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
+        {/* Logout — plain inline link */}
+        <section className="px-1">
           <a
             href="/api/auth/sign-out"
-            className="flex items-center gap-3 text-danger"
+            className="flex items-center gap-3 text-danger text-sm"
           >
-            <LogOut size={20} />
-            <span className="font-bold">התנתק</span>
+            <LogOut size={18} />
+            <span>התנתק</span>
           </a>
         </section>
       </main>

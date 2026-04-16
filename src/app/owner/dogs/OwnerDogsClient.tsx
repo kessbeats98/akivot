@@ -21,28 +21,27 @@ export function OwnerDogsClient({ dogs }: Props) {
     <div className="flex flex-col min-h-screen" dir="rtl">
       {/* Topbar */}
       <div className="px-6 pt-14 pb-4 flex items-center justify-between flex-shrink-0">
-        <div className="text-[22px] font-extrabold text-brand tracking-tight">הכלבים שלי</div>
+        <div className="text-[15px] font-semibold text-muted-color tracking-tight">ניהול כלבים</div>
         <Link href="/owner/dashboard" className="flex items-center gap-1 text-brand font-medium text-sm">
           <span className="material-symbols-rounded text-base">chevron_right</span>
-          חזרה
+          בית
         </Link>
       </div>
 
-      <div className="flex-1 px-6 pb-24 flex flex-col gap-5">
-        {/* Add dog form — always visible */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex flex-col gap-3">
-          <div className="text-sm font-bold text-dark">הוספת כלב</div>
+      <div className="flex-1 px-6 pb-24 flex flex-col gap-4">
+        {/* Add dog form — inline, lower visual weight */}
+        <div className="border border-dashed border-gray-200 rounded-2xl px-4 py-3 flex flex-col gap-2">
           <form action={handleAdd} className="flex items-center gap-2">
             <input
               type="text"
               name="name"
               required
-              placeholder="שם הכלב"
-              className="flex-1 rounded-2xl border border-gray-300 px-4 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand"
+              placeholder="שם כלב חדש"
+              className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand bg-transparent"
             />
             <button
               type="submit"
-              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors"
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
             >
               הוספה
             </button>
@@ -51,22 +50,22 @@ export function OwnerDogsClient({ dogs }: Props) {
 
         {/* Dogs list */}
         {dogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="text-[48px]">🐾</div>
-            <div className="text-base font-semibold text-dark">הוסף את הכלב הראשון</div>
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+            <div className="text-[36px]">🐾</div>
+            <div className="text-sm text-muted-color">עדיין אין כלבים — הוסף את הראשון</div>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {dogs.map((dog) => {
               const activeWalkers = dog.walkers.filter((w) => w.isActive);
               return (
                 <Link
                   key={dog.id}
                   href={`/owner/dog-profile/${dog.id}`}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex items-center gap-4 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-gray-200 transition-colors"
                 >
                   {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-brand-light flex items-center justify-center text-xl flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center text-base flex-shrink-0">
                     {dog.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -81,7 +80,7 @@ export function OwnerDogsClient({ dogs }: Props) {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-bold text-dark truncate">{dog.name}</div>
+                    <div className="text-[14px] font-semibold text-dark truncate">{dog.name}</div>
                     {dog.breed && (
                       <div className="text-xs text-muted-color truncate">{dog.breed}</div>
                     )}
@@ -95,7 +94,7 @@ export function OwnerDogsClient({ dogs }: Props) {
                   </div>
 
                   {/* Chevron */}
-                  <span className="material-symbols-rounded text-gray-300 text-xl">
+                  <span className="material-symbols-rounded text-gray-300 text-lg">
                     chevron_left
                   </span>
                 </Link>

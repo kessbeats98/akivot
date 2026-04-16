@@ -23,10 +23,9 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
   return (
     <div className="animate-in fade-in duration-300 pb-32">
       {/* Header */}
-      <header className="px-6 pt-6 pb-4 flex justify-between items-end z-10">
+      <header className="px-6 pt-4 pb-3 flex justify-between items-end z-10">
         <div>
-          <p className="text-brand/70 font-semibold text-sm mb-1">הלקוחות שלך</p>
-          <h1 className="text-3xl font-black text-dark tracking-tight">הלהקה שלי</h1>
+          <h1 className="text-xl font-semibold text-dark tracking-tight">הלהקה שלי</h1>
         </div>
       </header>
 
@@ -39,7 +38,7 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
               placeholder="חיפוש כלב..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-gray-200 text-dark rounded-2xl py-3 px-5 pr-12 outline-none focus:border-brand shadow-sm transition-colors"
+              className="w-full bg-white border border-gray-200 text-dark rounded-xl py-2.5 px-5 pr-12 outline-none focus:border-brand transition-colors"
             />
             <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
               search
@@ -54,14 +53,14 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
           filtered.map((dog) => (
             <div
               key={dog.dogWalkerId}
-              className="bg-white rounded-[2rem] p-4 shadow-glass border border-white/60 flex justify-between items-center"
+              className="bg-white rounded-2xl p-4 border border-gray-100 flex justify-between items-center"
             >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-brand-light flex items-center justify-center text-brand shadow-sm">
-                  <span className="font-bold text-xl">{dog.dogName.charAt(0)}</span>
+                <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand">
+                  <span className="font-bold text-base">{dog.dogName.charAt(0)}</span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-dark text-lg mb-0.5">{dog.dogName}</h4>
+                  <h4 className="font-bold text-dark text-base mb-0.5">{dog.dogName}</h4>
                   {dog.dogBreed && (
                     <p className="text-xs text-gray-500 font-medium">{dog.dogBreed}</p>
                   )}
@@ -93,11 +92,11 @@ export function WalkerDogsClient({ assignedDogs }: Props) {
             </div>
           ))
         ) : assignedDogs.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-[2rem] border border-dashed border-gray-200">
-            <div className="w-16 h-16 rounded-full bg-brand-light text-brand flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-rounded text-3xl">pets</span>
+          <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">
+            <div className="w-12 h-12 rounded-full bg-brand-light text-brand flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-rounded text-2xl">pets</span>
             </div>
-            <p className="text-dark font-black text-xl mb-1">אין כלבים עדיין</p>
+            <p className="text-dark font-semibold text-base mb-1">אין כלבים עדיין</p>
             <p className="text-gray-400 font-medium">כלבים יופיעו כאן אחרי שבעלים ישייכו אותך.</p>
           </div>
         ) : (

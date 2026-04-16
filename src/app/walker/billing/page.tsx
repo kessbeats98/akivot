@@ -1,7 +1,7 @@
 import { getWalkerBillingAction } from "./actions";
-import { WalkerBillingClient } from "./WalkerBillingClient";
+import { WalkerBillingSurface } from "@/components/walker/WalkerBillingSurface";
 
 export default async function WalkerBillingPage() {
   const { periods } = await getWalkerBillingAction();
-  return <WalkerBillingClient periods={periods} />;
+  return <WalkerBillingSurface periods={periods} />;
 }

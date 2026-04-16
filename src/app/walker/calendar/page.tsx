@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { startOfWeek, format } from "date-fns";
 import { getWalkerCalendarAction } from "./actions";
-import { WalkerCalendarClient } from "./WalkerCalendarClient";
+import { WalkerCalendarSurface } from "@/components/walker/WalkerCalendarSurface";
 
 interface Props {
   searchParams: Promise<{ week?: string }>;
@@ -14,7 +14,7 @@ export default async function WalkerCalendarPage({ searchParams }: Props) {
 
   return (
     <Suspense fallback={<div className="p-6 text-center text-gray-400">טוען...</div>}>
-      <WalkerCalendarClient walks={walks} weekStart={weekStart} />
+      <WalkerCalendarSurface walks={walks} weekStart={weekStart} />
     </Suspense>
   );
 }

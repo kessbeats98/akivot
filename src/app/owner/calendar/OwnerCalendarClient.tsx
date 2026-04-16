@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   startOfMonth,
   getDaysInMonth,
@@ -58,9 +59,15 @@ export function OwnerCalendarClient({ walks, month }: Props) {
 
   return (
     <div className="animate-in fade-in duration-300 pb-32">
-      <header className="px-6 pt-6 pb-4 flex items-center gap-3">
-        <span className="material-symbols-rounded text-brand text-2xl">calendar_month</span>
-        <h1 className="text-xl font-bold text-dark">יומן הטיולים</h1>
+      <header className="px-6 pt-6 pb-4">
+        <Link href="/owner/dashboard" className="inline-flex items-center gap-1 text-brand/60 text-sm font-medium mb-3 hover:text-brand transition-colors">
+          <span className="material-symbols-rounded text-base">arrow_forward</span>
+          בית
+        </Link>
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-rounded text-brand text-2xl">calendar_month</span>
+          <h1 className="text-xl font-bold text-dark">יומן הטיולים</h1>
+        </div>
       </header>
 
       <main className="px-6">

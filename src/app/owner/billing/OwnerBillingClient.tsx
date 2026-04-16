@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
 import { OwnerPaymentSummaryCard } from "./components/OwnerPaymentSummaryCard";
 import { OwnerCurrentPaymentCard } from "./components/OwnerCurrentPaymentCard";
@@ -20,6 +21,10 @@ export function OwnerBillingClient({ periods }: Props) {
     <div className="animate-in fade-in duration-300 pb-32">
       {/* Header */}
       <header className="px-6 pt-6 pb-4">
+        <Link href="/owner/dashboard" className="inline-flex items-center gap-1 text-brand/60 text-sm font-medium mb-3 hover:text-brand transition-colors">
+          <span className="material-symbols-rounded text-base">arrow_forward</span>
+          בית
+        </Link>
         <p className="text-brand/70 font-semibold text-sm mb-1">פירוט חיובים</p>
         <h1 className="text-3xl font-black text-dark tracking-tight">תשלומים</h1>
       </header>
