@@ -6,9 +6,6 @@ import { createDogSchema, deactivateDogSchema } from "@/lib/validation/dogs";
 import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDogWalkerOwnership, setDogWalkerPrice, getActiveLiveWalks, getWalkHistoryByDog } from "@/lib/repositories/dogsRepo";
 import type { ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
-import { eq } from "drizzle-orm";
-import { getDb } from "@/db/drizzle";
-import { walkerProfiles } from "@/db/schema";
 import { setPriceSchema } from "@/lib/validation/billing";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
@@ -34,15 +31,6 @@ export async function getWalkHistoryForDogAction(dogId: string): Promise<DogWalk
   const history = await getWalkHistoryByDog(dogId, user.id, 50);
   console.log("[owner/dashboard] walk history loaded:", history.length, "walks");
   return history;
-}
-
-export async function getAvailableWalkersAction(): Promise<{ id: string; displayName: string }[]> {
-  await assertAuthenticated();
-  const db = getDb();
-  return db
-    .select({ id: walkerProfiles.id, displayName: walkerProfiles.displayName })
-    .from(walkerProfiles)
-    .where(eq(walkerProfiles.isAcceptingClients, true));
 }
 
 export async function createDogAction(formData: FormData) {
