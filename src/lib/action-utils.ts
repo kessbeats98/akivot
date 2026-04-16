@@ -19,6 +19,7 @@ export type ActionResult = {
 const ERROR_MAP: Record<string, string> = {
   "Walker profile not found": "פרופיל מוביל לא נמצא",
   "Dog not assigned": "הכלב לא משויך אליך",
+  "Price not set": "לא ניתן להתחיל טיול עד שיוגדר מחיר",
   "Walk already active": "כבר יש הליכה פעילה לכלב הזה",
   "Walk not found": "ההליכה לא נמצאה",
   "Forbidden": "אין לך הרשאה לפעולה זו",

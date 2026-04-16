@@ -1,4 +1,4 @@
-import { eq, and, isNull, lte, gte, asc, desc } from "drizzle-orm";
+import { eq, and, isNull, lte, gte, asc } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users } from "@/db/schema";
 import { config } from "@/lib/config";
@@ -55,9 +55,9 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
   const walkerProfileId = await getWalkerProfileIdByUserId(walkerUserId);
   const now = new Date();
 
-  // Verify assignment (TOCTOU accepted — no concurrent deactivation UI in V1)
+  // Verify assignment and fetch price in one query (TOCTOU accepted — no concurrent deactivation UI in V1)
   const [dw] = await db
-    .select({ id: dogWalkers.id })
+    .select({ id: dogWalkers.id, currentPrice: dogWalkers.currentPrice })
     .from(dogWalkers)
     .where(and(
       eq(dogWalkers.dogId, input.dogId),
@@ -66,6 +66,7 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
     ))
     .limit(1);
   if (!dw) throw new Error("Dog not assigned");
+  if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
 
   // App-level LIVE uniqueness guard (no DB partial index in V1)
   const [liveWalk] = await db
@@ -224,7 +225,12 @@ export async function getAssignedDogsByWalker(walkerUserId: string): Promise<Ass
       eq(dogWalkers.walkerProfileId, walkerProfileId),
       eq(dogWalkers.isActive, true),
       eq(dogs.isActive, true),
-    ));
+    ))
+    .orderBy(
+      asc(dogWalkers.startedAt),
+      asc(dogWalkers.createdAt),
+      asc(dogs.name),
+    );
 
   return rows.map((r) => ({ ...r }));
 }
