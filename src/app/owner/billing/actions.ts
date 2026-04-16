@@ -1,10 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
-import { closePeriodSchema } from "@/lib/validation/billing";
+import { closePeriodSchema, reopenPeriodSchema } from "@/lib/validation/billing";
 import {
   getPeriodsByOwner,
   closePaymentPeriod,
+  reopenPaymentPeriod,
   assertPeriodOwnership,
   ensureOpenPeriods,
   getOwnerPaymentPeriodsEnriched,
@@ -37,5 +38,14 @@ export async function closePeriodAction(periodId: string, formData: FormData): P
   await assertPeriodOwnership(periodId, user.id);
   const input = closePeriodSchema.parse({ periodId, lockVersion: formData.get("lockVersion") });
   await closePaymentPeriod(input, user.id);
+  revalidatePath("/owner/billing");
+}
+
+// periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
+export async function reopenPeriodAction(periodId: string, formData: FormData): Promise<void> {
+  const user = await assertAuthenticated();
+  await assertPeriodOwnership(periodId, user.id);
+  const input = reopenPeriodSchema.parse({ periodId, lockVersion: formData.get("lockVersion") });
+  await reopenPaymentPeriod(input, user.id);
   revalidatePath("/owner/billing");
 }
