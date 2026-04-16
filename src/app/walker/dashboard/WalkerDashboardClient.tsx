@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { SlideOver } from "@/components/ui/slide-over";
 import type { AssignedDog } from "@/lib/services/walks/types";
 import { getActionError } from "@/lib/action-utils";
@@ -113,6 +114,9 @@ export function WalkerDashboardClient({
       {/* Topbar */}
       <div className="px-5 pt-[52px] pb-3.5 flex items-center justify-end flex-shrink-0">
         <div className="flex items-center gap-2">
+          <Link href="/walker/settings" className="text-white/40 hover:text-white/60 transition-colors">
+            <span className="material-symbols-rounded text-2xl">settings</span>
+          </Link>
           {notificationsButton}
           <div className="text-xl font-extrabold text-brand tracking-tight">עקבות</div>
         </div>
