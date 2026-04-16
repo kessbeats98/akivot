@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
 import { OwnerPaymentEntriesList } from "./OwnerPaymentEntriesList";
+import { reopenPeriodAction } from "../actions";
 
 const formatCurrency = (amount: string) =>
   new Intl.NumberFormat("he-IL", {
@@ -15,6 +16,26 @@ const formatCurrency = (amount: string) =>
 function HistoryItem({ period }: { period: OwnerPaymentPeriod }) {
   const [expanded, setExpanded] = useState(false);
   const isPaid = period.status === "PAID";
+  const [showReopen, setShowReopen] = useState(false);
+  const [isReopening, startReopen] = useTransition();
+  const [reopenError, setReopenError] = useState<string | null>(null);
+
+  function handleReopen() {
+    startReopen(async () => {
+      setReopenError(null);
+      try {
+        const fd = new FormData();
+        fd.append("lockVersion", String(period.lockVersion));
+        await reopenPeriodAction(period.id, fd);
+        setShowReopen(false);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (msg === "Conflict") setReopenError("הנתונים השתנו — רענן את הדף ונסה שוב.");
+        else if (msg === "Active period exists") setReopenError("קיימת תקופה פעילה לספק זה. סגור אותה תחילה.");
+        else setReopenError("שגיאה בפתיחת התקופה. נסה שוב.");
+      }
+    });
+  }
   const dateLabel = period.paidAt
     ? new Date(period.paidAt).toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" })
     : "ארכיון";
@@ -49,6 +70,46 @@ function HistoryItem({ period }: { period: OwnerPaymentPeriod }) {
         <div className="px-4 pb-4 border-t border-gray-50">
           <div className="pt-3">
             <OwnerPaymentEntriesList entries={period.entries} />
+
+            {isPaid && !showReopen && (
+              <button
+                type="button"
+                onClick={() => setShowReopen(true)}
+                className="mt-3 w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:border-gray-300 transition-colors"
+              >
+                פתח מחדש
+              </button>
+            )}
+
+            {isPaid && showReopen && (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <p className="text-xs font-semibold text-amber-800 text-center">לפתוח את התקופה מחדש?</p>
+                <p className="text-xs text-amber-600 text-center">
+                  התקופה תחזור לסטטוס פעיל ותוכל לסגור אותה מחדש.
+                </p>
+                {reopenError && (
+                  <p className="text-xs text-red-500 text-center">{reopenError}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowReopen(false); setReopenError(null); }}
+                    disabled={isReopening}
+                    className="flex-1 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-500 disabled:opacity-50"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReopen}
+                    disabled={isReopening}
+                    className="flex-1 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold disabled:opacity-60"
+                  >
+                    {isReopening ? "פותח..." : "פתח מחדש"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
