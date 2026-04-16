@@ -1,7 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { getRedirectPath } from "@/lib/auth/get-redirect-path-action";
 
-export default function Home() {
+export default async function Home() {
+  try {
+    const path = await getRedirectPath();
+    if (path !== "/login") redirect(path);
+  } catch { /* DB down — show landing page normally */ }
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-6 py-16 gap-10">
       {/* Brand */}
