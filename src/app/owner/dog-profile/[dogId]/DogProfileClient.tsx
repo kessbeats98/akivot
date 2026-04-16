@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { he } from "date-fns/locale";
@@ -12,7 +12,7 @@ interface Props {
   dog: DogWithWalkers;
   walkHistory: DogWalkHistoryItem[];
   stats: DogStats;
-  availableWalkers: { id: string; displayName: string }[];
+  lookupWalkerAction: (code: string) => Promise<{ id: string; displayName: string } | null>;
   updateDogAction: (formData: FormData) => Promise<void>;
   assignWalkerAction: (formData: FormData) => Promise<void>;
   setPriceActions: Record<string, (formData: FormData) => Promise<void>>;
@@ -53,12 +53,40 @@ function formatMinutes(totalMinutes: number): string {
   return `${hours} שע'`;
 }
 
-export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, updateDogAction, assignWalkerAction, setPriceActions }: Props) {
+type LookupState = "idle" | "loading" | "found" | "error";
+
+export function DogProfileClient({ dog, walkHistory, stats, lookupWalkerAction, updateDogAction, assignWalkerAction, setPriceActions }: Props) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(dog.imageUrl);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const age = formatAge(dog.birthDate);
+
+  const [inviteCode, setInviteCode] = useState("");
+  const [lookupState, setLookupState] = useState<LookupState>("idle");
+  const [foundWalker, setFoundWalker] = useState<{ id: string; displayName: string } | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleLookup() {
+    if (!inviteCode.trim()) return;
+    setLookupState("loading");
+    setFoundWalker(null);
+    startTransition(async () => {
+      const result = await lookupWalkerAction(inviteCode);
+      if (result) {
+        setFoundWalker(result);
+        setLookupState("found");
+      } else {
+        setLookupState("error");
+      }
+    });
+  }
+
+  function resetLookup() {
+    setInviteCode("");
+    setLookupState("idle");
+    setFoundWalker(null);
+  }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -127,45 +155,6 @@ export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, up
         </div>
       </section>
 
-      {/* Stats Row */}
-      {stats.totalWalks > 0 && (
-        <section className="px-6 mb-6">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-around text-center">
-            <div>
-              <p className="text-xl font-black text-brand font-numbers">{stats.totalWalks}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">טיולים</p>
-            </div>
-            <div className="w-px h-8 bg-gray-100" />
-            <div>
-              <p className="text-xl font-black text-brand font-numbers">{formatMinutes(stats.totalMinutes)}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">סה"כ זמן</p>
-            </div>
-            {stats.favoriteWalkerName && (
-              <>
-                <div className="w-px h-8 bg-gray-100" />
-                <div className="flex-1 px-2">
-                  <p className="text-sm font-black text-brand truncate">{stats.favoriteWalkerName}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">מוביל</p>
-                </div>
-              </>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Dog Notes */}
-      {dog.notes && (
-        <section className="px-6 mb-6">
-          <div className="bg-white rounded-[2rem] p-5 shadow-glass border border-white/60">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-rounded text-brand">description</span>
-              <h3 className="font-bold text-dark">הערות</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{dog.notes}</p>
-          </div>
-        </section>
-      )}
-
       {/* Walkers */}
       <section className="px-6 mb-6">
         <h3 className="font-bold text-lg text-dark mb-3">דוגווקרים</h3>
@@ -229,34 +218,110 @@ export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, up
           <p className="text-sm text-gray-400 mb-4">אין דוגווקרים משויכים עדיין</p>
         )}
 
-        {/* Assign new walker */}
-        {availableWalkers.length > 0 && (
-          <form action={assignWalkerAction} className="flex items-center gap-2">
-            <select
-              name="walkerProfileId"
-              required
-              className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-sm text-right bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-            >
-              <option value="">בחר דוגווקר</option>
-              {availableWalkers.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.displayName}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors whitespace-nowrap"
-            >
-              שיוך
-            </button>
-          </form>
+        {/* Assign new walker via invite code */}
+        {lookupState !== "found" ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => { setInviteCode(e.target.value); if (lookupState === "error") setLookupState("idle"); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLookup(); } }}
+                placeholder="קוד הצטרפות של הדוגווקר"
+                className="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-sm text-right bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+              <button
+                type="button"
+                onClick={handleLookup}
+                disabled={isPending || !inviteCode.trim()}
+                className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors whitespace-nowrap disabled:opacity-50"
+              >
+                {isPending ? (
+                  <span className="material-symbols-rounded text-sm animate-spin">progress_activity</span>
+                ) : "חפש"}
+              </button>
+            </div>
+            {lookupState === "error" && (
+              <p className="text-xs text-red-500 text-right px-1">
+                הקוד לא נמצא. בקש מהדוגווקר לשתף את הקוד שלו.
+              </p>
+            )}
+          </div>
+        ) : foundWalker && (
+          <div className="bg-brand-light rounded-2xl p-4 flex flex-col gap-3">
+            <p className="text-sm font-bold text-dark text-right">נמצא: {foundWalker.displayName}</p>
+            {dog.walkers.some((w) => w.walkerProfileId === foundWalker.id) ? (
+              <p className="text-xs text-gray-500 text-right">הדוגווקר הזה כבר משויך לכלב הזה</p>
+            ) : (
+              <form action={assignWalkerAction} className="flex items-center gap-2">
+                <input type="hidden" name="walkerProfileId" value={foundWalker.id} />
+                <button
+                  type="button"
+                  onClick={resetLookup}
+                  className="text-sm text-brand underline"
+                >
+                  חזרה
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors"
+                >
+                  שיוך
+                </button>
+              </form>
+            )}
+            {dog.walkers.some((w) => w.walkerProfileId === foundWalker.id) && (
+              <button type="button" onClick={resetLookup} className="text-xs text-brand underline text-right">
+                חזרה
+              </button>
+            )}
+          </div>
         )}
       </section>
 
+      {/* Dog Notes */}
+      {dog.notes && (
+        <section className="px-6 mb-6">
+          <div className="bg-white rounded-[2rem] p-5 shadow-glass border border-white/60">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-rounded text-brand">description</span>
+              <h3 className="font-bold text-dark">הערות</h3>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{dog.notes}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Stats Row */}
+      {stats.totalWalks > 0 && (
+        <section className="px-6 mb-4">
+          <p className="text-xs text-gray-400 mb-2 text-right">סיכום טיולים</p>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-around text-center">
+            <div>
+              <p className="text-lg font-bold text-brand font-numbers">{stats.totalWalks}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">טיולים</p>
+            </div>
+            <div className="w-px h-8 bg-gray-100" />
+            <div>
+              <p className="text-lg font-bold text-brand font-numbers">{formatMinutes(stats.totalMinutes)}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">סה"כ זמן</p>
+            </div>
+            {stats.favoriteWalkerName && (
+              <>
+                <div className="w-px h-8 bg-gray-100" />
+                <div className="flex-1 px-2">
+                  <p className="text-sm font-bold text-brand truncate">{stats.favoriteWalkerName}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">מוביל</p>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Diary */}
       <section className="px-6 mb-8">
-        <h3 className="font-bold text-lg text-dark mb-4">יומן טיולים</h3>
+        <h3 className="font-semibold text-base text-gray-500 mb-3">יומן טיולים</h3>
         {walkHistory.length > 0 ? (
           <div className="flex flex-col gap-3">
             {walkHistory.map((walk) => {
@@ -336,10 +401,7 @@ export function DogProfileClient({ dog, walkHistory, stats, availableWalkers, up
             })}
           </div>
         ) : (
-          <div className="bg-brand/5 rounded-[2rem] p-8 flex flex-col items-center gap-2">
-            <span className="material-symbols-rounded text-brand/40 text-3xl">directions_walk</span>
-            <p className="text-gray-500 text-sm">אין טיולים עדיין</p>
-          </div>
+          <p className="text-sm text-gray-400 py-4 text-center">אין טיולים עדיין</p>
         )}
       </section>
 
