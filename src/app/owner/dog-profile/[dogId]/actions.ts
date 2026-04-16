@@ -8,17 +8,28 @@ import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
 import type { DogWithWalkers, DogStats } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walkerProfiles } from "@/db/schema";
 
-export async function getAvailableWalkersAction(): Promise<{ id: string; displayName: string }[]> {
+export async function lookupWalkerByInviteCodeAction(
+  code: string,
+): Promise<{ id: string; displayName: string } | null> {
   await assertAuthenticated();
+  const normalized = code.trim().toLowerCase();
+  if (!normalized) return null;
   const db = getDb();
-  return db
+  const rows = await db
     .select({ id: walkerProfiles.id, displayName: walkerProfiles.displayName })
     .from(walkerProfiles)
-    .where(eq(walkerProfiles.isAcceptingClients, true));
+    .where(
+      and(
+        eq(sql`LOWER(${walkerProfiles.inviteCode})`, normalized),
+        eq(walkerProfiles.isAcceptingClients, true),
+      ),
+    )
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function assignWalkerAction(dogId: string, formData: FormData): Promise<void> {
