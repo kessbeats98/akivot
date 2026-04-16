@@ -21,6 +21,7 @@ export async function endWalkFromLiveAction(walkId: string, fd: FormData) {
   console.log("[walker/live] walk ended:", walkId)
   void notifyWalkEvent(walkId, "WALK_COMPLETED")
   revalidatePath("/walker/dashboard")
+  revalidatePath("/owner/dashboard")
   redirect("/walker/dashboard")
 }
 
