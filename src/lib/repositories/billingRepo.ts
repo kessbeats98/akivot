@@ -92,7 +92,7 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
       .where(eq(paymentPeriods.id, input.periodId))
       .limit(1);
     if (!period) throw new Error("Period not found");
-    if (period.status !== "OPEN") throw new Error("Period not open");
+    if (period.status !== "OPEN" && period.status !== "REOPENED") throw new Error("Period not open");
     if (period.lockVersion !== input.lockVersion) throw new Error("Conflict");
 
     // 2. Fetch COMPLETED walks for this owner-walker pair only
@@ -144,7 +144,7 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
       .set({ status: "PAID", totalAmount, paidAt: now, paidByUserId: actorUserId, updatedAt: now, lockVersion: period.lockVersion + 1 })
       .where(and(
         eq(paymentPeriods.id, input.periodId),
-        eq(paymentPeriods.status, "OPEN"),
+        inArray(paymentPeriods.status, ["OPEN", "REOPENED"]),
         eq(paymentPeriods.lockVersion, input.lockVersion),
       ))
       .returning({ id: paymentPeriods.id });
