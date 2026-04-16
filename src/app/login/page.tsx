@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-8">כניסה לעקבות</h1>
+        <h1 className="text-2xl font-bold text-center mb-8">שמחים שחזרת</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -51,7 +51,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              placeholder="you@example.com"
+              placeholder="your@email.co.il"
               dir="ltr"
             />
           </div>
@@ -82,12 +82,12 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "מתחבר..." : "כניסה"}
+            {loading ? "נכנסים..." : "כניסה"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-color">
-          אין לך חשבון?{" "}
+          פעם ראשונה כאן?{" "}
           <Link href="/signup" className="font-medium text-primary hover:underline">
             הרשמה
           </Link>

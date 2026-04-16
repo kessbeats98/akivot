@@ -36,7 +36,7 @@ export default function SignupPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-8">הרשמה לעקבות</h1>
+        <h1 className="text-2xl font-bold text-center mb-8">בואו נתחיל</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -51,7 +51,7 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              placeholder="ישראל ישראלי"
+              placeholder="איך קוראים לך?"
             />
           </div>
 
@@ -67,7 +67,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              placeholder="you@example.com"
+              placeholder="your@email.co.il"
               dir="ltr"
             />
           </div>
@@ -85,7 +85,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              placeholder="לפחות 8 תווים"
+              placeholder="8 תווים ומעלה"
               dir="ltr"
             />
           </div>
@@ -99,7 +99,7 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "יוצר חשבון..." : "הרשמה"}
+            {loading ? "רק רגע..." : "הרשמה"}
           </button>
         </form>
 

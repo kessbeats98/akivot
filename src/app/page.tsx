@@ -20,7 +20,7 @@ export default async function Home() {
           <p className="text-xs font-medium tracking-widest text-muted-color uppercase">Akivot</p>
         </div>
         <p className="text-base text-muted-color max-w-xs leading-relaxed">
-          הפלטפורמה לניהול טיולי כלבים — לדוגווקרים ולבעלי כלבים
+          כי הכלב שלך שווה את הטוב ביותר
         </p>
       </div>
 
@@ -37,9 +37,9 @@ export default async function Home() {
       {/* Feature bullets */}
       <div className="flex flex-col gap-2 w-full max-w-xs">
         {[
-          { icon: "📍", text: "מעקב טיולים בזמן אמת" },
-          { icon: "💳", text: "ניהול תשלומים ותקופות חיוב" },
-          { icon: "🔔", text: "התראות לבעלי כלבים" },
+          { icon: "📍", text: "תדעו בדיוק איפה הכלב שלכם מטייל" },
+          { icon: "💳", text: "תשלומים ברורים, בלי הפתעות" },
+          { icon: "🔔", text: "תמיד מעודכנים, תמיד בשליטה" },
         ].map(({ icon, text }) => (
           <div key={text} className="flex items-center gap-3 rounded-xl bg-stone100 px-4 py-3">
             <span className="text-lg">{icon}</span>
