@@ -23,12 +23,24 @@ const HISTORY_LOAD_ERROR_MESSAGE =
 
 export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: Props) {
   const router = useRouter();
-  const [selectedDogId, setSelectedDogId] = useState<string>(dogs[0]?.id ?? "");
+  const [selectedDogId, setSelectedDogId] = useState<string>(() => {
+    const firstIncomplete = dogs.find((d) => {
+      const walker = (d.walkers ?? []).find((w) => w.isActive) ?? null;
+      const complete = walker !== null && walker.currentPrice && walker.currentPrice !== "0.00";
+      return !complete;
+    });
+    return (firstIncomplete ?? dogs[0])?.id ?? "";
+  });
   const [walkHistory, setWalkHistory] = useState<DogWalkHistoryItem[]>([]);
   const [historyDogId, setHistoryDogId] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
-  const [lastRefreshed, setLastRefreshed] = useState(() => new Date());
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
+  // Set initial timestamp after mount to avoid SSR/client hydration mismatch.
+  useEffect(() => {
+    setLastRefreshed(new Date());
+  }, []);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const historyRequestIdRef = useRef(0);
 
@@ -182,7 +194,7 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
 
       {/* Last updated */}
       <div className="text-[11px] text-muted-color text-center -mt-2 mb-1">
-        עודכן {lastRefreshed.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+        {lastRefreshed ? `עודכן ${lastRefreshed.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}` : "\u00a0"}
       </div>
 
       {/* Content */}
