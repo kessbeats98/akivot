@@ -1,14 +1,18 @@
 import {
+  char,
   decimal,
   integer,
   pgTable,
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { paymentEntryTypeEnum, paymentPeriodStatusEnum } from "./_enums";
+import { sql } from "drizzle-orm";
+import { paymentEntryTypeEnum, paymentPeriodStatusEnum, priceAgreementStatusEnum } from "./_enums";
 import { users, walkerProfiles } from "./users";
+import { dogs } from "./dogs";
 
 export const paymentPeriods = pgTable("payment_periods", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -53,4 +57,29 @@ export const paymentEntries = pgTable(
       .defaultNow(),
   },
   (t) => [unique().on(t.paymentPeriodId, t.walkId)],
+);
+
+export const priceAgreements = pgTable(
+  "price_agreements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerUserId: text("owner_user_id").references(() => users.id).notNull(),
+    walkerProfileId: uuid("walker_profile_id").references(() => walkerProfiles.id).notNull(),
+    dogId: uuid("dog_id").references(() => dogs.id).notNull(),
+    proposedBy: text("proposed_by").notNull(),
+    proposedPrice: decimal("proposed_price", { precision: 10, scale: 2 }).notNull(),
+    currency: char("currency", { length: 3 }).notNull().default("ILS"),
+    effectiveFrom: text("effective_from").notNull().default("next_walk"),
+    status: priceAgreementStatusEnum("status").notNull().default("pending"),
+    proposedAt: timestamp("proposed_at", { withTimezone: true }).notNull().defaultNow(),
+    ownerApprovedAt: timestamp("owner_approved_at", { withTimezone: true }),
+    walkerApprovedAt: timestamp("walker_approved_at", { withTimezone: true }),
+    supersededById: uuid("superseded_by_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("price_agreements_active_trio_unique")
+      .on(t.ownerUserId, t.walkerProfileId, t.dogId)
+      .where(sql`status = 'active'`),
+  ],
 );

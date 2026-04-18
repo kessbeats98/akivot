@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { users, walkerProfiles, userDevices, invites } from "./users";
 import { dogs, dogOwners, dogWalkers } from "./dogs";
 import { walkBatches, walks, walkMedia } from "./walks";
-import { paymentPeriods, paymentEntries } from "./billing";
+import { paymentPeriods, paymentEntries, priceAgreements } from "./billing";
 import { notificationDeliveries } from "./notifications";
 import { auditLogs } from "./audit";
 
@@ -199,6 +199,26 @@ export const notificationDeliveriesRelations = relations(
     }),
   }),
 );
+
+// priceAgreements
+export const priceAgreementsRelations = relations(priceAgreements, ({ one }) => ({
+  ownerUser: one(users, {
+    fields: [priceAgreements.ownerUserId],
+    references: [users.id],
+  }),
+  walkerProfile: one(walkerProfiles, {
+    fields: [priceAgreements.walkerProfileId],
+    references: [walkerProfiles.id],
+  }),
+  dog: one(dogs, {
+    fields: [priceAgreements.dogId],
+    references: [dogs.id],
+  }),
+  supersededBy: one(priceAgreements, {
+    fields: [priceAgreements.supersededById],
+    references: [priceAgreements.id],
+  }),
+}));
 
 // auditLogs
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({

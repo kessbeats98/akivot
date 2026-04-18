@@ -78,6 +78,7 @@ export const entityTypeEnum = pgEnum("entity_type", [
   "USER_DEVICE",
   "INVITE",
   "NOTIFICATION_DELIVERY",
+  "PRICE_AGREEMENT",
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", [
@@ -95,10 +96,20 @@ export const auditActionEnum = pgEnum("audit_action", [
   "INVALIDATE_DEVICE",
   "SEND_NOTIFICATION",
   "UPLOAD_MEDIA",
+  "PROPOSE_PRICE_AGREEMENT",
+  "APPROVE_PRICE_AGREEMENT",
+  "REJECT_PRICE_AGREEMENT",
 ]);
 
 export const inviteStatusEnum = pgEnum("invite_status", [
   "ACTIVE",
   "EXPIRED",
   "DISABLED",
+]);
+
+export const priceAgreementStatusEnum = pgEnum("price_agreement_status", [
+  "pending",
+  "active",
+  "superseded",
+  "rejected",
 ]);

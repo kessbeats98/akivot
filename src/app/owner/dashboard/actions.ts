@@ -7,6 +7,7 @@ import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDog
 import type { ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
 import { setPriceSchema } from "@/lib/validation/billing";
+import { hasActivePriceAgreementForDogWalker } from "@/lib/repositories/priceAgreementsRepo";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
 
@@ -57,6 +58,8 @@ export async function deactivateDogAction(dogId: string, _formData: FormData) {
 export async function setPriceAction(dogWalkerId: string, formData: FormData): Promise<void> {
   const user = await assertAuthenticated();
   await assertDogWalkerOwnership(dogWalkerId, user.id);
+  const hasActive = await hasActivePriceAgreementForDogWalker(dogWalkerId);
+  if (hasActive) throw new Error("Price locked by standing agreement — use propose/approve flow");
   const input = setPriceSchema.parse({ dogWalkerId, price: formData.get("price") });
   await setDogWalkerPrice(input.dogWalkerId, input.price);
   revalidatePath("/owner/dashboard");
