@@ -97,9 +97,21 @@ export async function approvePriceAgreement(
   if (actorRole === agreement.proposedBy) throw new Error("Proposing party cannot approve");
 
   await db.transaction(async (tx) => {
+    // Re-read inside tx so bothApproved is based on committed state, not pre-tx snapshot
+    const [fresh] = await tx
+      .select({
+        status: priceAgreements.status,
+        ownerApprovedAt: priceAgreements.ownerApprovedAt,
+        walkerApprovedAt: priceAgreements.walkerApprovedAt,
+      })
+      .from(priceAgreements)
+      .where(eq(priceAgreements.id, agreementId))
+      .limit(1);
+    if (!fresh || fresh.status !== "pending") throw new Error("Agreement no longer pending");
+
     const now = new Date();
-    const ownerApprovedAt = actorRole === "owner" ? now : agreement.ownerApprovedAt;
-    const walkerApprovedAt = actorRole === "walker" ? now : agreement.walkerApprovedAt;
+    const ownerApprovedAt = actorRole === "owner" ? now : fresh.ownerApprovedAt;
+    const walkerApprovedAt = actorRole === "walker" ? now : fresh.walkerApprovedAt;
     const bothApproved = ownerApprovedAt != null && walkerApprovedAt != null;
 
     if (bothApproved) {
