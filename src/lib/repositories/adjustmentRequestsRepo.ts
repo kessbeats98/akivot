@@ -19,64 +19,65 @@ export async function requestAdjustment(
   actorUserId: string,
 ): Promise<string> {
   const db = getDb();
-
-  const [period] = await db
-    .select({
-      id: paymentPeriods.id,
-      status: paymentPeriods.status,
-      ownerUserId: paymentPeriods.ownerUserId,
-      walkerProfileId: paymentPeriods.walkerProfileId,
-    })
-    .from(paymentPeriods)
-    .where(eq(paymentPeriods.id, input.paymentPeriodId))
-    .limit(1);
-  if (!period) throw new Error("Period not found");
-  if (period.status !== "REOPENED") throw new Error("Period not reopened");
-
-  const [walk] = await db
-    .select({ id: walks.id, status: walks.status, finalPrice: walks.finalPrice, paymentPeriodId: walks.paymentPeriodId })
-    .from(walks)
-    .where(eq(walks.id, input.walkId))
-    .limit(1);
-  if (!walk) throw new Error("Walk not found");
-  if (walk.status !== "COMPLETED") throw new Error("Walk not completed");
-  if (walk.paymentPeriodId !== input.paymentPeriodId) throw new Error("Walk not in this period");
-  if (walk.finalPrice === null) throw new Error("Walk has no final price");
-
-  const [walkerProfile] = await db
-    .select({ id: walkerProfiles.id, userId: walkerProfiles.userId })
-    .from(walkerProfiles)
-    .where(eq(walkerProfiles.id, period.walkerProfileId))
-    .limit(1);
-  if (!walkerProfile) throw new Error("Walker profile not found");
-
-  let requestedBy: "owner" | "walker";
-  if (actorUserId === period.ownerUserId) {
-    requestedBy = "owner";
-  } else if (actorUserId === walkerProfile.userId) {
-    requestedBy = "walker";
-  } else {
-    throw new Error("Forbidden");
-  }
-
-  // Derive oldPrice from last approved adjustment, or fall back to finalPrice
-  const [lastApproved] = await db
-    .select({ newPrice: adjustmentRequests.newPrice })
-    .from(adjustmentRequests)
-    .where(
-      and(
-        eq(adjustmentRequests.walkId, input.walkId),
-        eq(adjustmentRequests.paymentPeriodId, input.paymentPeriodId),
-        eq(adjustmentRequests.status, "approved"),
-      ),
-    )
-    .orderBy(desc(adjustmentRequests.createdAt))
-    .limit(1);
-  const oldPrice = lastApproved ? lastApproved.newPrice : walk.finalPrice;
-
   const now = new Date();
 
   return db.transaction(async (tx) => {
+    // All critical reads inside the transaction — prevents stale-state race where
+    // a concurrent approveAdjustment could change oldPrice between pre-tx read and insert.
+    const [period] = await tx
+      .select({
+        id: paymentPeriods.id,
+        status: paymentPeriods.status,
+        ownerUserId: paymentPeriods.ownerUserId,
+        walkerProfileId: paymentPeriods.walkerProfileId,
+      })
+      .from(paymentPeriods)
+      .where(eq(paymentPeriods.id, input.paymentPeriodId))
+      .limit(1);
+    if (!period) throw new Error("Period not found");
+    if (period.status !== "REOPENED") throw new Error("Period not reopened");
+
+    const [walk] = await tx
+      .select({ id: walks.id, status: walks.status, finalPrice: walks.finalPrice, paymentPeriodId: walks.paymentPeriodId })
+      .from(walks)
+      .where(eq(walks.id, input.walkId))
+      .limit(1);
+    if (!walk) throw new Error("Walk not found");
+    if (walk.status !== "COMPLETED") throw new Error("Walk not completed");
+    if (walk.paymentPeriodId !== input.paymentPeriodId) throw new Error("Walk not in this period");
+    if (walk.finalPrice === null) throw new Error("Walk has no final price");
+
+    const [walkerProfile] = await tx
+      .select({ id: walkerProfiles.id, userId: walkerProfiles.userId })
+      .from(walkerProfiles)
+      .where(eq(walkerProfiles.id, period.walkerProfileId))
+      .limit(1);
+    if (!walkerProfile) throw new Error("Walker profile not found");
+
+    let requestedBy: "owner" | "walker";
+    if (actorUserId === period.ownerUserId) {
+      requestedBy = "owner";
+    } else if (actorUserId === walkerProfile.userId) {
+      requestedBy = "walker";
+    } else {
+      throw new Error("Forbidden");
+    }
+
+    // Derive oldPrice from last approved adjustment, or fall back to finalPrice
+    const [lastApproved] = await tx
+      .select({ newPrice: adjustmentRequests.newPrice })
+      .from(adjustmentRequests)
+      .where(
+        and(
+          eq(adjustmentRequests.walkId, input.walkId),
+          eq(adjustmentRequests.paymentPeriodId, input.paymentPeriodId),
+          eq(adjustmentRequests.status, "approved"),
+        ),
+      )
+      .orderBy(desc(adjustmentRequests.createdAt))
+      .limit(1);
+    const oldPrice = lastApproved ? lastApproved.newPrice : walk.finalPrice;
+
     // Supersede any existing pending adjustment for same (walkId, paymentPeriodId)
     await tx
       .update(adjustmentRequests)
