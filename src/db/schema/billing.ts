@@ -75,7 +75,12 @@ export const walkPriceOffers = pgTable("walk_price_offers", {
   proposedAt:          timestamp("proposed_at", { withTimezone: true }).notNull().defaultNow(),
   respondedAt:         timestamp("responded_at", { withTimezone: true }),
   createdAt:           timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  // At most one accepted unlinked pre-start offer per trio
+  uniqueIndex("walk_price_offers_accepted_prestart_unique")
+    .on(t.ownerUserId, t.walkerProfileId, t.dogId)
+    .where(sql`status = 'accepted' AND walk_id IS NULL`),
+]);
 
 export const priceAgreements = pgTable(
   "price_agreements",

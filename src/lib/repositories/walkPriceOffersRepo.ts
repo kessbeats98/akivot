@@ -132,6 +132,14 @@ export async function counterWalkOffer(
   if (actorRole === offer.proposedBy) throw new Error("Cannot counter your own offer");
 
   return db.transaction(async (tx) => {
+    // Re-read inside tx — stale-state hardening (same pattern as accept/reject)
+    const [fresh] = await tx
+      .select({ status: walkPriceOffers.status, walkId: walkPriceOffers.walkId, ownerUserId: walkPriceOffers.ownerUserId, walkerProfileId: walkPriceOffers.walkerProfileId, dogId: walkPriceOffers.dogId })
+      .from(walkPriceOffers)
+      .where(eq(walkPriceOffers.id, existingOfferId))
+      .limit(1);
+    if (!fresh || fresh.status !== "pending") throw new Error("Offer no longer pending");
+
     await tx
       .update(walkPriceOffers)
       .set({ status: "superseded" })
@@ -140,10 +148,10 @@ export async function counterWalkOffer(
     const [inserted] = await tx
       .insert(walkPriceOffers)
       .values({
-        walkId: offer.walkId,
-        ownerUserId: offer.ownerUserId,
-        walkerProfileId: offer.walkerProfileId,
-        dogId: offer.dogId,
+        walkId: fresh.walkId,
+        ownerUserId: fresh.ownerUserId,
+        walkerProfileId: fresh.walkerProfileId,
+        dogId: fresh.dogId,
         proposedBy: actorRole,
         proposedPrice: input.proposedPrice,
         proposedDurationMin: input.proposedDurationMin ?? null,
