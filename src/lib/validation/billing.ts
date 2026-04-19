@@ -61,3 +61,17 @@ export type ProposeWalkOfferInput = z.infer<typeof proposeWalkOfferSchema>;
 export type CounterWalkOfferInput = z.infer<typeof counterWalkOfferSchema>;
 export type AcceptWalkOfferInput  = z.infer<typeof acceptWalkOfferSchema>;
 export type RejectWalkOfferInput  = z.infer<typeof rejectWalkOfferSchema>;
+
+export const requestAdjustmentSchema = z.object({
+  paymentPeriodId: uuidSchema,
+  walkId:          uuidSchema,
+  newPrice:        z.string().regex(/^\d+(\.\d{1,2})?$/),
+  reason:          z.string().min(1),
+});
+
+export const approveAdjustmentSchema = z.object({ adjustmentId: uuidSchema });
+export const rejectAdjustmentSchema  = z.object({ adjustmentId: uuidSchema });
+
+export type RequestAdjustmentInput = z.infer<typeof requestAdjustmentSchema>;
+export type ApproveAdjustmentInput = z.infer<typeof approveAdjustmentSchema>;
+export type RejectAdjustmentInput  = z.infer<typeof rejectAdjustmentSchema>;
