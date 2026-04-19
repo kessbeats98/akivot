@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { users, walkerProfiles, userDevices, invites } from "./users";
 import { dogs, dogOwners, dogWalkers } from "./dogs";
 import { walkBatches, walks, walkMedia } from "./walks";
-import { paymentPeriods, paymentEntries, priceAgreements, walkPriceOffers } from "./billing";
+import { paymentPeriods, paymentEntries, priceAgreements, walkPriceOffers, adjustmentRequests } from "./billing";
 import { notificationDeliveries } from "./notifications";
 import { auditLogs } from "./audit";
 
@@ -17,6 +17,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   ownedDogs: many(dogOwners),
   auditLogs: many(auditLogs),
   walkPriceOffers: many(walkPriceOffers),
+  adjustmentRequests: many(adjustmentRequests),
 }));
 
 // walkerProfiles
@@ -32,6 +33,7 @@ export const walkerProfilesRelations = relations(
     walkBatches: many(walkBatches),
     paymentPeriods: many(paymentPeriods),
     walkPriceOffers: many(walkPriceOffers),
+    adjustmentRequests: many(adjustmentRequests),
   }),
 );
 
@@ -174,6 +176,7 @@ export const paymentPeriodsRelations = relations(
     entries: many(paymentEntries),
     // Application-level only — no DB FK (circular import prevention)
     walks: many(walks),
+    adjustmentRequests: many(adjustmentRequests),
   }),
 );
 
@@ -230,6 +233,22 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   actorUser: one(users, {
     fields: [auditLogs.actorUserId],
     references: [users.id],
+  }),
+}));
+
+// adjustmentRequests
+export const adjustmentRequestsRelations = relations(adjustmentRequests, ({ one }) => ({
+  paymentPeriod: one(paymentPeriods, {
+    fields: [adjustmentRequests.paymentPeriodId],
+    references: [paymentPeriods.id],
+  }),
+  ownerUser: one(users, {
+    fields: [adjustmentRequests.ownerUserId],
+    references: [users.id],
+  }),
+  walkerProfile: one(walkerProfiles, {
+    fields: [adjustmentRequests.walkerProfileId],
+    references: [walkerProfiles.id],
   }),
 }));
 

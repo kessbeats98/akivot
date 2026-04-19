@@ -1,5 +1,6 @@
 import {
   char,
+  check,
   decimal,
   integer,
   pgTable,
@@ -10,7 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { paymentEntryTypeEnum, paymentPeriodStatusEnum, priceAgreementStatusEnum, walkPriceOfferStatusEnum } from "./_enums";
+import { adjustmentRequestStatusEnum, paymentEntryTypeEnum, paymentPeriodStatusEnum, priceAgreementStatusEnum, walkPriceOfferStatusEnum } from "./_enums";
 import { users, walkerProfiles } from "./users";
 import { dogs } from "./dogs";
 
@@ -80,6 +81,29 @@ export const walkPriceOffers = pgTable("walk_price_offers", {
   uniqueIndex("walk_price_offers_accepted_prestart_unique")
     .on(t.ownerUserId, t.walkerProfileId, t.dogId)
     .where(sql`status = 'accepted' AND walk_id IS NULL`),
+]);
+
+export const adjustmentRequests = pgTable("adjustment_requests", {
+  id:               uuid("id").primaryKey().defaultRandom(),
+  paymentPeriodId:  uuid("payment_period_id").references(() => paymentPeriods.id).notNull(),
+  // No DB FK — integrity enforced in repo (same pattern as paymentEntries.walkId)
+  walkId:           uuid("walk_id").notNull(),
+  ownerUserId:      text("owner_user_id").references(() => users.id).notNull(),
+  walkerProfileId:  uuid("walker_profile_id").references(() => walkerProfiles.id).notNull(),
+  requestedBy:      text("requested_by").notNull(),
+  oldPrice:         decimal("old_price",   { precision: 10, scale: 2 }).notNull(),
+  newPrice:         decimal("new_price",   { precision: 10, scale: 2 }).notNull(),
+  reason:           text("reason").notNull(),
+  status:           adjustmentRequestStatusEnum("status").notNull().default("pending"),
+  ownerApprovedAt:  timestamp("owner_approved_at",  { withTimezone: true }),
+  walkerApprovedAt: timestamp("walker_approved_at", { withTimezone: true }),
+  createdAt:        timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  check("adjustment_requests_requested_by_check", sql`requested_by IN ('owner', 'walker')`),
+  // At most one pending adjustment per (period, walk) — DB-level race protection
+  uniqueIndex("adjustment_requests_pending_unique")
+    .on(t.paymentPeriodId, t.walkId)
+    .where(sql`status = 'pending'`),
 ]);
 
 export const priceAgreements = pgTable(
