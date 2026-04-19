@@ -71,6 +71,13 @@
       "when": 1776590700868,
       "tag": "0009_exotic_giant_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776603549396,
+      "tag": "0010_ancient_metal_master",
+      "breakpoints": true
     }
   ]
 }
