@@ -57,6 +57,13 @@
       "when": 1776549519958,
       "tag": "0007_faithful_cargill",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776587717135,
+      "tag": "0008_young_sabra",
+      "breakpoints": true
     }
   ]
 }

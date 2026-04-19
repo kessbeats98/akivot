@@ -79,6 +79,7 @@ export const entityTypeEnum = pgEnum("entity_type", [
   "INVITE",
   "NOTIFICATION_DELIVERY",
   "PRICE_AGREEMENT",
+  "WALK_PRICE_OFFER",
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", [
@@ -99,6 +100,9 @@ export const auditActionEnum = pgEnum("audit_action", [
   "PROPOSE_PRICE_AGREEMENT",
   "APPROVE_PRICE_AGREEMENT",
   "REJECT_PRICE_AGREEMENT",
+  "PROPOSE_WALK_OFFER",
+  "ACCEPT_WALK_OFFER",
+  "REJECT_WALK_OFFER",
 ]);
 
 export const inviteStatusEnum = pgEnum("invite_status", [
@@ -112,4 +116,12 @@ export const priceAgreementStatusEnum = pgEnum("price_agreement_status", [
   "active",
   "superseded",
   "rejected",
+]);
+
+export const walkPriceOfferStatusEnum = pgEnum("walk_price_offer_status", [
+  "pending",
+  "accepted",
+  "rejected",
+  "expired",
+  "superseded",
 ]);

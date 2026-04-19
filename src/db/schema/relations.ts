@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { users, walkerProfiles, userDevices, invites } from "./users";
 import { dogs, dogOwners, dogWalkers } from "./dogs";
 import { walkBatches, walks, walkMedia } from "./walks";
-import { paymentPeriods, paymentEntries, priceAgreements } from "./billing";
+import { paymentPeriods, paymentEntries, priceAgreements, walkPriceOffers } from "./billing";
 import { notificationDeliveries } from "./notifications";
 import { auditLogs } from "./audit";
 
@@ -16,6 +16,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   createdInvites: many(invites),
   ownedDogs: many(dogOwners),
   auditLogs: many(auditLogs),
+  walkPriceOffers: many(walkPriceOffers),
 }));
 
 // walkerProfiles
@@ -30,6 +31,7 @@ export const walkerProfilesRelations = relations(
     dogWalkers: many(dogWalkers),
     walkBatches: many(walkBatches),
     paymentPeriods: many(paymentPeriods),
+    walkPriceOffers: many(walkPriceOffers),
   }),
 );
 
@@ -59,6 +61,7 @@ export const dogsRelations = relations(dogs, ({ many }) => ({
   owners: many(dogOwners),
   walkers: many(dogWalkers),
   walks: many(walks),
+  walkPriceOffers: many(walkPriceOffers),
 }));
 
 // dogOwners
@@ -132,6 +135,8 @@ export const walksRelations = relations(walks, ({ one, many }) => ({
   media: many(walkMedia),
   // Application-level only — no DB FK (circular import prevention)
   paymentEntries: many(paymentEntries),
+  // Application-level only — no DB FK (circular import prevention)
+  walkPriceOffers: many(walkPriceOffers),
 }));
 
 // walkMedia
@@ -225,5 +230,31 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   actorUser: one(users, {
     fields: [auditLogs.actorUserId],
     references: [users.id],
+  }),
+}));
+
+// walkPriceOffers
+export const walkPriceOffersRelations = relations(walkPriceOffers, ({ one }) => ({
+  ownerUser: one(users, {
+    fields: [walkPriceOffers.ownerUserId],
+    references: [users.id],
+  }),
+  walkerProfile: one(walkerProfiles, {
+    fields: [walkPriceOffers.walkerProfileId],
+    references: [walkerProfiles.id],
+  }),
+  dog: one(dogs, {
+    fields: [walkPriceOffers.dogId],
+    references: [dogs.id],
+  }),
+  // Application-level only — self-ref, no DB FK
+  supersedes: one(walkPriceOffers, {
+    fields: [walkPriceOffers.supersedesOfferId],
+    references: [walkPriceOffers.id],
+  }),
+  // Application-level only — no DB FK (circular import prevention)
+  walk: one(walks, {
+    fields: [walkPriceOffers.walkId],
+    references: [walks.id],
   }),
 }));

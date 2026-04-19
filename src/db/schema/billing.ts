@@ -10,7 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { paymentEntryTypeEnum, paymentPeriodStatusEnum, priceAgreementStatusEnum } from "./_enums";
+import { paymentEntryTypeEnum, paymentPeriodStatusEnum, priceAgreementStatusEnum, walkPriceOfferStatusEnum } from "./_enums";
 import { users, walkerProfiles } from "./users";
 import { dogs } from "./dogs";
 
@@ -58,6 +58,24 @@ export const paymentEntries = pgTable(
   },
   (t) => [unique().on(t.paymentPeriodId, t.walkId)],
 );
+
+export const walkPriceOffers = pgTable("walk_price_offers", {
+  id:                  uuid("id").primaryKey().defaultRandom(),
+  // Intentionally no DB FK — nullable, set on linkAndApply (circular import prevention)
+  walkId:              uuid("walk_id"),
+  ownerUserId:         text("owner_user_id").references(() => users.id).notNull(),
+  walkerProfileId:     uuid("walker_profile_id").references(() => walkerProfiles.id).notNull(),
+  dogId:               uuid("dog_id").references(() => dogs.id).notNull(),
+  proposedBy:          text("proposed_by").notNull(),
+  proposedPrice:       decimal("proposed_price", { precision: 10, scale: 2 }).notNull(),
+  proposedDurationMin: integer("proposed_duration_min"),
+  status:              walkPriceOfferStatusEnum("status").notNull().default("pending"),
+  // Intentionally no DB FK — self-ref, app-level only
+  supersedesOfferId:   uuid("supersedes_offer_id"),
+  proposedAt:          timestamp("proposed_at", { withTimezone: true }).notNull().defaultNow(),
+  respondedAt:         timestamp("responded_at", { withTimezone: true }),
+  createdAt:           timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const priceAgreements = pgTable(
   "price_agreements",
