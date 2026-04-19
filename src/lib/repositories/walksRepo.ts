@@ -1,8 +1,9 @@
 import { eq, and, isNull, lte, gte, asc } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
-import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users, priceAgreements } from "@/db/schema";
+import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users, priceAgreements, walkPriceOffers } from "@/db/schema";
 import { config } from "@/lib/config";
 import { logAudit } from "@/lib/repositories/auditRepo";
+import { linkAndApplyAcceptedOffer } from "@/lib/repositories/walkPriceOffersRepo";
 import type { AssignWalkerInput, StartWalkInput, EndWalkInput } from "@/lib/validation/walks";
 import type { WalkWithDog, AssignedDog, CalendarWalk, OwnerCalendarWalk } from "@/lib/services/walks/types";
 
@@ -87,21 +88,40 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
       .where(and(eq(dogOwners.dogId, input.dogId), eq(dogOwners.isPrimary, true)))
       .limit(1);
 
-    const activeAgreement = ownerRow
-      ? await tx
-          .select({ proposedPrice: priceAgreements.proposedPrice })
-          .from(priceAgreements)
-          .where(and(
-            eq(priceAgreements.ownerUserId, ownerRow.ownerUserId),
-            eq(priceAgreements.walkerProfileId, walkerProfileId),
-            eq(priceAgreements.dogId, input.dogId),
-            eq(priceAgreements.status, "active"),
-          ))
-          .limit(1)
-          .then(r => r[0] ?? null)
-      : null;
+    let acceptedOffer: { proposedPrice: string } | null = null;
+    let activeAgreement: { proposedPrice: string } | null = null;
 
-    const resolvedPrice = activeAgreement?.proposedPrice ?? dw.currentPrice;
+    if (ownerRow) {
+      // Step 1: accepted pre-start offer (highest priority)
+      acceptedOffer = await tx
+        .select({ proposedPrice: walkPriceOffers.proposedPrice })
+        .from(walkPriceOffers)
+        .where(and(
+          eq(walkPriceOffers.ownerUserId, ownerRow.ownerUserId),
+          eq(walkPriceOffers.walkerProfileId, walkerProfileId),
+          eq(walkPriceOffers.dogId, input.dogId),
+          eq(walkPriceOffers.status, "accepted"),
+          isNull(walkPriceOffers.walkId),
+        ))
+        .limit(1)
+        .then(r => r[0] ?? null);
+
+      // Step 2: standing agreement
+      activeAgreement = await tx
+        .select({ proposedPrice: priceAgreements.proposedPrice })
+        .from(priceAgreements)
+        .where(and(
+          eq(priceAgreements.ownerUserId, ownerRow.ownerUserId),
+          eq(priceAgreements.walkerProfileId, walkerProfileId),
+          eq(priceAgreements.dogId, input.dogId),
+          eq(priceAgreements.status, "active"),
+        ))
+        .limit(1)
+        .then(r => r[0] ?? null);
+    }
+
+    // Step 3: resolve with priority: accepted offer > standing agreement > currentPrice
+    const resolvedPrice = acceptedOffer?.proposedPrice ?? activeAgreement?.proposedPrice ?? dw.currentPrice;
     if (!resolvedPrice || resolvedPrice === "0.00") throw new Error("Price not set");
 
     let insertedId: string;
@@ -129,6 +149,16 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
         throw new Error("Walk already active");
       }
       throw err;
+    }
+
+    if (ownerRow) {
+      await linkAndApplyAcceptedOffer(
+        ownerRow.ownerUserId,
+        walkerProfileId,
+        input.dogId,
+        insertedId,
+        tx,
+      );
     }
 
     await logAudit({
