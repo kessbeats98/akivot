@@ -133,3 +133,9 @@ export const walkPriceOfferStatusEnum = pgEnum("walk_price_offer_status", [
   "expired",
   "superseded",
 ]);
+
+export const walkConfirmationStateEnum = pgEnum("walk_confirmation_state", [
+  "WAITING",
+  "CONFIRMED",
+  "NOT_NEEDED",
+]);

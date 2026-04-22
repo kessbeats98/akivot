@@ -78,6 +78,13 @@
       "when": 1776603549396,
       "tag": "0010_ancient_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776804754172,
+      "tag": "0011_next_walk_confirmation_card",
+      "breakpoints": true
     }
   ]
 }
