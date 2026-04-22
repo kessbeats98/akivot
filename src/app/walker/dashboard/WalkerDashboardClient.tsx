@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SlideOver } from "@/components/ui/slide-over";
 import type { AssignedDog } from "@/lib/services/walks/types";
+import type { ConfirmationCardView } from "@/lib/services/confirmations/types";
 import { getActionError } from "@/lib/action-utils";
 import { useDebugMode } from "@/lib/hooks/useDebugMode";
 import { DebugPanel } from "@/components/DebugPanel";
@@ -13,7 +14,9 @@ import { seedTestScenarioAction, resetTestDataAction } from "@/app/dev/actions";
 interface Props {
   userName: string;
   assignedDogs: AssignedDog[];
+  confirmations: Record<string, ConfirmationCardView>;
   startWalkAction: (dogId: string, formData: FormData) => Promise<void>;
+  requestConfirmationAction: (dogId: string, formData: FormData) => Promise<void>;
   notificationsButton: ReactNode;
   autoClosedReason?: boolean;
 }
@@ -21,7 +24,9 @@ interface Props {
 export function WalkerDashboardClient({
   userName,
   assignedDogs,
+  confirmations,
   startWalkAction,
+  requestConfirmationAction,
   notificationsButton,
   autoClosedReason,
 }: Props) {
@@ -106,6 +111,60 @@ export function WalkerDashboardClient({
   };
 
   const isPriceUnset = (price: string) => !price || price === "0.00";
+
+  const [askingDogId, setAskingDogId] = useState<string | null>(null);
+
+  const askForDog = useCallback(async (dogId: string) => {
+    if (askingDogId) return;
+    setAskingDogId(dogId);
+    try {
+      const fd = new FormData();
+      await requestConfirmationAction(dogId, fd);
+      router.refresh();
+    } catch (err) {
+      const msg = getActionError(err, { action: "requestConfirmation", dogId });
+      setError(msg);
+    } finally {
+      setAskingDogId(null);
+    }
+  }, [askingDogId, requestConfirmationAction, router]);
+
+  const renderConfirmation = (dogId: string) => {
+    const c = confirmations[dogId];
+    if (c) {
+      if (c.state === "WAITING") {
+        return (
+          <div className="text-[11px] text-muted-color px-1 pt-1">
+            ממתין לתשובת בעלים
+          </div>
+        );
+      }
+      if (c.state === "CONFIRMED") {
+        return (
+          <div className="text-[11px] text-emerald-700 px-1 pt-1 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            מאושר להיום
+          </div>
+        );
+      }
+      return (
+        <div className="text-[11px] text-gray-500 px-1 pt-1 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+          לא צריך היום
+        </div>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => askForDog(dogId)}
+        disabled={askingDogId === dogId}
+        className="text-[11px] text-muted-color hover:text-brand transition-colors px-1 pt-1 text-right disabled:opacity-60"
+      >
+        שאל את הבעלים — היום?
+      </button>
+    );
+  };
 
   const dismissError = () => setError(null);
 
@@ -234,6 +293,7 @@ export function WalkerDashboardClient({
                       בחר כלב אחר ›
                     </button>
                   )}
+                  {renderConfirmation(primaryDog.dogId)}
                 </div>
               )}
 
@@ -244,15 +304,18 @@ export function WalkerDashboardClient({
               {secondaryDogs.map((dog) => (
                 <div
                   key={dog.dogWalkerId}
-                  className="flex items-center justify-between px-3 py-3 rounded-[14px] w-full text-right"
+                  className="flex flex-col px-3 py-3 rounded-[14px] w-full text-right"
                 >
-                  <div>
-                    <div className="text-[14px] font-semibold text-dark">{dog.dogName}</div>
-                    {dog.ownerName && <div className="text-[11px] text-muted-color mt-0.5">{dog.ownerName}</div>}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[14px] font-semibold text-dark">{dog.dogName}</div>
+                      {dog.ownerName && <div className="text-[11px] text-muted-color mt-0.5">{dog.ownerName}</div>}
+                    </div>
+                    <div className="font-numbers text-xs text-muted-color">
+                      {isPriceUnset(dog.currentPrice) ? "ממתין להגדרת מחיר" : formatPrice(dog.currentPrice, dog.currency)}
+                    </div>
                   </div>
-                  <div className="font-numbers text-xs text-muted-color">
-                    {isPriceUnset(dog.currentPrice) ? "ממתין להגדרת מחיר" : formatPrice(dog.currentPrice, dog.currency)}
-                  </div>
+                  {!isPriceUnset(dog.currentPrice) && renderConfirmation(dog.dogId)}
                 </div>
               ))}
             </div>

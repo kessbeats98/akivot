@@ -11,17 +11,20 @@ import { getWalkHistoryForDogAction, createDogAction } from "./actions";
 import { OwnerDogSelector } from "./components/OwnerDogSelector";
 import { OwnerCurrentStatusCard } from "./components/OwnerCurrentStatusCard";
 import { OwnerHistorySection } from "./components/OwnerHistorySection";
+import { NextWalkConfirmationCard } from "./components/NextWalkConfirmationCard";
+import type { ConfirmationCardView } from "@/lib/services/confirmations/types";
 
 interface Props {
   dogs: DogWithWalkers[];
   liveWalks: ActiveLiveWalk[];
+  confirmations: Record<string, ConfirmationCardView>;
   notificationsButton: ReactNode;
 }
 
 const HISTORY_LOAD_ERROR_MESSAGE =
   "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05d8\u05e2\u05d9\u05e0\u05ea \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05ea \u05d8\u05d9\u05d5\u05dc\u05d9\u05dd";
 
-export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: Props) {
+export function OwnerDashboardClient({ dogs, liveWalks, confirmations, notificationsButton }: Props) {
   const router = useRouter();
   const [selectedDogId, setSelectedDogId] = useState<string>(() => {
     const firstIncomplete = dogs.find((d) => {
@@ -223,6 +226,14 @@ export function OwnerDashboardClient({ dogs, liveWalks, notificationsButton }: P
           setupComplete={setupComplete}
           activeWalkerName={activeWalker?.displayName ?? null}
         />
+
+        {/* Next-walk confirmation card — only when row exists and no LIVE walk */}
+        {!liveWalk && confirmations[selectedDogId] && (
+          <NextWalkConfirmationCard
+            dogId={selectedDogId}
+            confirmation={confirmations[selectedDogId]}
+          />
+        )}
 
         {/* Assign-walker CTA */}
         {!hasActiveWalker && !liveWalk && (

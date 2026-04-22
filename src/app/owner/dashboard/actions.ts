@@ -10,6 +10,12 @@ import { setPriceSchema } from "@/lib/validation/billing";
 import { hasActivePriceAgreementForDogWalker } from "@/lib/repositories/priceAgreementsRepo";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
+import { answerConfirmationSchema } from "@/lib/validation/confirmations";
+import {
+  answerConfirmation,
+  getConfirmationsByOwner,
+} from "@/lib/repositories/walkConfirmationsRepo";
+import type { ConfirmationCardView, OwnerAnswer } from "@/lib/services/confirmations/types";
 
 export async function getOwnerDogsAction() {
   const user = await assertAuthenticated();
@@ -51,6 +57,25 @@ export async function deactivateDogAction(dogId: string, _formData: FormData) {
   const user = await assertAuthenticated();
   const { dogId: validatedId } = deactivateDogSchema.parse({ dogId });
   await deactivateDog(validatedId, user.id);
+  revalidatePath("/owner/dashboard");
+}
+
+export async function getOwnerConfirmationsAction(): Promise<Record<string, ConfirmationCardView>> {
+  const user = await assertAuthenticated();
+  const map = await getConfirmationsByOwner(user.id);
+  const out: Record<string, ConfirmationCardView> = {};
+  for (const [k, v] of map.entries()) out[k] = v;
+  return out;
+}
+
+export async function answerConfirmationAction(
+  dogId: string,
+  answer: OwnerAnswer,
+  _formData: FormData,
+): Promise<void> {
+  const user = await assertAuthenticated();
+  const input = answerConfirmationSchema.parse({ dogId, answer });
+  await answerConfirmation(user.id, input.dogId, input.answer);
   revalidatePath("/owner/dashboard");
 }
 

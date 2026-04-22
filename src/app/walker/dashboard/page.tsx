@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getWalkerDashboardAction, startWalkAction } from "./actions";
+import {
+  getWalkerDashboardAction,
+  startWalkAction,
+  getWalkerConfirmationsAction,
+  requestConfirmationAction,
+} from "./actions";
 import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
 import { WalkerDashboardClient } from "./WalkerDashboardClient";
 
@@ -9,9 +14,10 @@ interface Props {
 }
 
 export default async function WalkerDashboardPage({ searchParams }: Props) {
-  const [user, { assignedDogs, activeWalks }, params] = await Promise.all([
+  const [user, { assignedDogs, activeWalks }, confirmations, params] = await Promise.all([
     getCurrentUser(),
     getWalkerDashboardAction(),
+    getWalkerConfirmationsAction(),
     searchParams,
   ]);
 
@@ -21,7 +27,9 @@ export default async function WalkerDashboardPage({ searchParams }: Props) {
     <WalkerDashboardClient
       userName={user?.name ?? "דני"}
       assignedDogs={assignedDogs}
+      confirmations={confirmations}
       startWalkAction={startWalkAction}
+      requestConfirmationAction={requestConfirmationAction}
       notificationsButton={<EnableNotificationsButton />}
       autoClosedReason={params.reason === "auto_closed"}
     />
