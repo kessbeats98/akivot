@@ -1,8 +1,9 @@
 import { eq, and, isNull, lte, gte, asc } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
-import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users } from "@/db/schema";
+import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users, priceAgreements, walkPriceOffers } from "@/db/schema";
 import { config } from "@/lib/config";
 import { logAudit } from "@/lib/repositories/auditRepo";
+import { linkAndApplyAcceptedOffer } from "@/lib/repositories/walkPriceOffersRepo";
 import type { AssignWalkerInput, StartWalkInput, EndWalkInput } from "@/lib/validation/walks";
 import type { WalkWithDog, AssignedDog, CalendarWalk, OwnerCalendarWalk } from "@/lib/services/walks/types";
 
@@ -66,7 +67,6 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
     ))
     .limit(1);
   if (!dw) throw new Error("Dog not assigned");
-  if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
 
   // App-level LIVE uniqueness guard (no DB partial index in V1)
   const [liveWalk] = await db
@@ -82,6 +82,48 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
   if (liveWalk) throw new Error("Walk already active");
 
   return db.transaction(async (tx) => {
+    const [ownerRow] = await tx
+      .select({ ownerUserId: dogOwners.ownerUserId })
+      .from(dogOwners)
+      .where(and(eq(dogOwners.dogId, input.dogId), eq(dogOwners.isPrimary, true)))
+      .limit(1);
+
+    let acceptedOffer: { proposedPrice: string } | null = null;
+    let activeAgreement: { proposedPrice: string } | null = null;
+
+    if (ownerRow) {
+      // Step 1: accepted pre-start offer (highest priority)
+      acceptedOffer = await tx
+        .select({ proposedPrice: walkPriceOffers.proposedPrice })
+        .from(walkPriceOffers)
+        .where(and(
+          eq(walkPriceOffers.ownerUserId, ownerRow.ownerUserId),
+          eq(walkPriceOffers.walkerProfileId, walkerProfileId),
+          eq(walkPriceOffers.dogId, input.dogId),
+          eq(walkPriceOffers.status, "accepted"),
+          isNull(walkPriceOffers.walkId),
+        ))
+        .limit(1)
+        .then(r => r[0] ?? null);
+
+      // Step 2: standing agreement
+      activeAgreement = await tx
+        .select({ proposedPrice: priceAgreements.proposedPrice })
+        .from(priceAgreements)
+        .where(and(
+          eq(priceAgreements.ownerUserId, ownerRow.ownerUserId),
+          eq(priceAgreements.walkerProfileId, walkerProfileId),
+          eq(priceAgreements.dogId, input.dogId),
+          eq(priceAgreements.status, "active"),
+        ))
+        .limit(1)
+        .then(r => r[0] ?? null);
+    }
+
+    // Step 3: resolve with priority: accepted offer > standing agreement > currentPrice
+    const resolvedPrice = acceptedOffer?.proposedPrice ?? activeAgreement?.proposedPrice ?? dw.currentPrice;
+    if (!resolvedPrice || resolvedPrice === "0.00") throw new Error("Price not set");
+
     let insertedId: string;
     try {
       const result = await tx
@@ -96,6 +138,7 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
           createdByUserId: walkerUserId,
           updatedByUserId: walkerUserId,
           updatedAt: now,
+          finalPrice: resolvedPrice,
         })
         .returning({ id: walks.id });
       const inserted = result[0];
@@ -106,6 +149,16 @@ export async function startWalk(walkerUserId: string, input: StartWalkInput): Pr
         throw new Error("Walk already active");
       }
       throw err;
+    }
+
+    if (ownerRow) {
+      await linkAndApplyAcceptedOffer(
+        ownerRow.ownerUserId,
+        walkerProfileId,
+        input.dogId,
+        insertedId,
+        tx,
+      );
     }
 
     await logAudit({
@@ -154,7 +207,7 @@ export async function endWalk(walkerUserId: string, input: EndWalkInput): Promis
         statusUpdatedAt: now,
         updatedByUserId: walkerUserId,
         updatedAt: now,
-        finalPrice: input.finalPrice ?? null,
+        ...(input.finalPrice != null && { finalPrice: input.finalPrice }),
         note: input.note ?? null,
         closureReason: "MANUAL",
       })

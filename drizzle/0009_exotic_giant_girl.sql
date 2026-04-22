@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "walk_price_offers_accepted_prestart_unique" ON "walk_price_offers" USING btree ("owner_user_id","walker_profile_id","dog_id") WHERE status = 'accepted' AND walk_id IS NULL;

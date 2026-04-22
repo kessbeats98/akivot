@@ -12,6 +12,12 @@ import {
 } from "@/lib/repositories/walksRepo";
 import type { WalkerDashboardData } from "@/lib/services/walks/types";
 import { notifyWalkEvent } from "@/lib/services/notifications/fcmService";
+import { requestConfirmationSchema } from "@/lib/validation/confirmations";
+import {
+  getConfirmationsByWalker,
+  requestConfirmation,
+} from "@/lib/repositories/walkConfirmationsRepo";
+import type { ConfirmationCardView } from "@/lib/services/confirmations/types";
 
 export async function getWalkerDashboardAction(): Promise<WalkerDashboardData> {
   const user = await assertAuthenticated();
@@ -41,6 +47,21 @@ export async function startWalkAction(dogId: string, _formData: FormData): Promi
   console.log("[walker/dashboard] walk started:", walkId);
   revalidatePath("/walker/dashboard");
   redirect("/walker/live");
+}
+
+export async function getWalkerConfirmationsAction(): Promise<Record<string, ConfirmationCardView>> {
+  const user = await assertAuthenticated();
+  const map = await getConfirmationsByWalker(user.id);
+  const out: Record<string, ConfirmationCardView> = {};
+  for (const [k, v] of map.entries()) out[k] = v;
+  return out;
+}
+
+export async function requestConfirmationAction(dogId: string, _formData: FormData): Promise<void> {
+  const user = await assertAuthenticated();
+  const input = requestConfirmationSchema.parse({ dogId });
+  await requestConfirmation(user.id, input.dogId);
+  revalidatePath("/walker/dashboard");
 }
 
 export async function endWalkAction(walkId: string, _formData: FormData): Promise<void> {

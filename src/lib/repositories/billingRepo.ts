@@ -97,7 +97,7 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
 
     // 2. Fetch COMPLETED walks for this owner-walker pair only
     const untagged = await tx
-      .select({ id: walks.id, dogWalkerId: walks.dogWalkerId })
+      .select({ id: walks.id, dogWalkerId: walks.dogWalkerId, finalPrice: walks.finalPrice })
       .from(walks)
       .innerJoin(dogOwners, and(
         eq(dogOwners.dogId, walks.dogId),
@@ -110,16 +110,14 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
         isNull(walks.deletedAt),
       ));
 
-    // 3. Insert paymentEntry per walk; accumulate in integer agorot (ILS)
-    let totalAgorot = 0;
+    // 3. Insert paymentEntry per walk
     for (const walk of untagged) {
       const [dw] = await tx
         .select({ currentPrice: dogWalkers.currentPrice })
         .from(dogWalkers)
         .where(eq(dogWalkers.id, walk.dogWalkerId))
         .limit(1);
-      const amount = dw?.currentPrice ?? "0.00";
-      totalAgorot += Math.round(parseFloat(amount) * 100);
+      const amount = walk.finalPrice ?? dw?.currentPrice ?? "0.00";
       await tx.insert(paymentEntries).values({
         paymentPeriodId: input.periodId,
         walkId: walk.id,
@@ -137,8 +135,16 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
         .where(inArray(walks.id, untagged.map((w) => w.id)));
     }
 
-    // 5. Atomic CAS update — WHERE id + status=OPEN + lockVersion; throws "Conflict" if 0 rows updated
-    const totalAmount = (totalAgorot / 100).toFixed(2);
+    // 5. Recompute from ALL entries including existing ADJUSTMENTs (covers REOPENED→PAID path)
+    const allEntries = await tx
+      .select({ amount: paymentEntries.amount })
+      .from(paymentEntries)
+      .where(eq(paymentEntries.paymentPeriodId, input.periodId));
+    const fullTotalAgorot = allEntries.reduce(
+      (sum, e) => sum + Math.round(parseFloat(e.amount) * 100),
+      0,
+    );
+    const totalAmount = (fullTotalAgorot / 100).toFixed(2);
     const updated = await tx
       .update(paymentPeriods)
       .set({ status: "PAID", totalAmount, paidAt: now, paidByUserId: actorUserId, updatedAt: now, lockVersion: period.lockVersion + 1 })
@@ -157,7 +163,7 @@ export async function closePaymentPeriod(input: ClosePeriodInput, actorUserId: s
       entityType: "PAYMENT_PERIOD",
       entityId: input.periodId,
       action: "CLOSE_PAYMENT_PERIOD",
-      afterJson: { status: "PAID", totalAmount, entriesCount: untagged.length },
+      afterJson: { status: "PAID", totalAmount, newWalkEntries: untagged.length, totalEntries: allEntries.length },
     });
   });
 }

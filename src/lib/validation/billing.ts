@@ -19,3 +19,59 @@ export const reopenPeriodSchema = z.object({
 export type SetPriceInput = z.infer<typeof setPriceSchema>;
 export type ClosePeriodInput = z.infer<typeof closePeriodSchema>;
 export type ReopenPeriodInput = z.infer<typeof reopenPeriodSchema>;
+
+export const proposePriceAgreementSchema = z.object({
+  ownerUserId: z.string().min(1),
+  walkerProfileId: uuidSchema,
+  dogId: uuidSchema,
+  proposedPrice: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  currency: z.string().length(3).optional(),
+});
+
+export const approvePriceAgreementSchema = z.object({
+  agreementId: uuidSchema,
+});
+
+export const rejectPriceAgreementSchema = z.object({
+  agreementId: uuidSchema,
+});
+
+export type ProposePriceAgreementInput = z.infer<typeof proposePriceAgreementSchema>;
+export type ApprovePriceAgreementInput = z.infer<typeof approvePriceAgreementSchema>;
+export type RejectPriceAgreementInput = z.infer<typeof rejectPriceAgreementSchema>;
+
+export const proposeWalkOfferSchema = z.object({
+  walkerProfileId:     uuidSchema,
+  dogId:               uuidSchema,
+  proposedPrice:       z.string().regex(/^\d+(\.\d{1,2})?$/),
+  proposedDurationMin: z.coerce.number().int().positive().optional(),
+  walkId:              uuidSchema.optional(),
+});
+
+export const counterWalkOfferSchema = z.object({
+  existingOfferId:     uuidSchema,
+  proposedPrice:       z.string().regex(/^\d+(\.\d{1,2})?$/),
+  proposedDurationMin: z.coerce.number().int().positive().optional(),
+});
+
+export const acceptWalkOfferSchema = z.object({ offerId: uuidSchema });
+export const rejectWalkOfferSchema  = z.object({ offerId: uuidSchema });
+
+export type ProposeWalkOfferInput = z.infer<typeof proposeWalkOfferSchema>;
+export type CounterWalkOfferInput = z.infer<typeof counterWalkOfferSchema>;
+export type AcceptWalkOfferInput  = z.infer<typeof acceptWalkOfferSchema>;
+export type RejectWalkOfferInput  = z.infer<typeof rejectWalkOfferSchema>;
+
+export const requestAdjustmentSchema = z.object({
+  paymentPeriodId: uuidSchema,
+  walkId:          uuidSchema,
+  newPrice:        z.string().regex(/^\d+(\.\d{1,2})?$/),
+  reason:          z.string().min(1),
+});
+
+export const approveAdjustmentSchema = z.object({ adjustmentId: uuidSchema });
+export const rejectAdjustmentSchema  = z.object({ adjustmentId: uuidSchema });
+
+export type RequestAdjustmentInput = z.infer<typeof requestAdjustmentSchema>;
+export type ApproveAdjustmentInput = z.infer<typeof approveAdjustmentSchema>;
+export type RejectAdjustmentInput  = z.infer<typeof rejectAdjustmentSchema>;

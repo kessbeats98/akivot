@@ -6,4 +6,5 @@ export * from "./walks";
 export * from "./billing";
 export * from "./notifications";
 export * from "./audit";
+export * from "./confirmations";
 export * from "./relations";

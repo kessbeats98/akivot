@@ -7,8 +7,15 @@ import { getDogsByOwner, createDog, deactivateDog, assertDogOwnership, assertDog
 import type { ActiveLiveWalk } from "@/lib/repositories/dogsRepo";
 import type { DogWalkHistoryItem } from "@/lib/services/walks/types";
 import { setPriceSchema } from "@/lib/validation/billing";
+import { hasActivePriceAgreementForDogWalker } from "@/lib/repositories/priceAgreementsRepo";
 import { assignWalkerSchema } from "@/lib/validation/walks";
 import { assignWalker } from "@/lib/repositories/walksRepo";
+import { answerConfirmationSchema } from "@/lib/validation/confirmations";
+import {
+  answerConfirmation,
+  getConfirmationsByOwner,
+} from "@/lib/repositories/walkConfirmationsRepo";
+import type { ConfirmationCardView, OwnerAnswer } from "@/lib/services/confirmations/types";
 
 export async function getOwnerDogsAction() {
   const user = await assertAuthenticated();
@@ -53,10 +60,31 @@ export async function deactivateDogAction(dogId: string, _formData: FormData) {
   revalidatePath("/owner/dashboard");
 }
 
+export async function getOwnerConfirmationsAction(): Promise<Record<string, ConfirmationCardView>> {
+  const user = await assertAuthenticated();
+  const map = await getConfirmationsByOwner(user.id);
+  const out: Record<string, ConfirmationCardView> = {};
+  for (const [k, v] of map.entries()) out[k] = v;
+  return out;
+}
+
+export async function answerConfirmationAction(
+  dogId: string,
+  answer: OwnerAnswer,
+  _formData: FormData,
+): Promise<void> {
+  const user = await assertAuthenticated();
+  const input = answerConfirmationSchema.parse({ dogId, answer });
+  await answerConfirmation(user.id, input.dogId, input.answer);
+  revalidatePath("/owner/dashboard");
+}
+
 // dogWalkerId bound via .bind(null, dogWalkerId)
 export async function setPriceAction(dogWalkerId: string, formData: FormData): Promise<void> {
   const user = await assertAuthenticated();
   await assertDogWalkerOwnership(dogWalkerId, user.id);
+  const hasActive = await hasActivePriceAgreementForDogWalker(dogWalkerId);
+  if (hasActive) throw new Error("Price locked by standing agreement — use propose/approve flow");
   const input = setPriceSchema.parse({ dogWalkerId, price: formData.get("price") });
   await setDogWalkerPrice(input.dogWalkerId, input.price);
   revalidatePath("/owner/dashboard");

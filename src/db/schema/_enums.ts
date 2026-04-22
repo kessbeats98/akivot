@@ -64,6 +64,10 @@ export const notificationDeliveryStatusEnum = pgEnum(
   ["PENDING", "SENT", "FAILED", "TOKEN_INVALID"],
 );
 
+export const adjustmentRequestStatusEnum = pgEnum("adjustment_request_status", [
+  "pending", "approved", "rejected",
+]);
+
 export const entityTypeEnum = pgEnum("entity_type", [
   "USER",
   "WALKER_PROFILE",
@@ -78,6 +82,9 @@ export const entityTypeEnum = pgEnum("entity_type", [
   "USER_DEVICE",
   "INVITE",
   "NOTIFICATION_DELIVERY",
+  "PRICE_AGREEMENT",
+  "WALK_PRICE_OFFER",
+  "ADJUSTMENT_REQUEST",
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", [
@@ -95,10 +102,40 @@ export const auditActionEnum = pgEnum("audit_action", [
   "INVALIDATE_DEVICE",
   "SEND_NOTIFICATION",
   "UPLOAD_MEDIA",
+  "PROPOSE_PRICE_AGREEMENT",
+  "APPROVE_PRICE_AGREEMENT",
+  "REJECT_PRICE_AGREEMENT",
+  "PROPOSE_WALK_OFFER",
+  "ACCEPT_WALK_OFFER",
+  "REJECT_WALK_OFFER",
+  "REQUEST_ADJUSTMENT",
+  "APPROVE_ADJUSTMENT",
+  "REJECT_ADJUSTMENT",
 ]);
 
 export const inviteStatusEnum = pgEnum("invite_status", [
   "ACTIVE",
   "EXPIRED",
   "DISABLED",
+]);
+
+export const priceAgreementStatusEnum = pgEnum("price_agreement_status", [
+  "pending",
+  "active",
+  "superseded",
+  "rejected",
+]);
+
+export const walkPriceOfferStatusEnum = pgEnum("walk_price_offer_status", [
+  "pending",
+  "accepted",
+  "rejected",
+  "expired",
+  "superseded",
+]);
+
+export const walkConfirmationStateEnum = pgEnum("walk_confirmation_state", [
+  "WAITING",
+  "CONFIRMED",
+  "NOT_NEEDED",
 ]);
