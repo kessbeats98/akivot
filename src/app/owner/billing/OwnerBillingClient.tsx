@@ -9,9 +9,10 @@ import { OwnerPaymentsEmptyState } from "./components/OwnerPaymentsEmptyState";
 
 interface Props {
   periods: OwnerPaymentPeriod[];
+  hasOwnerPhone: boolean;
 }
 
-export function OwnerBillingClient({ periods }: Props) {
+export function OwnerBillingClient({ periods, hasOwnerPhone }: Props) {
   const currentPeriods = periods.filter((p) => p.status === "OPEN" || p.status === "REOPENED");
   const historyPeriods = periods.filter((p) => p.status === "PAID" || p.status === "ARCHIVED");
   const openTotal = currentPeriods.reduce((sum, p) => sum + Number(p.totalAmount), 0);
@@ -42,7 +43,7 @@ export function OwnerBillingClient({ periods }: Props) {
           <h3 className="text-lg font-bold text-dark mb-4">בקשת תשלום נוכחית</h3>
           <div className="flex flex-col gap-4">
             {currentPeriods.map((p) => (
-              <OwnerCurrentPaymentCard key={p.id} period={p} />
+              <OwnerCurrentPaymentCard key={p.id} period={p} hasOwnerPhone={hasOwnerPhone} />
             ))}
           </div>
         </section>

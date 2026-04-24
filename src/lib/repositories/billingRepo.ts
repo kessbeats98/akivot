@@ -1,9 +1,9 @@
 import { eq, and, isNull, inArray, count } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
-import { paymentPeriods, paymentEntries, walks, dogWalkers, walkerProfiles, dogs, dogOwners } from "@/db/schema";
+import { paymentPeriods, paymentEntries, walks, dogWalkers, walkerProfiles, dogs, dogOwners, users } from "@/db/schema";
 import { logAudit } from "@/lib/repositories/auditRepo";
 import type { ClosePeriodInput, ReopenPeriodInput } from "@/lib/validation/billing";
-import type { PaymentPeriodWithEntries, OwnerPaymentPeriod, OwnerPaymentEntry } from "@/lib/services/billing/types";
+import type { PaymentPeriodWithEntries, OwnerPaymentPeriod, OwnerPaymentEntry, WalkerPaymentPeriod, WalkerPaymentEntry, UnbilledWalk } from "@/lib/services/billing/types";
 
 export async function assertPeriodOwnership(periodId: string, ownerUserId: string): Promise<void> {
   const db = getDb();
@@ -346,7 +346,7 @@ export async function getOwnerPaymentPeriodsEnriched(ownerUserId: string): Promi
   }));
 }
 
-export async function getPeriodsByWalker(walkerUserId: string): Promise<PaymentPeriodWithEntries[]> {
+export async function getPeriodsByWalker(walkerUserId: string): Promise<WalkerPaymentPeriod[]> {
   const db = getDb();
   const [profile] = await db
     .select({ id: walkerProfiles.id })
@@ -354,27 +354,105 @@ export async function getPeriodsByWalker(walkerUserId: string): Promise<PaymentP
     .where(eq(walkerProfiles.userId, walkerUserId))
     .limit(1);
   if (!profile) throw new Error("Walker profile not found");
+
   const periods = await db
     .select()
     .from(paymentPeriods)
     .where(eq(paymentPeriods.walkerProfileId, profile.id))
     .orderBy(paymentPeriods.createdAt);
   if (periods.length === 0) return [];
+
   const periodIds = periods.map((p) => p.id);
   const entries = await db
     .select()
     .from(paymentEntries)
     .where(inArray(paymentEntries.paymentPeriodId, periodIds));
-  return periods.map((p) => ({
-    ...p,
+
+  // Enrich WALK entries — ADJUSTMENT entries have walkId=null, skip them
+  const walkIds = entries.map((e) => e.walkId).filter((id): id is string => id !== null);
+  type WalkRow = { id: string; startTime: Date; status: string; dogName: string };
+  let walkMap = new Map<string, WalkRow>();
+  if (walkIds.length > 0) {
+    const walkRows = await db
+      .select({ id: walks.id, startTime: walks.startTime, status: walks.status, dogName: dogs.name })
+      .from(walks)
+      .innerJoin(dogs, eq(walks.dogId, dogs.id))
+      .where(inArray(walks.id, walkIds));
+    walkMap = new Map(walkRows.map((w) => [w.id, w]));
+  }
+
+  // Owner display name + phone (for in-period WhatsApp/Call actions)
+  const ownerUserIds = [...new Set(periods.map((p) => p.ownerUserId))];
+  const ownerRows = await db
+    .select({ id: users.id, name: users.name, phone: users.phone })
+    .from(users)
+    .where(inArray(users.id, ownerUserIds));
+  const ownerMap = new Map(ownerRows.map((u) => [u.id, u]));
+
+  return periods.map((p): WalkerPaymentPeriod => ({
+    id: p.id,
+    ownerUserId: p.ownerUserId,
+    status: p.status as WalkerPaymentPeriod["status"],
+    totalAmount: p.totalAmount,
+    lockVersion: p.lockVersion,
+    paidAt: p.paidAt,
+    createdAt: p.createdAt,
+    ownerDisplayName: ownerMap.get(p.ownerUserId)?.name ?? null,
+    ownerPhone: ownerMap.get(p.ownerUserId)?.phone ?? null,
     entries: entries
       .filter((e) => e.paymentPeriodId === p.id)
-      .map((e) => ({
-        id: e.id,
-        walkId: e.walkId,
-        amount: e.amount,
-        entryType: e.entryType as "WALK" | "ADJUSTMENT",
-        createdAt: e.createdAt,
-      })),
+      .map((e): WalkerPaymentEntry => {
+        const walk = e.walkId ? walkMap.get(e.walkId) : undefined;
+        return {
+          id: e.id,
+          walkId: e.walkId,
+          amount: e.amount,
+          entryType: e.entryType as WalkerPaymentEntry["entryType"],
+          createdAt: e.createdAt,
+          dogName: walk?.dogName ?? null,
+          walkDate: walk?.startTime ?? null,
+          walkStatus: walk?.status ?? null,
+        };
+      }),
+  }));
+}
+
+export async function getUnbilledWalksForWalker(walkerUserId: string): Promise<UnbilledWalk[]> {
+  const db = getDb();
+  const [profile] = await db
+    .select({ id: walkerProfiles.id })
+    .from(walkerProfiles)
+    .where(eq(walkerProfiles.userId, walkerUserId))
+    .limit(1);
+  if (!profile) return [];
+
+  const rows = await db
+    .select({
+      walkId: walks.id,
+      dogName: dogs.name,
+      walkDate: walks.startTime,
+      finalPrice: walks.finalPrice,
+      ownerUserId: dogOwners.ownerUserId,
+      ownerDisplayName: users.name,
+    })
+    .from(walks)
+    .innerJoin(dogs, eq(dogs.id, walks.dogId))
+    .innerJoin(dogOwners, and(eq(dogOwners.dogId, dogs.id), eq(dogOwners.isPrimary, true)))
+    .leftJoin(users, eq(users.id, dogOwners.ownerUserId))
+    .where(and(
+      eq(walks.walkerProfileId, profile.id),
+      inArray(walks.status, ["COMPLETED", "AUTO_CLOSED"]),
+      isNull(walks.paymentPeriodId),
+      isNull(walks.deletedAt),
+    ))
+    .orderBy(walks.startTime);
+
+  return rows.map((r): UnbilledWalk => ({
+    walkId: r.walkId,
+    dogName: r.dogName,
+    walkDate: r.walkDate,
+    finalPrice: r.finalPrice ?? "0",
+    ownerUserId: r.ownerUserId,
+    ownerDisplayName: r.ownerDisplayName ?? null,
   }));
 }

@@ -1,8 +1,22 @@
 import Link from "next/link";
+import { eq } from "drizzle-orm";
 import { EnableNotificationsButton } from "@/components/EnableNotificationsButton";
+import { PhoneSettingsCard } from "@/components/settings/PhoneSettingsCard";
 import { Info, LogOut, Bell } from "lucide-react";
+import { assertAuthenticated } from "@/lib/auth/session";
+import { getDb } from "@/db/drizzle";
+import { users } from "@/db/schema";
 
-export default function OwnerSettingsPage() {
+export default async function OwnerSettingsPage() {
+  const sessionUser = await assertAuthenticated();
+  const db = getDb();
+  const [row] = await db
+    .select({ phone: users.phone })
+    .from(users)
+    .where(eq(users.id, sessionUser.id))
+    .limit(1);
+  const phone = row?.phone ?? null;
+
   return (
     <div className="animate-in fade-in duration-300 pb-32">
       <header className="px-6 pt-6 pb-4">
@@ -18,6 +32,9 @@ export default function OwnerSettingsPage() {
             לחץ על תפריט הדפדפן (⋮) ובחר &quot;הוסף למסך הבית&quot; לגישה מהירה כמו אפליקציה.
           </p>
         </section>
+
+        {/* Phone — allows quick WhatsApp/call actions around walks and open billing */}
+        <PhoneSettingsCard initialPhone={phone} />
 
         {/* Notifications — primary card, border only */}
         <section className="bg-white rounded-[2rem] p-6 border border-gray-100">

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
 import { OwnerPaymentEntriesList } from "./OwnerPaymentEntriesList";
@@ -20,9 +21,10 @@ const statusConfig = {
 
 interface Props {
   period: OwnerPaymentPeriod;
+  hasOwnerPhone: boolean;
 }
 
-export function OwnerCurrentPaymentCard({ period }: Props) {
+export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
   const [expanded, setExpanded] = useState(false);
   const config = statusConfig[period.status as keyof typeof statusConfig] ?? statusConfig.OPEN;
   const [showConfirm, setShowConfirm] = useState(false);
@@ -85,7 +87,7 @@ export function OwnerCurrentPaymentCard({ period }: Props) {
           <div className="pt-4">
             <OwnerPaymentEntriesList entries={period.entries} />
           </div>
-          {period.pendingWalkCount > 0 && !showConfirm && (
+          {period.pendingWalkCount > 0 && !showConfirm && hasOwnerPhone && (
             <button
               type="button"
               onClick={() => setShowConfirm(true)}
@@ -93,6 +95,21 @@ export function OwnerCurrentPaymentCard({ period }: Props) {
             >
               סגור תקופה ({period.pendingWalkCount} טיולים)
             </button>
+          )}
+
+          {period.pendingWalkCount > 0 && !hasOwnerPhone && (
+            <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-surface p-4 text-center space-y-2">
+              <p className="text-sm font-semibold text-dark">נדרש מספר טלפון לסגירת תקופה</p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                המספר משמש את המטפל ליצירת קשר סביב חיוב פתוח.
+              </p>
+              <Link
+                href="/owner/settings"
+                className="inline-block text-xs font-semibold text-brand"
+              >
+                הוספה בהגדרות
+              </Link>
+            </div>
           )}
 
           {period.pendingWalkCount > 0 && showConfirm && (
