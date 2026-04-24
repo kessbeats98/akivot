@@ -6,10 +6,13 @@ import { Calendar, CheckCircle2, ChevronLeft, Phone, Receipt, Send } from "lucid
 import { SlideOver } from "@/components/ui/slide-over";
 import type { WalkerPaymentPeriod, UnbilledWalk } from "@/lib/services/billing/types";
 import { normalizePhoneForWa, isUsablePhone } from "@/lib/phone";
+import { WeekSummary, type WeekSummaryWalk } from "@/components/WeekSummary";
 
 interface Props {
   periods: WalkerPaymentPeriod[];
   unbilledWalks: UnbilledWalk[];
+  weekSummary: WeekSummaryWalk[];
+  weekStart: Date;
 }
 
 const formatCurrency = (amount: number | string) =>
@@ -55,7 +58,7 @@ function groupByOwner(walks: UnbilledWalk[]) {
   return [...map.values()];
 }
 
-export function WalkerBillingSurface({ periods, unbilledWalks }: Props) {
+export function WalkerBillingSurface({ periods, unbilledWalks, weekSummary, weekStart }: Props) {
   const [selectedPeriod, setSelectedPeriod] = useState<WalkerPaymentPeriod | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -147,6 +150,9 @@ export function WalkerBillingSurface({ periods, unbilledWalks }: Props) {
             </div>
           </div>
         </section>
+
+        {/* Secondary: weekly memory summary — collapsed, depth-only. */}
+        <WeekSummary walks={weekSummary} weekStart={weekStart} />
 
         {/* Unbilled walks */}
         {unbilledWalks.length > 0 && (

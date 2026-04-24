@@ -1,4 +1,4 @@
-import { eq, and, isNull, lte, gte, asc } from "drizzle-orm";
+import { eq, and, isNull, lte, gte, asc, inArray } from "drizzle-orm";
 import { getDb } from "@/db/drizzle";
 import { walks, dogWalkers, walkerProfiles, dogs, dogOwners, users, priceAgreements, walkPriceOffers } from "@/db/schema";
 import { config } from "@/lib/config";
@@ -400,4 +400,128 @@ export async function getWalksByOwner(
     .orderBy(asc(walks.startTime));
 
   return rows.map((r) => ({ ...r }));
+}
+
+// ---------------------------------------------------------------------------
+// Weekly Summary (read/confirm surface - memory feature, not billing).
+// Locks: Mon 00:00 - Sun 23:59 in product TZ (Asia/Jerusalem). Statuses:
+// COMPLETED + AUTO_CLOSED only. No price fields. No analytics. Read-only.
+// ---------------------------------------------------------------------------
+
+const WEEK_SUMMARY_TZ = "Asia/Jerusalem";
+
+interface WeekSummaryWalk {
+  date: Date;
+  dogName: string;
+}
+
+function getWeekBounds(weekStart: Date): { start: Date; end: Date } {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: WEEK_SUMMARY_TZ,
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(weekStart);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const weekdayMap: Record<string, number> = {
+    Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6,
+  };
+  const offsetDays = weekdayMap[get("weekday")] ?? 0;
+
+  const y = Number(get("year"));
+  const m = Number(get("month"));
+  const d = Number(get("day"));
+  const localTodayUtcAnchor = new Date(Date.UTC(y, m - 1, d));
+  localTodayUtcAnchor.setUTCDate(localTodayUtcAnchor.getUTCDate() - offsetDays);
+
+  const toUtcInstant = (year: number, month: number, day: number, hour: number, minute: number, second: number): Date => {
+    const pretendUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+    const tzFmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: WEEK_SUMMARY_TZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    });
+    const probe = new Date(pretendUtc);
+    const pp = tzFmt.formatToParts(probe);
+    const gp = (t: string) => Number(pp.find((x) => x.type === t)?.value ?? "0");
+    const asLocal = Date.UTC(gp("year"), gp("month") - 1, gp("day"), gp("hour"), gp("minute"), gp("second"));
+    const offsetMs = asLocal - pretendUtc;
+    return new Date(pretendUtc - offsetMs);
+  };
+
+  const start = toUtcInstant(
+    localTodayUtcAnchor.getUTCFullYear(),
+    localTodayUtcAnchor.getUTCMonth() + 1,
+    localTodayUtcAnchor.getUTCDate(),
+    0, 0, 0,
+  );
+  const sunday = new Date(localTodayUtcAnchor);
+  sunday.setUTCDate(sunday.getUTCDate() + 6);
+  const endSec = toUtcInstant(
+    sunday.getUTCFullYear(),
+    sunday.getUTCMonth() + 1,
+    sunday.getUTCDate(),
+    23, 59, 59,
+  );
+  return { start, end: new Date(endSec.getTime() + 999) };
+}
+
+const WEEK_SUMMARY_STATUSES: Array<"COMPLETED" | "AUTO_CLOSED"> = ["COMPLETED", "AUTO_CLOSED"];
+
+async function fetchWeekSummaryRows(params: {
+  dogIdFilter?: string[];
+  walkerProfileId?: string;
+  weekStart: Date;
+}): Promise<WeekSummaryWalk[]> {
+  const { start, end } = getWeekBounds(params.weekStart);
+  const db = getDb();
+
+  const baseConditions = [
+    inArray(walks.status, WEEK_SUMMARY_STATUSES),
+    gte(walks.startTime, start),
+    lte(walks.startTime, end),
+    isNull(walks.deletedAt),
+  ];
+  if (params.walkerProfileId) {
+    baseConditions.push(eq(walks.walkerProfileId, params.walkerProfileId));
+  }
+  if (params.dogIdFilter) {
+    if (params.dogIdFilter.length === 0) return [];
+    baseConditions.push(inArray(walks.dogId, params.dogIdFilter));
+  }
+
+  const rows = await db
+    .select({
+      date: walks.startTime,
+      dogName: dogs.name,
+    })
+    .from(walks)
+    .innerJoin(dogs, eq(dogs.id, walks.dogId))
+    .where(and(...baseConditions))
+    .orderBy(asc(walks.startTime));
+
+  return rows.map((r) => ({ date: r.date, dogName: r.dogName }));
+}
+
+export async function getOwnerWeekSummaryWalks(
+  ownerUserId: string,
+  weekStart: Date,
+): Promise<WeekSummaryWalk[]> {
+  const db = getDb();
+  const ownedDogs = await db
+    .select({ dogId: dogOwners.dogId })
+    .from(dogOwners)
+    .where(and(eq(dogOwners.ownerUserId, ownerUserId), eq(dogOwners.isPrimary, true)));
+  const dogIds = ownedDogs.map((d) => d.dogId);
+  return fetchWeekSummaryRows({ dogIdFilter: dogIds, weekStart });
+}
+
+export async function getWalkerWeekSummaryWalks(
+  walkerUserId: string,
+  weekStart: Date,
+): Promise<WeekSummaryWalk[]> {
+  const walkerProfileId = await getWalkerProfileIdByUserId(walkerUserId);
+  return fetchWeekSummaryRows({ walkerProfileId, weekStart });
 }
