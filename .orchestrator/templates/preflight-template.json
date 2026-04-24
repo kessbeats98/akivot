@@ -1,0 +1,19 @@
+{
+  "id": "TASK-0001",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Replace with a concise summary of the proposed execution plan.",
+  "files_to_touch": [
+    "path/to/file.ts"
+  ],
+  "commands_to_run": [
+    "npm test -- example"
+  ],
+  "validation_plan": [
+    "Run targeted tests for the changed area"
+  ],
+  "risks": [],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "Approve if the proposed file scope and validation plan look correct."
+}

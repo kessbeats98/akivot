@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Only globals.css (or layout.tsx) is proposed for modification — no backend files mentioned",
+      "passed": true,
+      "evidence": "Summary explicitly states 'src/app/globals.css (only file modified)' and 'No backend files touched.'"
+    },
+    {
+      "text": "CSS variable --primary is set to #2A9D8F",
+      "passed": true,
+      "evidence": "Diff shows: --primary: #2A9D8F"
+    },
+    {
+      "text": "CSS variable --accent is set to #F4A261",
+      "passed": true,
+      "evidence": "Diff shows: --accent: #F4A261"
+    },
+    {
+      "text": "CSS variable --background is set to #FAF9F6",
+      "passed": true,
+      "evidence": "Diff shows: --background: #FAF9F6"
+    },
+    {
+      "text": "CSS variable --success is added with value #6BBF59",
+      "passed": true,
+      "evidence": "Diff shows: --success: #6BBF59 (new line added)"
+    },
+    {
+      "text": "The Arial font-family override is removed from body styles",
+      "passed": true,
+      "evidence": "Diff shows removal of 'font-family: Arial, Helvetica, sans-serif;' from body rule"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

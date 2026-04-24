@@ -1,0 +1,24 @@
+{
+  "id": "TASK-SMOKE-LARGE-SESSION",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Smoke test confirming that task_size=large with claude_execution_mode=auto selects the persisted session channel automatically. No source files touched. Preflight artifact only.",
+  "files_to_touch": [
+    ".orchestrator/results/TASK-SMOKE-LARGE-SESSION.json"
+  ],
+  "commands_to_run": [
+    "echo 'DRY-RUN: task_size=large + claude_execution_mode=auto => channel=session (persisted)'"
+  ],
+  "validation_plan": [
+    "Verify task contract has task_size=large and claude_execution_mode=auto",
+    "Confirm runner policy maps (large, auto) -> session channel",
+    "Confirm no source files were modified",
+    "Write result contract to .orchestrator/results/TASK-SMOKE-LARGE-SESSION.json with channel=session evidence"
+  ],
+  "risks": [
+    "None — read-only smoke test with no product code changes"
+  ],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "If runner logs confirm session channel was selected, mark TASK-SMOKE-LARGE-SESSION DONE. No follow-up work needed."
+}

@@ -1,0 +1,23 @@
+{
+  "id": "TASK-0001",
+  "status": "success",
+  "phase": "execution_complete",
+  "summary": "Replace with a concise summary of the outcome.",
+  "files_changed": [
+    "path/to/file.ts"
+  ],
+  "commands_run": [
+    "npm test -- example"
+  ],
+  "tests_run": [
+    "npm test -- example"
+  ],
+  "tests_passed": [
+    "Example test suite"
+  ],
+  "tests_failed": [],
+  "blockers": [],
+  "scope_deviations": [],
+  "warnings": [],
+  "follow_up_recommendation": "Replace with the recommended next action."
+}

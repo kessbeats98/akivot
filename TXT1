@@ -1,0 +1,26 @@
+Stop. PR #10 should remain phone-gating only.
+
+Weekly Summary must be a separate PR because it is a different product slice.
+
+Please split the latest commit `6250c48 feat(memory): add weekly walk summary` out of PR #10.
+
+Required outcome:
+1. PR #10 contains only phone-gating commit(s), including `8ef5b0a`.
+2. Create a new branch from current main, e.g. `feat/weekly-summary`.
+3. Cherry-pick only `6250c48` onto `feat/weekly-summary`.
+4. Push the new branch.
+5. Open a new PR titled:
+   `Add weekly walk summary memory section`
+6. PR body should state:
+   - memory feature, not finance/analytics
+   - owner billing: owner-wide current-week summary
+   - walker billing: walker-own current-week summary
+   - statuses: COMPLETED + AUTO_CLOSED only
+   - no routes, no schema, no mutations
+7. Verify:
+   - `git log origin/main..feat/phone-gating --oneline` does NOT include `6250c48`
+   - `git log origin/main..feat/weekly-summary --oneline` includes only `6250c48`
+   - `gh pr view 10 --json commits` confirms PR #10 excludes Weekly Summary
+   - new PR includes Weekly Summary only
+
+Do not merge either PR yet.

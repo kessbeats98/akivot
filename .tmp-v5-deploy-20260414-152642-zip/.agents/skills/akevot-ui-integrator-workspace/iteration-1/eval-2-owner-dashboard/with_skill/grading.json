@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads or references actions.ts before writing component code",
+      "passed": true,
+      "evidence": "Summary states 'Files read: SKILL.md, page.tsx, actions.ts, globals.css, component globs' — actions.ts read before any code written"
+    },
+    {
+      "text": "An npx shadcn add command is listed before any shadcn import statements",
+      "passed": true,
+      "evidence": "Summary shows 'npx shadcn add card button input badge' as Prerequisite section before any import code"
+    },
+    {
+      "text": "All user-visible strings in proposed code are in Hebrew (not English)",
+      "passed": true,
+      "evidence": "Code contains: הכלבים שלי, עדיין אין כלבים, מטיילים משויכים, מחיר (₪), קבע מחיר, בחר מטייל, שייך מטייל, השבת, הוסף כלב, שם *, גזע, תאריך לידה, הערות — all Hebrew, no English user-facing strings"
+    },
+    {
+      "text": "New presentational component(s) are proposed in src/components/ (not inlined in page.tsx)",
+      "passed": true,
+      "evidence": "DogCard.tsx proposed at src/components/owner/DogCard.tsx as a separate file"
+    },
+    {
+      "text": "No modifications proposed to actions.ts or any file in src/db/, src/lib/repositories/, src/lib/auth/",
+      "passed": true,
+      "evidence": "Summary explicitly states 'No backend files were touched. No missing data fields were found.'"
+    },
+    {
+      "text": "Tailwind classes follow mobile-first pattern (base for mobile, sm:/md: for larger screens)",
+      "passed": true,
+      "evidence": "page.tsx uses max-w-2xl mx-auto, sm:flex-row on assign-walker form, sm:w-auto on CTA button — base styles mobile, sm: breakpoints for larger"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

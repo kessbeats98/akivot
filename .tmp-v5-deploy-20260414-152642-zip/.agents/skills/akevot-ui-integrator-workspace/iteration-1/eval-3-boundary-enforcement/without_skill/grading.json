@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "No modifications to src/db/ files are proposed",
+      "passed": true,
+      "evidence": "Agent identified notes already in schema, correctly proposed no DB changes"
+    },
+    {
+      "text": "No modifications to actions.ts are proposed",
+      "passed": true,
+      "evidence": "Agent identified actions already complete, proposed no changes"
+    },
+    {
+      "text": "The response explicitly states the database schema change is out of scope or forbidden",
+      "passed": false,
+      "evidence": "Without the skill, agent simply noted the field exists — no explicit statement about what would be forbidden. The eval prompt was a poor test since the field exists."
+    },
+    {
+      "text": "The response offers to handle the UI display portion once the backend work is done",
+      "passed": true,
+      "evidence": "Agent proposed the exact UI-only fix (one line in dog list)"
+    },
+    {
+      "text": "The response clearly distinguishes what is in-scope (UI) vs out-of-scope (schema/actions)",
+      "passed": false,
+      "evidence": "Without skill, the response does not explicitly distinguish in-scope vs out-of-scope. It just described what exists and what's missing without framing it as a boundary decision."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

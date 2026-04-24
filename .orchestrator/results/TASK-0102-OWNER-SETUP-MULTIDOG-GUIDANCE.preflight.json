@@ -1,0 +1,26 @@
+{
+  "id": "TASK-0102-OWNER-SETUP-MULTIDOG-GUIDANCE",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Change selectedDogId initialization in OwnerDashboardClient.tsx from dogs[0]?.id to the first dog that lacks an active walker or has a zero price, falling back to dogs[0] if all dogs are complete. One-line change to useState initializer.",
+  "files_to_touch": [
+    "src/app/owner/dashboard/OwnerDashboardClient.tsx"
+  ],
+  "commands_to_run": [
+    "npx tsc --noEmit --project tsconfig.json 2>&1 | head -40",
+    "npx eslint src/app/owner/dashboard/OwnerDashboardClient.tsx --max-warnings=0"
+  ],
+  "validation_plan": [
+    "Run TypeScript type check (tsc --noEmit) — expect zero errors in touched file",
+    "Run ESLint on touched file — expect zero warnings or errors",
+    "Manual smoke: load owner dashboard with 2 dogs where dog[0] is complete and dog[1] is incomplete — verify dog[1] is pre-selected",
+    "Manual smoke: load owner dashboard where all dogs are complete — verify dog[0] is still pre-selected (no regression)"
+  ],
+  "risks": [
+    "The 'incomplete' predicate is derived inline and must match the existing setupComplete logic exactly (hasActiveWalker && !priceIsZero). Any mismatch would select the wrong default.",
+    "UX validation for multi-dog case remains manual — no Playwright spec covers this path yet."
+  ],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "After execution, run the cold-walkthrough Playwright spec to confirm no regressions on the single-dog happy path."
+}

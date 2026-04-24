@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "owner-dashboard-styling",
+  "prompt": "The owner dashboard page (src/app/owner/dashboard/page.tsx) needs proper styling. Make it look polished — cards for each dog, a clear add-dog form, Hebrew labels, mobile-first RTL layout. Use shadcn Card and Button components.",
+  "assertions": [
+    "The skill reads or references actions.ts before writing component code",
+    "An npx shadcn add command is listed before any shadcn import statements",
+    "All user-visible strings in proposed code are in Hebrew (not English)",
+    "New presentational component(s) are proposed in src/components/ (not inlined in page.tsx)",
+    "No modifications proposed to actions.ts or any file in src/db/, src/lib/repositories/, src/lib/auth/",
+    "Tailwind classes follow mobile-first pattern (base for mobile, sm:/md: for larger screens)"
+  ]
+}

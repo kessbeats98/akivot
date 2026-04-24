@@ -1,0 +1,5 @@
+{
+  "name": "עקבות - Footprints",
+  "description": "אפליקציה מקצועית לניהול טיולי כלבים, מעקב חי ותשלומים.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}

@@ -1,0 +1,184 @@
+{
+  "metadata": {
+    "skill_name": "akevot-ui-integrator",
+    "skill_path": "F:/ak/avner-lite/.agents/skills/akevot-ui-integrator",
+    "executor_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-13T00:00:00Z",
+    "evals_run": ["design-system-setup", "owner-dashboard-styling", "boundary-enforcement"],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "design-system-setup",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 46.1,
+        "tokens": 19771,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Only globals.css modified — no backend files", "passed": true, "evidence": "Summary explicitly states only globals.css changed"},
+        {"text": "--primary set to #2A9D8F", "passed": true, "evidence": "Diff shows --primary: #2A9D8F"},
+        {"text": "--accent set to #F4A261", "passed": true, "evidence": "Diff shows --accent: #F4A261"},
+        {"text": "--background set to #FAF9F6", "passed": true, "evidence": "Diff shows --background: #FAF9F6"},
+        {"text": "--success added as #6BBF59", "passed": true, "evidence": "Diff shows new --success: #6BBF59"},
+        {"text": "Arial font-family override removed", "passed": true, "evidence": "Diff shows removal of Arial line from body"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "design-system-setup",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 47.0,
+        "tokens": 17559,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Only globals.css modified — no backend files", "passed": true, "evidence": "Only globals.css mentioned"},
+        {"text": "--primary set to #2A9D8F", "passed": true, "evidence": "Table shows --primary → #2A9D8F"},
+        {"text": "--accent set to #F4A261", "passed": true, "evidence": "Table shows --accent → #F4A261"},
+        {"text": "--background set to #FAF9F6", "passed": true, "evidence": "Table shows --background → #FAF9F6"},
+        {"text": "--success added as #6BBF59", "passed": true, "evidence": "Table shows --success → #6BBF59 added"},
+        {"text": "Arial font-family override removed", "passed": true, "evidence": "Changed to var(--font-sans) — effectively removes Arial. Slightly different approach (replaces vs removes) but passes intent."}
+      ],
+      "notes": ["Without-skill agent modified dark mode block (added dark variants for new brand colors) — violates skill rule but not an eval assertion"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "owner-dashboard-styling",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 101.9,
+        "tokens": 24957,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Reads actions.ts before writing code", "passed": true, "evidence": "Files read list includes actions.ts"},
+        {"text": "shadcn install command listed before imports", "passed": true, "evidence": "npx shadcn add listed as Prerequisite before any code"},
+        {"text": "All UI text in Hebrew", "passed": true, "evidence": "All labels, buttons, placeholders in Hebrew"},
+        {"text": "New component in src/components/", "passed": true, "evidence": "DogCard.tsx created at src/components/owner/DogCard.tsx"},
+        {"text": "No backend files touched", "passed": true, "evidence": "Explicitly stated 'No backend files were touched'"},
+        {"text": "Mobile-first Tailwind classes", "passed": true, "evidence": "sm:flex-row, sm:w-auto, max-w-2xl used correctly"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "owner-dashboard-styling",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.833,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 93.1,
+        "tokens": 21376,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Reads actions.ts before writing code", "passed": true, "evidence": "Observations section shows actions.ts was read"},
+        {"text": "shadcn install command listed before imports", "passed": true, "evidence": "Pre-requisites section shows npx shadcn add before code"},
+        {"text": "All UI text in Hebrew", "passed": true, "evidence": "All labels in Hebrew"},
+        {"text": "New component in src/components/", "passed": false, "evidence": "All code inlined in page.tsx — no separate component file created"},
+        {"text": "No backend files touched", "passed": true, "evidence": "No backend files mentioned"},
+        {"text": "Mobile-first Tailwind classes", "passed": true, "evidence": "sm: breakpoints used, but added dir=rtl to <main> which skill forbids"}
+      ],
+      "notes": ["Added dir=rtl to <main> — skill explicitly forbids this (root html dir=rtl already set)", "No component extraction — everything inlined in page.tsx"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "boundary-enforcement",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 69.3,
+        "tokens": 23450,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "No src/db/ modifications proposed", "passed": true, "evidence": "Field already exists; no schema changes proposed"},
+        {"text": "No actions.ts modifications proposed", "passed": true, "evidence": "Actions already complete; no modifications proposed"},
+        {"text": "Explicitly states DB change is forbidden/out of scope", "passed": false, "evidence": "Field already existed so this boundary was never triggered — poor test case design"},
+        {"text": "Offers UI portion", "passed": true, "evidence": "Proposed specific UI fix (adding dog.notes display)"},
+        {"text": "Distinguishes in-scope vs out-of-scope", "passed": true, "evidence": "Clear table showing each layer status and 'What This Skill Can Do' section"}
+      ],
+      "notes": ["Eval 3 is a poor discriminator — the 'notes' field already fully exists in the schema, so the boundary-halting behavior was never exercised. Need a new field that doesn't exist for iteration 2."]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "boundary-enforcement",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 59.1,
+        "tokens": 25292,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "No src/db/ modifications proposed", "passed": true, "evidence": "Field already exists; no schema changes proposed"},
+        {"text": "No actions.ts modifications proposed", "passed": true, "evidence": "Actions already complete; no modifications proposed"},
+        {"text": "Explicitly states DB change is forbidden/out of scope", "passed": false, "evidence": "No explicit boundary statement — just described what exists"},
+        {"text": "Offers UI portion", "passed": true, "evidence": "Proposed the one-line fix"},
+        {"text": "Distinguishes in-scope vs out-of-scope", "passed": false, "evidence": "No in-scope/out-of-scope framing — just technical description of what exists and what's missing"}
+      ],
+      "notes": ["Without skill, no architectural boundary framing — just pragmatic description of what needs changing"]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 0.933, "stddev": 0.094, "min": 0.8, "max": 1.0},
+      "time_seconds": {"mean": 72.4, "stddev": 23.6, "min": 46.1, "max": 101.9},
+      "tokens": {"mean": 22726, "stddev": 2158, "min": 19771, "max": 24957}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.811, "stddev": 0.166, "min": 0.6, "max": 1.0},
+      "time_seconds": {"mean": 66.4, "stddev": 19.6, "min": 47.0, "max": 93.1},
+      "tokens": {"mean": 21409, "stddev": 3228, "min": 17559, "max": 25292}
+    },
+    "delta": {
+      "pass_rate": "+0.122",
+      "time_seconds": "+6.0",
+      "tokens": "+1317"
+    }
+  },
+  "notes": [
+    "Eval 3 (boundary-enforcement) is non-discriminating — the 'notes' field already exists in the codebase, so the boundary-halting rule was never triggered. Replace with a truly new field (e.g. 'weight') for iteration 2.",
+    "Eval 1 (design-system) shows no differentiation — both with/without skill scored 1.0. This task is too simple; the skill adds no measurable value here beyond what vanilla Claude does. Consider removing or making it part of a larger task.",
+    "Eval 2 (owner-dashboard) is the strongest discriminator: with_skill correctly extracted DogCard into src/components/ and avoided dir=rtl on <main>; without_skill inlined everything and added the forbidden dir override.",
+    "The skill adds ~6s and ~1300 tokens on average — a small cost for the architectural guardrails it provides.",
+    "Key skill-specific behaviors confirmed: reading actions.ts first, listing shadcn install commands, component extraction, no dir=rtl on sub-elements, Hebrew-only text."
+  ]
+}

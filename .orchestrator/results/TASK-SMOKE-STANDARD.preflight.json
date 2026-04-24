@@ -1,0 +1,24 @@
+{
+  "id": "TASK-SMOKE-STANDARD",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Smoke test confirming standard-size tasks are routed through preflight even when requires_preflight=false. No source changes required — only this preflight artifact and the eventual result contract.",
+  "files_to_touch": [
+    ".orchestrator/results/TASK-SMOKE-STANDARD.json"
+  ],
+  "commands_to_run": [
+    "cat .orchestrator/results/TASK-SMOKE-STANDARD.preflight.json"
+  ],
+  "validation_plan": [
+    "Confirm preflight artifact written to .orchestrator/results/TASK-SMOKE-STANDARD.preflight.json",
+    "Confirm no source files were modified (git diff --stat should show only .orchestrator/results/)",
+    "Confirm wrapper did not direct-execute despite requires_preflight=false",
+    "Run: cat .orchestrator/results/TASK-SMOKE-STANDARD.preflight.json — verify JSON is valid and status=ready_for_approval"
+  ],
+  "risks": [
+    "None — no source code is touched in this task"
+  ],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "After human approval, execution phase should write only .orchestrator/results/TASK-SMOKE-STANDARD.json confirming preflight enforcement. No code changes needed."
+}

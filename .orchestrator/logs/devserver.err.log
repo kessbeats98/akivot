@@ -1,0 +1,97 @@
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+⨯ Error: Price not set
+    at startWalk (src\lib\repositories\walksRepo.ts:69:61)
+    at async startWalkAction (src\app\walker\dashboard\actions.ts:43:18)
+  67 |     .limit(1);
+  68 |   if (!dw) throw new Error("Dog not assigned");
+> 69 |   if (!dw.currentPrice || dw.currentPrice === "0.00") throw new Error("Price not set");
+     |                                                             ^
+  70 |
+  71 |   // App-level LIVE uniqueness guard (no DB partial index in V1)
+  72 |   const [liveWalk] = await db {
+  digest: '4175523809'
+}
+^C^C

@@ -1,0 +1,20 @@
+{
+  "id": "TASK-SMOKE-PREFLIGHT",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Smoke test preflight for the run_claude approval wrapper. No application code will be touched. The execution phase will only write the final result contract to .orchestrator/results/TASK-SMOKE-PREFLIGHT.json.",
+  "files_to_touch": [
+    ".orchestrator/results/TASK-SMOKE-PREFLIGHT.json"
+  ],
+  "commands_to_run": [],
+  "validation_plan": [
+    "Confirm .orchestrator/results/TASK-SMOKE-PREFLIGHT.preflight.json exists and is valid JSON",
+    "Confirm .orchestrator/results/TASK-SMOKE-PREFLIGHT.json exists and is valid JSON after execution phase"
+  ],
+  "risks": [
+    "No application risk — only contract files written to .orchestrator/results"
+  ],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "After approval, execute phase writes the final result contract and sets status=success. No further action needed unless the wrapper protocol requires additional validation."
+}

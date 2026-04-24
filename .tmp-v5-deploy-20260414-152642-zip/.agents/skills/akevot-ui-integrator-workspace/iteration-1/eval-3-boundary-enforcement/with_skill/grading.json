@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "No modifications to src/db/ files are proposed",
+      "passed": true,
+      "evidence": "Skill correctly identified notes already exists in schema, no DB change needed or proposed"
+    },
+    {
+      "text": "No modifications to actions.ts are proposed",
+      "passed": true,
+      "evidence": "Summary table shows actions.ts as already complete. No modification proposed."
+    },
+    {
+      "text": "The response explicitly states the database schema change is out of scope or forbidden",
+      "passed": false,
+      "evidence": "Because notes already exists, the skill never needed to state this. It correctly identified the task as UI-only. The boundary rule was implicitly respected but not verbally stated. This assertion fails because the test prompt was a poor discriminator — the field already exists."
+    },
+    {
+      "text": "The response offers to handle the UI display portion once the backend work is done",
+      "passed": true,
+      "evidence": "Skill offered to complete the UI edit (adding {dog.notes} display) directly, since no backend work is actually needed"
+    },
+    {
+      "text": "The response clearly distinguishes what is in-scope (UI) vs out-of-scope (schema/actions)",
+      "passed": true,
+      "evidence": "Table clearly shows each layer and its status. Section 'What This Skill Can Do' explicitly scopes work to page.tsx UI only."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

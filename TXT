@@ -1,0 +1,652 @@
+Akivot UI Workflow Realignment
+Current Flow -> Desired Flow -> Screens to Merge / Remove
+
+This document reframes the product strictly around the principles established in the chat history:
+
+The product is not a management system.
+The product is not a CRM.
+The product should reduce pressure, not add it.
+The user should understand what is happening without thinking.
+The owner should feel calm and informed.
+The walker should feel clear and operational.
+Depth should exist only when needed.
+The core experience should feel quiet, immediate, and almost invisible.
+1. Core Diagnosis
+
+The current UI is not primarily failing because of bad styling or missing components.
+
+It is failing because the workflow still behaves like a software system the user must understand.
+
+Today, the product often asks the user to:
+
+interpret the structure
+choose between multiple equally “primary” screens
+navigate between entity pages
+understand where actions live
+remember where to go next
+That is the opposite of the intended Akivot experience.
+
+The target is not “more polished screens.”
+The target is:
+
+fewer decisions
+fewer navigation branches
+fewer conceptual jumps
+more immediate certainty
+one obvious next action
+The redesign should therefore focus first on flow architecture, not visual decoration.
+
+2. Product Model We Should Design For
+
+Akivot should not feel like:
+
+dashboard -> section -> entity -> action
+records -> profiles -> billing objects -> management
+Akivot should feel like:
+
+open app -> know what is happening now
+if action is needed -> do it immediately
+if more detail is needed -> go one level deeper
+if no action is needed -> leave with confidence
+That means both roles need a strong primary screen.
+
+For the owner:
+
+“Is my dog okay?”
+“What happened recently?”
+“Do I need to do anything now?”
+For the walker:
+
+“What is next?”
+“What do I do now?”
+“Am I currently in a live walk?”
+Everything else is secondary.
+
+3. Owner Flow
+
+3.1 Current Owner Flow
+
+Current structure:
+
+Sign up
+Onboarding
+Dashboard
+Dogs page
+Dog profile page
+Billing page
+Calendar page
+Settings page
+Current practical behavior:
+
+The owner lands on a dashboard that already contains meaningful information.
+But key actions are split elsewhere.
+Dogs exist as a separate primary destination.
+Dog profile becomes the place for deeper action.
+Billing is also top-level.
+Calendar is also top-level.
+This creates a mental model like:
+
+there are multiple “main places”
+I need to know which one is for what
+I may need to remember where a certain action lives
+This is not aligned with the product principles.
+
+Main problems in current owner flow
+
+The dashboard is not fully trusted as the owner’s real home.
+“Dogs” duplicates the same entity model already implied by the dashboard.
+Assigning a walker is too deep in the structure.
+Dog profile is overloaded with edit, media, history, stats, and assignment.
+Calendar and billing are promoted too early to primary navigation.
+The owner has to learn the app structure instead of simply being reassured.
+3.2 Desired Owner Flow
+
+The owner flow should be rebuilt around one primary home.
+
+Primary owner question
+
+Is my dog okay right now?
+Owner Home should answer:
+
+current status
+last completed walk
+latest note / signal
+whether action is needed
+one clear next action if something is missing
+Desired owner structure
+
+Open app
+See dog status immediately
+If dog setup is incomplete, see one clear action
+If dog is active, see latest reality
+If deeper detail is needed, expand into dog detail/history
+If payment needs action, surface it contextually, not as a competing home
+This means the owner home should become:
+
+status-first
+dog-centric
+action-aware
+calm
+minimally branched
+Owner home should include
+
+selected dog or primary dog
+live status if walk is happening
+last completed walk summary
+latest note if relevant
+assigned walker state
+setup alert if no walker is assigned
+billing alert only if payment action is needed
+quick switch only if multiple dogs exist
+Owner home should not feel like
+
+a general dashboard
+a navigation hub
+a control panel
+a records system
+It should feel like:
+
+a calm “state of my dog” screen
+3.3 Recommended Owner Information Hierarchy
+
+Order should be:
+
+Dog identity
+Current status
+Critical action needed now
+Last walk summary
+Recent history preview
+Optional deeper detail
+Not:
+
+navigation
+records
+stats
+profile management
+action somewhere below
+3.4 Owner Screens to Merge / Demote / Remove
+
+Merge
+
+owner/dashboard
+major parts of owner/dogs
+high-value parts of owner/dog-profile/[dogId]
+The dashboard should absorb:
+
+add dog
+dog switching
+assign walker prompt
+recent history preview
+quick dog detail entry
+Demote
+
+owner/dogs
+owner/dog-profile/[dogId]
+owner/calendar
+owner/billing
+These should become secondary-depth screens, not equal peers in the main navigation.
+
+Potential role of each after demotion
+
+owner/dogs
+optional multi-dog management screen
+only needed for heavier households / secondary maintenance
+owner/dog-profile/[dogId]
+deep detail page
+full history, media, editing, extended notes
+owner/calendar
+archive/browsing tool
+not core daily flow
+owner/billing
+action page only when money needs attention
+should be entered from a contextual prompt, not constant top-level competition
+3.5 Proposed Owner Navigation Model
+
+Current owner nav:
+
+Dogs
+Calendar
+Billing
+Settings
+This is too system-shaped.
+
+Recommended direction:
+
+Home
+Activity or History
+Billing only if truly frequent
+Settings
+Or even more radical:
+
+Home
+More
+If the product is serious about “without thinking,” owner navigation should not expose too many equal destinations.
+
+Best likely owner nav
+
+Home
+Activity
+Billing
+Settings
+And only if Activity is meaningfully distinct.
+Otherwise:
+
+Home
+Billing
+Settings
+The “Dogs” tab should not be top-level unless multi-dog management is a core repeated behavior.
+
+It currently feels like entity management, not reassurance.
+
+3.6 Owner UX Corrections
+
+What to change
+
+Turn the dashboard into the single trusted home.
+Surface “assign walker” directly from the owner home when missing.
+Remove “Dogs” as a top-level default nav item, or demote it.
+Reduce the dog profile page to a true secondary layer.
+Move stats lower; they are not the first question the owner has.
+Make billing contextual: “You have an open payment” rather than “here is a billing section.”
+Calendar should be archive depth, not front-door navigation.
+What to preserve
+
+current status card direction
+last walk summary
+history preview
+empty-state calmness
+4. Walker Flow
+
+4.1 Current Walker Flow
+
+Current structure:
+
+Login
+Dashboard
+Dogs
+Live
+Billing
+Calendar
+Observed behavior:
+
+Dashboard does contain the right seed of the product:
+assigned dog(s)
+next action
+start walk
+But then the structure weakens:
+there is duplicated navigation logic
+there is a dogs page that becomes list-management
+there is billing promoted into primary nav
+there is calendar promoted into primary nav
+the “next dog” card still opens another selection layer
+This creates a system feeling rather than an operational flow.
+
+Main walker question
+
+What do I need to do now?
+Everything else should orbit around that.
+
+4.2 Desired Walker Flow
+
+The walker flow should be the clearest part of the product.
+
+Ideal walker loop
+
+Open app
+See next dog immediately
+Tap once to start
+During walk, remain in live mode
+Finish walk
+Return to calm ready state
+That is the core loop.
+
+The app should behave like an operational instrument, not like an admin product.
+
+Walker home should answer
+
+Am I in a live walk?
+If not, who is next?
+If there is no assignment, what does that mean?
+If something is wrong, what do I need to know now?
+Walker home should not require
+
+choosing where to go
+browsing a dog list first
+deciding between multiple equal destinations
+understanding architecture
+4.3 Desired Walker Screen Hierarchy
+
+Order should be:
+
+Current operational state
+Next action
+Exception / alert state
+Optional secondary lists
+Historical / financial depth
+Not:
+
+dashboard
+dogs
+calendar
+billing
+live
+decide what matters
+4.4 Walker Screens to Merge / Demote / Remove
+
+Keep as core
+
+walker/dashboard
+walker/live
+These are the actual product.
+
+Demote
+
+walker/dogs
+walker/calendar
+walker/billing
+These are not the walker’s primary loop.
+They may still be useful, but they should not compete with the core flow.
+
+Likely direction
+
+walker/dogs becomes a secondary roster / contact list
+walker/calendar becomes historical/planning depth
+walker/billing becomes occasional reference, not daily home
+4.5 Walker Interaction Corrections
+
+Current issue
+The dashboard card already says who is next, but tapping it opens a dog selection layer.
+
+That weakens confidence.
+
+Desired behavior
+
+If one dog is clearly next, tapping should start directly or go to a minimal confirmation.
+“Choose another dog” should be secondary, not default.
+The interface should behave like it knows the work context.
+Recommended walker start model
+
+Primary CTA: Start next walk
+Secondary link: Choose another dog
+If there is only one assigned dog, no chooser should appear first
+If there are many dogs and no clear ordering rule, then chooser is acceptable
+But default should still feel decisive
+4.6 Walker Live Experience
+
+This is currently the strongest aligned part of the product.
+
+Why it works:
+
+one mode
+one dominant state
+visible elapsed time
+clear finish action
+good urgency escalation for long walks
+low conceptual overhead
+This should become the model for the rest of the app.
+
+What to preserve
+
+timer dominance
+singular focus
+state-based warnings
+strong end-walk CTA
+What to refine
+
+keep extra actions subordinate
+ensure no dead/duplicate nav language appears around live mode
+maintain confidence under poor connectivity
+4.7 Walker Navigation Model
+
+Current global nav and local nav are inconsistent.
+That is a structural bug in the experience, even if not always a code bug.
+
+There should be one navigation philosophy.
+
+Recommended walker nav:
+
+Home
+History or Calendar
+Billing
+Settings only if real settings screen exists
+But there is an even better possibility:
+
+For walkers, keep navigation extremely thin:
+
+Home
+More
+Because the true product is:
+
+dashboard
+live walk
+Everything else is secondary.
+
+If Billing and Calendar are not used daily, they should not sit as equal peers to the main loop.
+
+5. Public / Auth Flow
+
+5.1 Current Problem
+
+The public-facing language frames the product too much like software:
+
+management
+tracking
+billing
+notifications
+That language is operationally accurate, but strategically wrong.
+
+It describes mechanisms.
+It does not communicate the felt value.
+
+Akivot should be introduced as:
+
+certainty
+quiet visibility
+calm between owner and walker
+knowing things are okay without chasing
+5.2 Desired Public Framing
+
+The first message should not be:
+
+dog-walking management platform
+It should be closer to:
+
+know your dog is okay, without calling or checking
+give walkers a clear day without admin noise
+calm visibility for owners, operational clarity for walkers
+The public layer should speak in human outcomes, not software categories.
+
+5.3 Auth / Onboarding Corrections
+
+The login/signup flow is acceptable structurally, but emotionally neutral.
+
+Onboarding should not feel like:
+
+choose role
+fill form
+continue
+It should feel like:
+
+identify who you are
+immediately enter your real mode
+For owner:
+
+“Add your first dog” is a real first step, so this is mostly fine
+For walker:
+
+“Create walker profile” is too administrative
+better framing would orient the walker toward:
+receiving assigned dogs
+starting their day
+using the app during actual work
+Even if the underlying fields stay minimal, the language should become more situational and less administrative.
+
+6. Screens to Merge / Remove
+
+Owner
+
+Merge key dog management into owner/dashboard
+Demote or remove top-level importance of owner/dogs
+Keep owner/dog-profile/[dogId] as secondary detail
+Keep owner/calendar as archive depth
+Keep owner/billing as contextual action area, not equal top-level destination unless validated as frequent
+Walker
+
+Keep walker/dashboard as true home
+Keep walker/live as core execution mode
+Demote walker/dogs
+Demote walker/calendar
+Demote walker/billing
+Remove duplicate local nav inside dashboard/live
+Remove broken/nonexistent destination patterns
+Public
+
+Rewrite landing page positioning
+Keep login/signup structure
+Reframe onboarding copy around real outcomes
+7. Proposed Desired Flow
+
+7.1 Owner Desired Flow
+
+Sign up
+Add first dog
+Enter owner home
+See one of:
+dog currently on walk
+last completed walk
+no walker assigned yet
+payment action needed
+Take the one needed action from home
+Open deep detail only when necessary
+Owner home should be enough for:
+
+emotional reassurance
+immediate comprehension
+next-step execution
+Owner deep layers should be for:
+
+full history
+dog editing
+photos
+archive browsing
+detailed billing review
+7.2 Walker Desired Flow
+
+Log in
+Land on walker home
+See one of:
+live walk in progress -> go directly to live
+next dog ready -> start
+no assignment yet -> calm waiting state
+problem/exception -> clear alert
+Start walk
+Stay in live mode
+End walk
+Return to ready state
+Walker home should be enough for:
+
+understanding now
+acting now
+staying calm
+Walker deep layers should be for:
+
+checking roster
+reviewing historical walks
+checking billing
+8. Suggested New Navigation Architecture
+
+Owner
+Option A:
+
+Home
+Activity
+Billing
+Settings
+Option B:
+
+Home
+Billing
+Settings
+Preferred if simplicity is the priority:
+
+remove Dogs from top-level nav
+Walker
+Option A:
+
+Home
+History
+Billing
+Settings
+Option B:
+
+Home
+More
+Preferred if strict alignment with principles is the priority:
+
+keep only what supports daily action
+9. Prioritized Execution Plan
+
+P0: Flow architecture
+
+Define one primary home for owner
+Define one primary home for walker
+Define what is secondary depth only
+Remove duplicated navigation logic
+P1: Navigation cleanup
+
+owner nav simplification
+walker nav unification
+remove/promote screens based on actual product role
+P2: Home screen redesign
+
+owner home becomes state-first and action-aware
+walker home becomes next-action-first
+P3: Deep screen demotion
+
+dog profile reduced to secondary detail
+dogs list reduced to management depth
+calendar reduced to archive/planning depth
+billing presented contextually where possible
+P4: Messaging
+
+rewrite landing page
+rewrite onboarding copy
+rewrite section naming so the product sounds human, not administrative
+10. Design Principles to Enforce During UI Sessions
+
+Every screen should pass these tests:
+
+Can the user understand this screen in under 2 seconds?
+Is the primary question obvious?
+Is the next action obvious?
+Is this screen reducing stress or adding it?
+Is this screen necessary as a top-level destination?
+Could this be merged into the primary home?
+Does this feel like a product that thinks for the user?
+Does this feel like a system the user has to learn?
+If a screen fails these tests, it should be merged, demoted, or removed.
+
+11. Final Conclusion
+
+The current product already contains the right raw materials.
+The problem is not lack of functionality.
+The problem is that the product still exposes too much internal structure.
+
+Right now, Akivot behaves partly like a calm product and partly like a software system.
+
+To align with the principles, the next design phase should not ask:
+
+what screen should we improve?
+It should ask:
+
+what should the user never need to think about?
+That is the real redesign brief.
+
+If you want, I can turn this next into a sharper execution artifact:
+
+Version 2
+
+exact screen map
+final nav proposal
+what to keep / merge / hide per route
+recommended order for the next UI redesign session

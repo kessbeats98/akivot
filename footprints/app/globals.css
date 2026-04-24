@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #14746F;
+  --color-brand-light: #E8F4F3;
+  --color-accent: #E27D60;
+  --color-surface: #F7F9F9;
+  --color-dark: #1A202C;
+  --color-danger: #EF4444;
+  --color-bit: #00A3E0;
+  
+  --font-sans: var(--font-sans), 'Heebo', sans-serif;
+  --font-numbers: var(--font-numbers), 'Plus Jakarta Sans', sans-serif;
+
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --shadow-glow-brand: 0 10px 40px -10px rgba(20, 116, 111, 0.4);
+  --shadow-glow-live: 0 0 30px rgba(226, 125, 96, 0.4);
+  --shadow-glow-bit: 0 10px 30px -10px rgba(0, 163, 224, 0.4);
+
+  --radius-organic: 2.5rem;
+  --radius-super: 3rem;
+}
+
+@layer utilities {
+  .hide-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .bg-default {
+    background-color: #F7F9F9;
+    background-image: radial-gradient(circle at 50% 0%, #FFFFFF 0%, transparent 70%);
+  }
+  .bg-login {
+    background-color: #14746F;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .bg-live {
+    background-color: #0F172A;
+    background-image: radial-gradient(circle at 50% 30%, #1E293B 0%, transparent 60%);
+  }
+}
+
+@keyframes softPulse {
+  0% { box-shadow: 0 0 0 0 rgba(226, 125, 96, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(226, 125, 96, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(226, 125, 96, 0); }
+}
+.animate-soft-pulse {
+  animation: softPulse 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

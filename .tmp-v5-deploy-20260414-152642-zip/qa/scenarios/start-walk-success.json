@@ -1,0 +1,49 @@
+{
+  "name": "start-walk-success",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "smoke",
+    "core"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "steps": [
+    {
+      "action": "click",
+      "ref": "seed-button",
+      "note": "Seed data from debug panel"
+    },
+    {
+      "action": "snapshot"
+    },
+    {
+      "action": "click",
+      "ref": "start-walk-button"
+    },
+    {
+      "action": "snapshot"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "redirect to live",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "timer visible",
+      "type": "text-visible",
+      "value": "00:"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

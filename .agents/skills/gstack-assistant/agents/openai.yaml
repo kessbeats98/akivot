@@ -1,0 +1,6 @@
+interface:
+  display_name: "gstack-assistant"
+  short_description: "Route a task to the right local gstack workflow."
+  default_prompt: "Use gstack-assistant for this task."
+policy:
+  allow_implicit_invocation: true

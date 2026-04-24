@@ -1,0 +1,48 @@
+{
+  "skill_name": "akevot-ui-integrator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up the Akivot design system: update globals.css with the correct color variables (primary teal #2A9D8F, accent orange #F4A261, background #FAF9F6, foreground #333333, add --success #6BBF59) and fix the Arial font-family bug in the body styles.",
+      "expected_output": "globals.css updated with correct CSS variables, Arial override removed, Geist Sans used for body font",
+      "files": [],
+      "expectations": [
+        "globals.css is modified (not actions.ts or any backend file)",
+        "CSS variable --primary is set to #2A9D8F",
+        "CSS variable --accent is set to #F4A261",
+        "CSS variable --background is set to #FAF9F6",
+        "CSS variable --success is added with value #6BBF59",
+        "The Arial font-family override is removed from body styles",
+        "No backend files (db/, repositories/, auth/, actions.ts) are touched"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The owner dashboard page (src/app/owner/dashboard/page.tsx) needs proper styling. Make it look polished — cards for each dog, a clear add-dog form, Hebrew labels, mobile-first RTL layout. Use shadcn Card and Button components.",
+      "expected_output": "page.tsx reshaped with proper layout, new DogCard component created, Hebrew text, mobile-first Tailwind classes, shadcn install commands listed before any imports",
+      "files": [],
+      "expectations": [
+        "The skill reads actions.ts before writing any component code",
+        "npx shadcn add command is listed for user to run before importing shadcn components",
+        "All user-visible strings are in Hebrew (not English)",
+        "New presentational component(s) created in src/components/",
+        "No modifications to actions.ts or any file in src/db/, src/lib/repositories/, src/lib/auth/",
+        "Tailwind classes follow mobile-first pattern (base classes for mobile, sm:/md: prefixes for larger)",
+        "cn() from @/lib/utils is used for conditional classNames where applicable"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need to add a new field `notes` to the dogs table and display it in the owner dashboard. Can you do that?",
+      "expected_output": "Skill halts on the DB schema change (forbidden), clearly explains it cannot touch src/db/ or actions.ts, offers to do only the UI display part once the backend work is done by the developer",
+      "files": [],
+      "expectations": [
+        "The skill does NOT modify any file in src/db/ or src/lib/repositories/",
+        "The skill does NOT modify actions.ts",
+        "The skill explicitly states it cannot add the database column",
+        "The skill offers to handle only the UI/display portion",
+        "The response clearly distinguishes what is in-scope (UI) vs out-of-scope (schema/actions)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+import { test, expect } from "@playwright/test";
+import {
+  loadScenario,
+  seedAndReload,
+  reset,
+  resetOnly,
+  gotoDashboard,
+  waitForDebugPanel,
+  waitForSlideOver,
+  selectFirstDog,
+  startWalkFull,
+  assertUrl,
+  assertNoError,
+  assertErrorVisible,
+  qaHeaders,
+  T,
+} from "./helpers";
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+// Fail fast: stop on first assertion failure within a test (default, but explicit)
+test.describe.configure({ mode: "serial" });
+
+test.afterEach(async ({ page }) => {
+  try {
+    await reset(page);
+  } catch {
+    // Best-effort cleanup
+  }
+});
+
+// ===========================================================================
+// 1. start-walk-success
+// ===========================================================================
+
+test.describe("start-walk-success", () => {
+  const scenario = loadScenario("start-walk-success");
+
+  test(`[${scenario.tags.join(",")}] seed → start walk → lands on live screen`, async ({ page }) => {
+    // --- Setup ---
+    await gotoDashboard(page);
+    await assertNoError(page);
+
+    await seedAndReload(page);
+    await assertUrl(page, "/walker/dashboard");
+    await assertNoError(page);
+
+    // --- Step 1: direct-start (1 dog seeded) ---
+    await page.getByTestId("start-walk").click({ timeout: T.action });
+
+    // --- Assertions ---
+    // A1: navigation — redirected to /walker/live
+    await page.waitForURL("**/walker/live**", { timeout: T.nav });
+    await assertUrl(page, "/walker/live");
+
+    // A2: critical UI — live timer visible
+    await expect(page.getByText(/^00:/).first(), "Timer should be visible").toBeVisible({ timeout: T.visible });
+
+    // A3: live indicator
+    await expect(page.getByText("בהליכה עכשיו"), "Live indicator should be visible").toBeVisible({ timeout: T.visible });
+
+    // A4: end-walk control available
+    await expect(page.getByTestId("end-walk"), "end-walk button should be visible").toBeVisible({ timeout: T.visible });
+
+    // A5: no error
+    await assertNoError(page);
+
+    // A6: business invariant — start-walk button must NOT be visible (we're on live)
+    await expect(page.getByTestId("start-walk")).not.toBeVisible({ timeout: 1_000 });
+  });
+});
+
+// ===========================================================================
+// 2. start-walk-offline
+// ===========================================================================
+
+test.describe("start-walk-offline", () => {
+  const scenario = loadScenario("start-walk-offline");
+
+  test(`[${scenario.tags.join(",")}] force-offline → start walk → blocked with error`, async ({ page }) => {
+    // --- Setup: requires debug mode for sim-offline-toggle (local dev only) ---
+    await page.goto("/walker/dashboard?debug=true", { timeout: T.nav });
+    await assertUrl(page, "/walker/dashboard");
+    await assertNoError(page);
+
+    // --- Step 1: enable force-offline ---
+    await page.getByTestId("debug-force-offline").click({ timeout: T.action });
+    // Offline indicator should appear on the page
+    await expect(page.getByText("אין חיבור לאינטרנט")).toBeVisible({ timeout: T.visible });
+    await assertUrl(page, "/walker/dashboard");
+
+    // --- Step 2: attempt start walk (1-dog direct-start: offline check fires immediately) ---
+    await page.getByTestId("start-walk").click({ timeout: T.action });
+
+    // --- Assertions ---
+    // A1: NO navigation — still on dashboard
+    await assertUrl(page, "/walker/dashboard");
+    // Wait briefly to ensure no late redirect
+    await page.waitForTimeout(1_000);
+    await assertUrl(page, "/walker/dashboard");
+
+    // A2: error banner with offline message
+    await assertErrorVisible(page, "אין חיבור לאינטרנט");
+
+    // A3: start-walk button still exists (UI remains valid)
+    await expect(page.getByTestId("start-walk"), "start-walk should still exist").toBeVisible({ timeout: T.visible });
+
+    // A4: business invariant — NOT on /walker/live
+    expect(page.url()).not.toContain("/walker/live");
+  });
+});
+
+// ===========================================================================
+// 3. end-walk-success
+// ===========================================================================
+
+test.describe("end-walk-success", () => {
+  const scenario = loadScenario("end-walk-success");
+
+  test(`[${scenario.tags.join(",")}] start walk → end walk → back to dashboard`, async ({ page }) => {
+    // --- Setup: seed + start a walk ---
+    await gotoDashboard(page);
+    await assertNoError(page);
+    await seedAndReload(page);
+
+    // Start walk via full helper
+    await startWalkFull(page);
+
+    // Verify live screen state before ending
+    await expect(page.getByText("בהליכה עכשיו")).toBeVisible({ timeout: T.visible });
+    await expect(page.getByTestId("end-walk")).toBeVisible({ timeout: T.visible });
+    await assertNoError(page);
+
+    // --- Step 1: open finish SlideOver ---
+    await page.getByTestId("end-walk").click({ timeout: T.action });
+    const dialog = await waitForSlideOver(page);
+    // SlideOver title
+    await expect(dialog.getByText("סיכום טיול")).toBeVisible({ timeout: T.visible });
+    // Confirm button visible and enabled
+    await expect(page.getByTestId("end-walk-confirm")).toBeVisible({ timeout: T.visible });
+    await expect(page.getByTestId("end-walk-confirm")).toBeEnabled({ timeout: 1_000 });
+    // Still on /walker/live
+    await assertUrl(page, "/walker/live");
+
+    // --- Step 2: confirm end ---
+    await page.getByTestId("end-walk-confirm").click({ timeout: T.action });
+
+    // --- Assertions ---
+    // A1: navigation — back to dashboard
+    await page.waitForURL("**/walker/dashboard**", { timeout: T.nav });
+    await assertUrl(page, "/walker/dashboard");
+
+    // A2: critical UI — start-walk button visible again (idle state)
+    await expect(page.getByTestId("start-walk"), "start-walk should reappear").toBeVisible({ timeout: T.visible });
+
+    // A3: no error
+    await assertNoError(page);
+
+    // A4: end-walk button must NOT exist (we're back on dashboard, not live)
+    await expect(page.getByTestId("end-walk")).not.toBeVisible({ timeout: 1_000 });
+
+  });
+});
+
+// ===========================================================================
+// 4. double-start-race
+// ===========================================================================
+
+test.describe("double-start-race", () => {
+  const scenario = loadScenario("double-start-race");
+
+  test(`[${scenario.tags.join(",")}] rapid double-click confirm → single walk, no duplicates`, async ({ page }) => {
+    // --- Setup ---
+    await gotoDashboard(page);
+    await assertNoError(page);
+    await seedAndReload(page);
+
+    // --- Race condition: double-click direct-start (second click hits isStarting guard) ---
+    await page.getByTestId("start-walk").dblclick({ timeout: T.action });
+
+    // --- Assertions ---
+    // A1: navigation — ends up on /walker/live
+    await page.waitForURL("**/walker/live**", { timeout: T.nav });
+    await assertUrl(page, "/walker/live");
+
+    // A2: live timer visible (single walk running)
+    await expect(page.getByText(/^00:/).first(), "Timer should be visible").toBeVisible({ timeout: T.visible });
+
+    // A3: no error banner
+    await assertNoError(page);
+
+    // A4: business invariant — no "2 active walks" or duplicate indicator
+    await expect(page.getByText("2 active walks")).not.toBeVisible({ timeout: 1_000 });
+
+    // A5: exactly one live indicator
+    const liveIndicators = page.getByText("בהליכה עכשיו");
+    await expect(liveIndicators).toHaveCount(1, { timeout: 1_000 });
+
+    // A6: end-walk is available (walk is running normally)
+    await expect(page.getByTestId("end-walk")).toBeVisible({ timeout: T.visible });
+  });
+});
+
+// ===========================================================================
+// 5. reset-data-empty-state
+// ===========================================================================
+
+test.describe("reset-data-empty-state", () => {
+  const scenario = loadScenario("reset-data-empty-state");
+
+  test(`[${scenario.tags.join(",")}] seed → reset → role guard redirects to onboarding`, async ({ page }) => {
+    // --- Setup: seed first so there's data to reset ---
+    await gotoDashboard(page);
+    await assertNoError(page);
+    await seedAndReload(page);
+
+    // Confirm seeded state: start-walk visible, not empty
+    await expect(page.getByTestId("start-walk")).toBeVisible({ timeout: T.visible });
+
+    // --- Step 1: reset (deletes walker profile + all data) ---
+    await resetOnly(page);
+    await page.goto("/walker/dashboard", { timeout: T.nav });
+
+    // --- Assertions ---
+    // A1: role guard redirects to /onboarding (no walker profile after reset)
+    await assertUrl(page, "/onboarding");
+
+    // A2: no error
+    await assertNoError(page);
+  });
+});
+
+// ===========================================================================
+// 6. chooser-flow (Phase 3: access via "בחר כלב אחר" link, not start-walk click)
+// ===========================================================================
+
+test.describe("chooser-flow", () => {
+  test("[smoke,chooser] 2 dogs → בחר כלב אחר → chooser opens → confirm → live", async ({ page }) => {
+    // --- Setup: clean slate → 2-dog seed ---
+    await resetOnly(page);
+    const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
+    const seedRes = await page.request.post(`${baseUrl}/api/qa/seed`, {
+      headers: qaHeaders(),
+      data: { count: 2 },
+    });
+    if (!seedRes.ok()) throw new Error(`2-dog seed failed: ${await seedRes.text()}`);
+    await seedAndReload(page);
+
+    // --- Step 1: tap "בחר כלב אחר" → chooser SlideOver opens ---
+    // Phase 3: start-walk does direct-start. Chooser is now accessed via the secondary link.
+    await page.getByText("בחר כלב אחר ›").click({ timeout: T.action });
+    const dialog = await waitForSlideOver(page);
+    await expect(dialog.getByText("בחירת כלב לטיול")).toBeVisible({ timeout: T.visible });
+    // Primary dog pre-selected on open → confirm already enabled
+    await expect(page.getByTestId("start-walk-confirm")).toBeEnabled({ timeout: 1_000 });
+
+    // --- Step 2: verify first dog card is selected ---
+    await selectFirstDog(page);
+
+    // --- Step 3: confirm ---
+    await page.getByTestId("start-walk-confirm").click({ timeout: T.action });
+
+    // --- Assertions ---
+    await page.waitForURL("**/walker/live**", { timeout: T.nav });
+    await assertUrl(page, "/walker/live");
+    await expect(page.getByText(/^00:/).first()).toBeVisible({ timeout: T.visible });
+    await expect(page.getByText("בהליכה עכשיו")).toBeVisible({ timeout: T.visible });
+    await expect(page.getByTestId("end-walk")).toBeVisible({ timeout: T.visible });
+    await assertNoError(page);
+  });
+});

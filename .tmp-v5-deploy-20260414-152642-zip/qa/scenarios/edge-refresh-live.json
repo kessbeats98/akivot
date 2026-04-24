@@ -1,0 +1,51 @@
+{
+  "name": "edge-refresh-live",
+  "baseUrl": "http://localhost:3000",
+  "tags": [
+    "edge",
+    "resilience"
+  ],
+  "setup": [
+    {
+      "action": "goto",
+      "value": "/walker/dashboard?debug=true"
+    },
+    {
+      "action": "seed"
+    },
+    {
+      "action": "start-walk-full"
+    }
+  ],
+  "steps": [
+    {
+      "action": "reload",
+      "note": "Browser reload during live walk"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "still on live page",
+      "type": "url-includes",
+      "value": "/walker/live"
+    },
+    {
+      "name": "timer visible",
+      "type": "testid-visible",
+      "value": "end-walk"
+    },
+    {
+      "name": "live indicator visible",
+      "type": "text-visible",
+      "value": "בהליכה עכשיו"
+    },
+    {
+      "name": "no start-walk button",
+      "type": "testid-not-visible",
+      "value": "start-walk"
+    }
+  ],
+  "artifacts": {
+    "trace": true
+  }
+}

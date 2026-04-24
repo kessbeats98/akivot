@@ -1,0 +1,14 @@
+{
+  "id": "TASK-SMOKE-DIRECT",
+  "status": "success",
+  "phase": "direct_execute",
+  "summary": "Smoke test completed. Repo inspected, no application source files modified. Result contract written as required.",
+  "files_changed": [],
+  "commands_run": [],
+  "tests_run": [],
+  "tests_passed": [],
+  "tests_failed": [],
+  "blockers": [],
+  "scope_deviations": [],
+  "follow_up_recommendation": "Transport and contract discipline verified. Wrapper can hand bounded tasks to Claude Code and receive valid result contracts."
+}

@@ -1,0 +1,80 @@
+{
+  "id": "TASK-0101-OWNER-SETUP-COMPLETION",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Phase 1 owner setup completion. Four setup states derived from selected dog data on owner home: no-dog (existing), no-walker (existing), walker-with-zero-price (NEW), setup-complete (NEW calm state). Set-price action already exists in dashboard/actions.ts (setPriceAction). Price not exposed in DogWithWalkers type or dashboard data — requires adding currentPrice to walker shape in dogsRepo and threading it through to dashboard client. Set-price UI added to dog-profile page (walker card gains inline price form). Dashboard gains a third CTA banner for zero-price state, and a calmer home card when setup is complete.",
+  "files_to_touch": [
+    "src/lib/repositories/dogsRepo.ts",
+    "src/app/owner/dashboard/OwnerDashboardClient.tsx",
+    "src/app/owner/dashboard/components/OwnerCurrentStatusCard.tsx",
+    "src/app/owner/dog-profile/[dogId]/DogProfileClient.tsx",
+    "src/app/owner/dog-profile/[dogId]/page.tsx"
+  ],
+  "commands_to_run": [
+    "npx tsc --noEmit",
+    "npx eslint src/lib/repositories/dogsRepo.ts src/app/owner/dashboard/OwnerDashboardClient.tsx src/app/owner/dashboard/components/OwnerCurrentStatusCard.tsx src/app/owner/dog-profile/[dogId]/DogProfileClient.tsx src/app/owner/dog-profile/[dogId]/page.tsx --max-warnings=0"
+  ],
+  "validation_plan": [
+    "After each atomic task: run tsc --noEmit and verify zero new errors.",
+    "Task 1 (dogsRepo): confirm DogWithWalkers.walkers now includes currentPrice: string. Grep for currentPrice in dogsRepo output.",
+    "Task 2 (dashboard): confirm setup-state derivation logic is present. Grep for 'priceIsZero' or equivalent in OwnerDashboardClient.",
+    "Task 3 (dashboard CTA): confirm third banner renders for zero-price state; existing no-walker banner is preserved.",
+    "Task 4 (dog-profile set-price): confirm setPriceAction is wired to active walker card in DogProfileClient; form is inline and setup-oriented.",
+    "Task 5 (status card): confirm calm home card variant is added for setup-complete+no-live-walk state.",
+    "Manual smoke: no walker-side files touched. Grep walker/ for any changes — expect zero diff."
+  ],
+  "risks": [
+    "currentPrice is NOT NULL in the DB schema — assignWalker always inserts '0.00' as placeholder. So every new assignment starts with zero price; the UI must treat '0.00' as incomplete.",
+    "DogWithWalkers.walkers type is shared by dog-profile page too — adding currentPrice there is safe but must be typed consistently.",
+    "setPriceAction is already in dashboard/actions.ts (not dog-profile/actions.ts). Dog-profile page must import it from there, or a re-export is added. This is a minor cross-file import but stays within allowed files.",
+    "No local QA coverage exists for owner setup states. Validation is type-check + lint only. Residual risk: visual regressions will only surface in preview/production smoke.",
+    "Multi-dog owners: setup state is per-selected-dog. If dog 1 is complete but dog 2 has no price, the CTA will correctly show for dog 2 when selected. No multi-dog management logic is added beyond this."
+  ],
+  "scope_deviations": [
+    "dog-profile/page.tsx is in the allowed files list implicitly (it's under src/app/owner/dog-profile/[dogId]) but not explicitly named — however it only needs a minor prop addition to thread setPriceAction, which is in scope.",
+    "setPriceAction lives in src/app/owner/dashboard/actions.ts. Dog-profile page will import it from there. No new action file created. This stays within allowed files."
+  ],
+  "blockers": [],
+  "follow_up_recommendation": "Phase 2 (price enforcement on walker start) can be planned immediately after this task is merged and smoke-tested. The blocked-start logic will need walker-side changes which are explicitly out of scope here.",
+
+  "_plan_detail": {
+    "atomic_tasks": [
+      {
+        "id": "T1",
+        "title": "Expose currentPrice in DogWithWalkers walker shape",
+        "file": "src/lib/repositories/dogsRepo.ts",
+        "change": "Add currentPrice: string field to the inline walker type in DogWithWalkers. Add dogWalkers.currentPrice to both getDogsByOwner and getDogById SELECT queries. Cast to string (decimal comes back as string from Drizzle by default).",
+        "verify": "tsc --noEmit passes. DogWithWalkers.walkers[n].currentPrice exists and is typed string."
+      },
+      {
+        "id": "T2",
+        "title": "Setup-state derivation in OwnerDashboardClient",
+        "file": "src/app/owner/dashboard/OwnerDashboardClient.tsx",
+        "change": "Derive activeWalker (first walker where isActive=true) from selectedDog.walkers. Derive priceIsZero = activeWalker exists AND (activeWalker.currentPrice === '0.00' OR !activeWalker.currentPrice). Derive setupComplete = hasActiveWalker && !priceIsZero. Pass setupComplete and priceIsZero to OwnerCurrentStatusCard.",
+        "verify": "tsc passes. No walker-side imports added."
+      },
+      {
+        "id": "T3",
+        "title": "Add set-price CTA banner to owner dashboard",
+        "file": "src/app/owner/dashboard/OwnerDashboardClient.tsx",
+        "change": "Below the existing no-walker CTA, add a conditional: if hasActiveWalker && priceIsZero && !liveWalk, render an amber-tinted set-price banner that links to /owner/dog-profile/[selectedDogId] with a #price anchor or descriptive text. Keep it as a Link, not an inline form — owner sets price on the dog profile page.",
+        "verify": "No inline billing logic added. Banner links to existing dog-profile surface."
+      },
+      {
+        "id": "T4",
+        "title": "Add set-price form to dog-profile walker card",
+        "file": "src/app/owner/dog-profile/[dogId]/DogProfileClient.tsx",
+        "file2": "src/app/owner/dog-profile/[dogId]/page.tsx",
+        "change": "In DogProfileClient: for each active walker card, if currentPrice is '0.00' or missing, show an inline price input + submit button. Wire to a setPriceAction prop. In page.tsx: import setPriceAction from dashboard/actions.ts and pass it to DogProfileClient bound with dogWalkerId.",
+        "verify": "Form renders only for active walkers with zero/missing price. tsc passes. No walker-side code touched."
+      },
+      {
+        "id": "T5",
+        "title": "Calm home state in OwnerCurrentStatusCard",
+        "file": "src/app/owner/dashboard/components/OwnerCurrentStatusCard.tsx",
+        "change": "Accept setupComplete prop. When no liveWalk, no lastCompletedWalk, hasActiveWalker, and setupComplete, render a calm green-tinted ready card: checkmark icon, walker name, subtle reassurance text. This replaces the current generic 'no walk planned' neutral card for the setup-complete case.",
+        "verify": "Existing states (LIVE, ended-recently, home-with-history, no-walker amber) are preserved. New state only fires when setupComplete=true and no history."
+      }
+    ]
+  }
+}

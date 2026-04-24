@@ -1,0 +1,29 @@
+{
+  "id": "TASK-0201-PRICE-ENFORCEMENT-START-BLOCK",
+  "status": "ready_for_approval",
+  "phase": "preflight",
+  "summary": "Block walk start when dogWalkers.currentPrice is null or '0.00'. Enforcement at two layers: (1) server action in walksRepo.startWalk() — extend the existing assignment query to also fetch currentPrice and throw 'Price not set' before inserting the walk row; (2) UI in WalkerDashboardClient.tsx — replace the start button with a calm inline notice when the dog's currentPrice is '0.00' or empty. No new files needed. All touched files are within the allowlist.",
+  "files_to_touch": [
+    "src/lib/repositories/walksRepo.ts",
+    "src/app/walker/dashboard/WalkerDashboardClient.tsx"
+  ],
+  "commands_to_run": [
+    "npx tsc --noEmit",
+    "npx eslint src/lib/repositories/walksRepo.ts src/app/walker/dashboard/WalkerDashboardClient.tsx"
+  ],
+  "validation_plan": [
+    "TypeScript: npx tsc --noEmit — expect zero new errors",
+    "Lint: eslint on both touched files — expect zero new warnings",
+    "Manual (server guard): with a dog assigned at price 0.00, call startWalkAction — expect thrown error 'Price not set' and no walk row inserted in DB",
+    "Manual (UI guard): load walker dashboard with a 0.00-price dog — expect start button replaced by inline notice, no start possible without JS bypass",
+    "Manual (happy path): with a dog assigned at price > 0.00, start walk normally — expect redirect to /walker/live as before"
+  ],
+  "risks": [
+    "Existing seeded test data has currentPrice='0.00' (default in assignWalker) — all currently-assigned dogs without a price set will be blocked immediately on deploy. This is the intended product behaviour but may surprise testers who haven't set a price.",
+    "The UI guard is cosmetic only — a determined client could still POST to startWalkAction. The server-side check in walksRepo.startWalk() is the real gate and is enforced unconditionally.",
+    "getActionError() in WalkerDashboardClient maps unknown server errors to a generic string. The 'Price not set' error from the server will surface via that path if the client-side guard is somehow bypassed — the Hebrew message shown to the walker should be set explicitly in the UI layer, not rely on server error passthrough."
+  ],
+  "scope_deviations": [],
+  "blockers": [],
+  "follow_up_recommendation": "After this task ships: (1) confirm the owner set-price path is discoverable from the owner dashboard — Phase 1 incomplete-setup indicator already exists but the UX path from that indicator to set-price should be verified end-to-end; (2) add a focused Playwright smoke test for the price-block scenario."
+}

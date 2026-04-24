@@ -2,16 +2,21 @@
 
 import Link from "next/link";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
+import type { WeekSummaryWalk } from "@/components/WeekSummary";
 import { OwnerPaymentSummaryCard } from "./components/OwnerPaymentSummaryCard";
 import { OwnerCurrentPaymentCard } from "./components/OwnerCurrentPaymentCard";
 import { OwnerPaymentHistorySection } from "./components/OwnerPaymentHistorySection";
 import { OwnerPaymentsEmptyState } from "./components/OwnerPaymentsEmptyState";
+import { WeekSummary } from "@/components/WeekSummary";
 
 interface Props {
   periods: OwnerPaymentPeriod[];
+  hasOwnerPhone: boolean;
+  weekSummary: WeekSummaryWalk[];
+  weekStart: Date;
 }
 
-export function OwnerBillingClient({ periods }: Props) {
+export function OwnerBillingClient({ periods, hasOwnerPhone, weekSummary, weekStart }: Props) {
   const currentPeriods = periods.filter((p) => p.status === "OPEN" || p.status === "REOPENED");
   const historyPeriods = periods.filter((p) => p.status === "PAID" || p.status === "ARCHIVED");
   const openTotal = currentPeriods.reduce((sum, p) => sum + Number(p.totalAmount), 0);
@@ -36,13 +41,18 @@ export function OwnerBillingClient({ periods }: Props) {
         isReopened={isReopened}
       />
 
+      {/* Secondary: weekly memory summary — collapsed, depth-only. */}
+      <div className="px-6 mb-4">
+        <WeekSummary walks={weekSummary} weekStart={weekStart} />
+      </div>
+
       {/* Current open/reopened periods */}
       {currentPeriods.length > 0 && (
         <section className="px-6 mb-8">
           <h3 className="text-lg font-bold text-dark mb-4">בקשת תשלום נוכחית</h3>
           <div className="flex flex-col gap-4">
             {currentPeriods.map((p) => (
-              <OwnerCurrentPaymentCard key={p.id} period={p} />
+              <OwnerCurrentPaymentCard key={p.id} period={p} hasOwnerPhone={hasOwnerPhone} />
             ))}
           </div>
         </section>
