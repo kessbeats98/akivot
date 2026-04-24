@@ -23,16 +23,38 @@ function HistoryItem({ period }: { period: OwnerPaymentPeriod }) {
   function handleReopen() {
     startReopen(async () => {
       setReopenError(null);
+      const fd = new FormData();
+      fd.append("lockVersion", String(period.lockVersion));
       try {
-        const fd = new FormData();
-        fd.append("lockVersion", String(period.lockVersion));
-        await reopenPeriodAction(period.id, fd);
+        const result = await reopenPeriodAction(period.id, fd);
+        if (!result.ok) {
+          switch (result.code) {
+            case "CONFLICT":
+              setReopenError("הנתונים השתנו — רענן את הדף ונסה שוב.");
+              return;
+            case "ACTIVE_PERIOD_EXISTS":
+              setReopenError("קיימת תקופה פעילה לספק זה. סגור אותה תחילה.");
+              return;
+            case "PERIOD_NOT_PAID":
+              setReopenError("רק תקופה ששולמה ניתנת לפתיחה מחדש.");
+              return;
+            case "FORBIDDEN":
+              setReopenError("אין הרשאה לפתוח את התקופה הזו.");
+              return;
+            case "INVALID_INPUT":
+              setReopenError("בקשה לא תקינה. רענן את הדף ונסה שוב.");
+              return;
+            case "PERIOD_NOT_FOUND":
+              setReopenError("התקופה לא נמצאה.");
+              return;
+            default:
+              setReopenError("שגיאה בפתיחת התקופה. נסה שוב.");
+              return;
+          }
+        }
         setShowReopen(false);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "";
-        if (msg === "Conflict") setReopenError("הנתונים השתנו — רענן את הדף ונסה שוב.");
-        else if (msg === "Active period exists") setReopenError("קיימת תקופה פעילה לספק זה. סגור אותה תחילה.");
-        else setReopenError("שגיאה בפתיחת התקופה. נסה שוב.");
+      } catch {
+        setReopenError("שגיאה בפתיחת התקופה. נסה שוב.");
       }
     });
   }
