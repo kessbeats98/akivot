@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import type { OwnerPaymentPeriod } from "@/lib/services/billing/types";
+import type { WeekSummaryWalk } from "@/components/WeekSummary";
 import { OwnerPaymentSummaryCard } from "./components/OwnerPaymentSummaryCard";
 import { OwnerCurrentPaymentCard } from "./components/OwnerCurrentPaymentCard";
 import { OwnerPaymentHistorySection } from "./components/OwnerPaymentHistorySection";
 import { OwnerPaymentsEmptyState } from "./components/OwnerPaymentsEmptyState";
+import { WeekSummary } from "@/components/WeekSummary";
 
 interface Props {
   periods: OwnerPaymentPeriod[];
   hasOwnerPhone: boolean;
+  weekSummary: WeekSummaryWalk[];
+  weekStart: Date;
 }
 
-export function OwnerBillingClient({ periods, hasOwnerPhone }: Props) {
+export function OwnerBillingClient({ periods, hasOwnerPhone, weekSummary, weekStart }: Props) {
   const currentPeriods = periods.filter((p) => p.status === "OPEN" || p.status === "REOPENED");
   const historyPeriods = periods.filter((p) => p.status === "PAID" || p.status === "ARCHIVED");
   const openTotal = currentPeriods.reduce((sum, p) => sum + Number(p.totalAmount), 0);
@@ -36,6 +40,11 @@ export function OwnerBillingClient({ periods, hasOwnerPhone }: Props) {
         hasOpen={currentPeriods.length > 0}
         isReopened={isReopened}
       />
+
+      {/* Secondary: weekly memory summary — collapsed, depth-only. */}
+      <div className="px-6 mb-4">
+        <WeekSummary walks={weekSummary} weekStart={weekStart} />
+      </div>
 
       {/* Current open/reopened periods */}
       {currentPeriods.length > 0 && (

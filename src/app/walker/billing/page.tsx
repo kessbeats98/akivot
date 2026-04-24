@@ -6,6 +6,7 @@ import { assertAuthenticated } from "@/lib/auth/session";
 import { getDb } from "@/db/drizzle";
 import { users } from "@/db/schema";
 import { isUsablePhone } from "@/lib/phone";
+import { getWalkerWeekSummaryWalks } from "@/lib/repositories/walksRepo";
 
 export default async function WalkerBillingPage() {
   const sessionUser = await assertAuthenticated();
@@ -42,6 +43,17 @@ export default async function WalkerBillingPage() {
     );
   }
 
-  const data = await getWalkerBillingAction();
-  return <WalkerBillingSurface periods={data.periods} unbilledWalks={data.unbilledWalks} />;
+  const now = new Date();
+  const [data, weekSummary] = await Promise.all([
+    getWalkerBillingAction(),
+    getWalkerWeekSummaryWalks(sessionUser.id, now),
+  ]);
+  return (
+    <WalkerBillingSurface
+      periods={data.periods}
+      unbilledWalks={data.unbilledWalks}
+      weekSummary={weekSummary}
+      weekStart={now}
+    />
+  );
 }
