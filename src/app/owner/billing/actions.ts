@@ -12,6 +12,33 @@ import {
 } from "@/lib/repositories/billingRepo";
 import type { OwnerBillingData, OwnerPaymentPeriod } from "@/lib/services/billing/types";
 
+export type BillingActionResult =
+  | { ok: true }
+  | {
+      ok: false;
+      code: BillingActionErrorCode;
+    };
+
+type BillingActionErrorCode =
+  | "FORBIDDEN"
+  | "INVALID_INPUT"
+  | "CONFLICT"
+  | "PERIOD_NOT_OPEN"
+  | "PERIOD_NOT_PAID"
+  | "ACTIVE_PERIOD_EXISTS"
+  | "PERIOD_NOT_FOUND";
+
+function mapKnownBillingError(error: unknown): BillingActionErrorCode | null {
+  const msg = error instanceof Error ? error.message : "";
+  if (msg === "Forbidden") return "FORBIDDEN";
+  if (msg === "Conflict") return "CONFLICT";
+  if (msg === "Period not open") return "PERIOD_NOT_OPEN";
+  if (msg === "Period not paid") return "PERIOD_NOT_PAID";
+  if (msg === "Active period exists") return "ACTIVE_PERIOD_EXISTS";
+  if (msg === "Period not found") return "PERIOD_NOT_FOUND";
+  return null;
+}
+
 export async function getOwnerBillingAction(): Promise<OwnerBillingData> {
   const user = await assertAuthenticated();
   await ensureOpenPeriods(user.id);
@@ -33,19 +60,37 @@ export async function getOwnerBillingPageAction(): Promise<OwnerPaymentPeriod[]>
 }
 
 // periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
-export async function closePeriodAction(periodId: string, formData: FormData): Promise<void> {
+export async function closePeriodAction(periodId: string, formData: FormData): Promise<BillingActionResult> {
   const user = await assertAuthenticated();
-  await assertPeriodOwnership(periodId, user.id);
-  const input = closePeriodSchema.parse({ periodId, lockVersion: formData.get("lockVersion") });
-  await closePaymentPeriod(input, user.id);
-  revalidatePath("/owner/billing");
+  const parsed = closePeriodSchema.safeParse({ periodId, lockVersion: formData.get("lockVersion") });
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+
+  try {
+    await assertPeriodOwnership(periodId, user.id);
+    await closePaymentPeriod(parsed.data, user.id);
+    revalidatePath("/owner/billing");
+    return { ok: true };
+  } catch (error) {
+    const code = mapKnownBillingError(error);
+    if (!code) throw error;
+    return { ok: false, code };
+  }
 }
 
 // periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
-export async function reopenPeriodAction(periodId: string, formData: FormData): Promise<void> {
+export async function reopenPeriodAction(periodId: string, formData: FormData): Promise<BillingActionResult> {
   const user = await assertAuthenticated();
-  await assertPeriodOwnership(periodId, user.id);
-  const input = reopenPeriodSchema.parse({ periodId, lockVersion: formData.get("lockVersion") });
-  await reopenPaymentPeriod(input, user.id);
-  revalidatePath("/owner/billing");
+  const parsed = reopenPeriodSchema.safeParse({ periodId, lockVersion: formData.get("lockVersion") });
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+
+  try {
+    await assertPeriodOwnership(periodId, user.id);
+    await reopenPaymentPeriod(parsed.data, user.id);
+    revalidatePath("/owner/billing");
+    return { ok: true };
+  } catch (error) {
+    const code = mapKnownBillingError(error);
+    if (!code) throw error;
+    return { ok: false, code };
+  }
 }

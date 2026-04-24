@@ -34,16 +34,35 @@ export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
   function handleClose() {
     startTransition(async () => {
       setCloseError(null);
+      const fd = new FormData();
+      fd.append("lockVersion", String(period.lockVersion));
       try {
-        const fd = new FormData();
-        fd.append("lockVersion", String(period.lockVersion));
-        await closePeriodAction(period.id, fd);
+        const result = await closePeriodAction(period.id, fd);
+        if (!result.ok) {
+          switch (result.code) {
+            case "CONFLICT":
+              setCloseError("התקופה עודכנה בינתיים — רענן את הדף ונסה שוב.");
+              return;
+            case "PERIOD_NOT_OPEN":
+              setCloseError("התקופה כבר נסגרה.");
+              return;
+            case "FORBIDDEN":
+              setCloseError("אין הרשאה לסגור את התקופה הזו.");
+              return;
+            case "INVALID_INPUT":
+              setCloseError("בקשה לא תקינה. רענן את הדף ונסה שוב.");
+              return;
+            case "PERIOD_NOT_FOUND":
+              setCloseError("התקופה לא נמצאה.");
+              return;
+            default:
+              setCloseError("שגיאה בסגירת התקופה. נסה שוב.");
+              return;
+          }
+        }
         setShowConfirm(false);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "";
-        if (msg === "Conflict") setCloseError("התקופה עודכנה בינתיים — רענן את הדף ונסה שוב.");
-        else if (msg === "Period not open") setCloseError("התקופה כבר נסגרה.");
-        else setCloseError("שגיאה בסגירת התקופה. נסה שוב.");
+      } catch {
+        setCloseError("שגיאה בסגירת התקופה. נסה שוב.");
       }
     });
   }
