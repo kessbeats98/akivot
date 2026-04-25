@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Calendar, CheckCircle2, ChevronLeft, Phone, Receipt, Send } from "lucide-react";
 import { SlideOver } from "@/components/ui/slide-over";
 import type { WalkerPaymentPeriod, UnbilledWalk } from "@/lib/services/billing/types";
 import { normalizePhoneForWa, isUsablePhone } from "@/lib/phone";
 import { WeekSummary, type WeekSummaryWalk } from "@/components/WeekSummary";
+import { reopenPeriodAction } from "@/app/walker/billing/actions";
 
 interface Props {
   periods: WalkerPaymentPeriod[];
@@ -32,7 +33,7 @@ const formatDate = (d: Date | null | string): string => {
 const statusLabel = (status: string) => {
   switch (status) {
     case "PAID": return "שולם";
-    case "REOPENED": return "נפתח מחדש";
+    case "REOPENED": return "חשבון נפתח לתיקון";
     case "ARCHIVED": return "בארכיון";
     default: return "פתוח";
   }
@@ -61,6 +62,31 @@ function groupByOwner(walks: UnbilledWalk[]) {
 export function WalkerBillingSurface({ periods, unbilledWalks, weekSummary, weekStart }: Props) {
   const [selectedPeriod, setSelectedPeriod] = useState<WalkerPaymentPeriod | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [reopenError, setReopenError] = useState<string | null>(null);
+  const [isReopening, startReopen] = useTransition();
+
+  function handleReopen(period: WalkerPaymentPeriod) {
+    startReopen(async () => {
+      setReopenError(null);
+      const fd = new FormData();
+      fd.append("lockVersion", String(period.lockVersion));
+      try {
+        const result = await reopenPeriodAction(period.id, fd);
+        if (!result.ok) {
+          switch (result.code) {
+            case "CONFLICT": setReopenError("הנתונים השתנו — רענן ונסה שוב."); return;
+            case "ACTIVE_PERIOD_EXISTS": setReopenError("קיימת תקופה פעילה. סגור אותה תחילה."); return;
+            case "PERIOD_NOT_PAID": setReopenError("רק תקופה ששולמה ניתנת לפתיחה."); return;
+            case "FORBIDDEN": setReopenError("אין הרשאה."); return;
+            default: setReopenError("שגיאה. נסה שוב."); return;
+          }
+        }
+        setIsDetailOpen(false);
+      } catch {
+        setReopenError("שגיאה. נסה שוב.");
+      }
+    });
+  }
 
   const pendingPeriods = periods.filter((p) => p.status === "OPEN" || p.status === "REOPENED");
   const paidPeriods = periods.filter((p) => p.status === "PAID" || p.status === "ARCHIVED");
@@ -72,6 +98,7 @@ export function WalkerBillingSurface({ periods, unbilledWalks, weekSummary, week
 
   const openPeriod = (period: WalkerPaymentPeriod) => {
     setSelectedPeriod(period);
+    setReopenError(null);
     setIsDetailOpen(true);
   };
 
@@ -419,6 +446,22 @@ export function WalkerBillingSurface({ periods, unbilledWalks, weekSummary, week
                   </p>
                 </section>
               )
+            )}
+
+            {selectedPeriod.status === "PAID" && (
+              <section>
+                {reopenError && (
+                  <p className="text-xs text-red-500 text-center mb-2">{reopenError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleReopen(selectedPeriod)}
+                  disabled={isReopening}
+                  className="w-full py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50"
+                >
+                  {isReopening ? "פותח..." : "פתח מחדש"}
+                </button>
+              </section>
             )}
 
             <p className="text-xs text-center text-muted-color">

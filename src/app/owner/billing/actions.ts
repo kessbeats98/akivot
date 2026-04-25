@@ -1,11 +1,10 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { assertAuthenticated } from "@/lib/auth/session";
-import { closePeriodSchema, reopenPeriodSchema } from "@/lib/validation/billing";
+import { closePeriodSchema } from "@/lib/validation/billing";
 import {
   getPeriodsByOwner,
   closePaymentPeriod,
-  reopenPaymentPeriod,
   assertPeriodOwnership,
   ensureOpenPeriods,
   getOwnerPaymentPeriodsEnriched,
@@ -24,8 +23,6 @@ type BillingActionErrorCode =
   | "INVALID_INPUT"
   | "CONFLICT"
   | "PERIOD_NOT_OPEN"
-  | "PERIOD_NOT_PAID"
-  | "ACTIVE_PERIOD_EXISTS"
   | "PERIOD_NOT_FOUND";
 
 function mapKnownBillingError(error: unknown): BillingActionErrorCode | null {
@@ -33,8 +30,6 @@ function mapKnownBillingError(error: unknown): BillingActionErrorCode | null {
   if (msg === "Forbidden") return "FORBIDDEN";
   if (msg === "Conflict") return "CONFLICT";
   if (msg === "Period not open") return "PERIOD_NOT_OPEN";
-  if (msg === "Period not paid") return "PERIOD_NOT_PAID";
-  if (msg === "Active period exists") return "ACTIVE_PERIOD_EXISTS";
   if (msg === "Period not found") return "PERIOD_NOT_FOUND";
   return null;
 }
@@ -77,20 +72,3 @@ export async function closePeriodAction(periodId: string, formData: FormData): P
   }
 }
 
-// periodId bound via .bind(null, periodId); FormData: lockVersion (hidden input)
-export async function reopenPeriodAction(periodId: string, formData: FormData): Promise<BillingActionResult> {
-  const user = await assertAuthenticated();
-  const parsed = reopenPeriodSchema.safeParse({ periodId, lockVersion: formData.get("lockVersion") });
-  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
-
-  try {
-    await assertPeriodOwnership(periodId, user.id);
-    await reopenPaymentPeriod(parsed.data, user.id);
-    revalidatePath("/owner/billing");
-    return { ok: true };
-  } catch (error) {
-    const code = mapKnownBillingError(error);
-    if (!code) throw error;
-    return { ok: false, code };
-  }
-}

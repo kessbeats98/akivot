@@ -15,6 +15,22 @@ export async function assertPeriodOwnership(periodId: string, ownerUserId: strin
   if (!row) throw new Error("Forbidden");
 }
 
+export async function assertWalkerPeriodOwnership(periodId: string, walkerUserId: string): Promise<void> {
+  const db = getDb();
+  const [profile] = await db
+    .select({ id: walkerProfiles.id })
+    .from(walkerProfiles)
+    .where(eq(walkerProfiles.userId, walkerUserId))
+    .limit(1);
+  if (!profile) throw new Error("Forbidden");
+  const [row] = await db
+    .select({ id: paymentPeriods.id })
+    .from(paymentPeriods)
+    .where(and(eq(paymentPeriods.id, periodId), eq(paymentPeriods.walkerProfileId, profile.id)))
+    .limit(1);
+  if (!row) throw new Error("Forbidden");
+}
+
 // Private helper — upsert pattern; DB partial unique index is the final invariant
 async function getOrCreateOpenPeriod(walkerProfileId: string, ownerUserId: string): Promise<string> {
   const db = getDb();
