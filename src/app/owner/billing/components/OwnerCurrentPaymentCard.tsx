@@ -16,7 +16,7 @@ const formatCurrency = (amount: string) =>
 
 const statusConfig = {
   OPEN: { label: "פתוח", className: "bg-accent/10 text-accent" },
-  REOPENED: { label: "עודכן", className: "bg-amber-100 text-amber-700" },
+  REOPENED: { label: "חשבון נפתח לתיקון", className: "bg-amber-100 text-amber-700" },
 } as const;
 
 interface Props {
@@ -41,28 +41,28 @@ export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
         if (!result.ok) {
           switch (result.code) {
             case "CONFLICT":
-              setCloseError("התקופה עודכנה בינתיים — רענן את הדף ונסה שוב.");
+              setCloseError("החשבון עודכן בינתיים — רענן את הדף ונסה שוב.");
               return;
             case "PERIOD_NOT_OPEN":
-              setCloseError("התקופה כבר נסגרה.");
+              setCloseError("החשבון כבר אושר.");
               return;
             case "FORBIDDEN":
-              setCloseError("אין הרשאה לסגור את התקופה הזו.");
+              setCloseError("אין הרשאה לעדכן את החשבון הזה.");
               return;
             case "INVALID_INPUT":
               setCloseError("בקשה לא תקינה. רענן את הדף ונסה שוב.");
               return;
             case "PERIOD_NOT_FOUND":
-              setCloseError("התקופה לא נמצאה.");
+              setCloseError("החשבון לא נמצא.");
               return;
             default:
-              setCloseError("שגיאה בסגירת התקופה. נסה שוב.");
+              setCloseError("שגיאה באישור החשבון. נסה שוב.");
               return;
           }
         }
         setShowConfirm(false);
       } catch {
-        setCloseError("שגיאה בסגירת התקופה. נסה שוב.");
+        setCloseError("שגיאה באישור החשבון. נסה שוב.");
       }
     });
   }
@@ -112,13 +112,13 @@ export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
               onClick={() => setShowConfirm(true)}
               className="mt-4 w-full bg-brand text-white py-4 rounded-2xl font-bold text-base shadow-glow-brand transition-transform active:scale-95"
             >
-              סגור תקופה ({period.pendingWalkCount} טיולים)
+              אשר חשבון ({period.pendingWalkCount} טיולים)
             </button>
           )}
 
           {period.pendingWalkCount > 0 && !hasOwnerPhone && (
             <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-surface p-4 text-center space-y-2">
-              <p className="text-sm font-semibold text-dark">נדרש מספר טלפון לסגירת תקופה</p>
+              <p className="text-sm font-semibold text-dark">נדרש מספר טלפון לאישור החשבון</p>
               <p className="text-xs text-gray-400 leading-relaxed">
                 המספר משמש את המטפל ליצירת קשר סביב חיוב פתוח.
               </p>
@@ -134,7 +134,7 @@ export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
           {period.pendingWalkCount > 0 && showConfirm && (
             <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4 space-y-3">
               <p className="text-sm font-semibold text-dark text-center">
-                לסגור תקופה עם {period.pendingWalkCount} טיולים?
+                לאשר חשבון עם {period.pendingWalkCount} טיולים?
               </p>
               <p className="text-xs text-gray-400 text-center">
                 הסכום יחושב לפי המחיר הנוכחי של כל טיול. לא ניתן לבטל.
@@ -157,7 +157,7 @@ export function OwnerCurrentPaymentCard({ period, hasOwnerPhone }: Props) {
                   disabled={isPending}
                   className="flex-1 py-3 rounded-xl bg-brand text-white text-sm font-bold shadow-glow-brand disabled:opacity-60"
                 >
-                  {isPending ? "סוגר..." : "אשר סגירה"}
+                  {isPending ? "מאשר..." : "אשר חשבון"}
                 </button>
               </div>
             </div>
