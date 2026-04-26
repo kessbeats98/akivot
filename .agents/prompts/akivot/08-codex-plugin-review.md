@@ -25,6 +25,25 @@ Review request from Claude Code. Independent review only.
 State: WAITING_FOR_REVIEW
 Iteration: <n of max 3>
 
+Required operating context — load before reviewing:
+
+- `AGENTS.md`
+- `.agents/skills/akivot-product-enforcer/SKILL.md`
+- `.agents/skills/akivot-project-constitution/SKILL.md` (when product context is relevant)
+- the approved plan (below)
+- Claude's execution report (below)
+- the current diff / changed files
+
+If any of the above is missing or unreadable, return:
+
+```
+NEEDS HUMAN DECISION
+Reason: missing Akivot operating context.
+Next state: STOPPED_FOR_HUMAN
+```
+
+Do not proceed with the review until the operating context is loaded.
+
 Plan:
 
 ```

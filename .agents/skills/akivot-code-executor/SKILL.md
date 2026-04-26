@@ -193,3 +193,24 @@ Rules:
 Claude can ring the bell.
 Codex decides whether the door opens.
 ```
+
+## 15. Codex Review Validity (Operating Context)
+
+A Codex review triggered from Claude Code is **valid only if** the review request explicitly instructs Codex to load:
+
+- `AGENTS.md`
+- `.agents/skills/akivot-product-enforcer/SKILL.md`
+- `.agents/skills/akivot-project-constitution/SKILL.md` — when product context is relevant
+- the approved plan
+- Claude's execution report
+- the current diff / changed files
+
+If any of the above is missing from the review request, Codex must return:
+
+```
+NEEDS HUMAN DECISION
+Reason: missing Akivot operating context.
+Next state: STOPPED_FOR_HUMAN
+```
+
+A review produced without this context is not a valid review and must not be acted on.

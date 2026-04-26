@@ -14,5 +14,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "firebase"
-  ]
+  ],
+  "model": "haiku"
 }
