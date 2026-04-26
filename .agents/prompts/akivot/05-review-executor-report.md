@@ -2,11 +2,29 @@
 
 Use after Claude Code returns a report and diff.
 
+Preferred safer path: review `.agent-runs/current/PLAN.md`, `.agent-runs/current/CLAUDE_EXECUTION_REPORT.md`, and the current diff. Write the review to `.agent-runs/current/CODEX_REVIEW.md`.
+
 Copy-paste:
 
 ---
 
 Load `.agents/skills/akivot-product-enforcer/SKILL.md`.
+
+For file-based review, also load:
+
+- `AGENTS.md`
+- `.agents/skills/akivot-project-constitution/SKILL.md` when product context is relevant
+- `.agent-runs/current/PLAN.md`
+- `.agent-runs/current/CLAUDE_EXECUTION_REPORT.md`
+- current diff / changed files
+
+If any required operating context is missing, return:
+
+```
+NEEDS HUMAN DECISION
+Reason: missing Akivot operating context.
+Next state: STOPPED_FOR_HUMAN
+```
 
 State: WAITING_FOR_REVIEW
 Iteration: <n of max 3>
@@ -38,3 +56,5 @@ Loop control:
 After returning a verdict, **stop**. Do not invoke the next prompt automatically.
 
 If FIX REQUIRED and within the loop cap, the next prompt is `06-send-review-fixes-to-executor.md`.
+
+If using file-based workflow, save the verdict and reasoning in `.agent-runs/current/CODEX_REVIEW.md`.

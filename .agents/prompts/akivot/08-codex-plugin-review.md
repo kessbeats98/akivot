@@ -2,6 +2,8 @@
 
 Use after Claude Code writes its report, when `codex-plugin-cc` or a similar plugin is available.
 
+Preferred safer path: Claude writes `.agent-runs/current/CLAUDE_EXECUTION_REPORT.md` and triggers Codex to review the file-based run.
+
 Rules:
 
 - The plugin is a **pipe**, not authority.
@@ -33,6 +35,16 @@ Required operating context — load before reviewing:
 - the approved plan (below)
 - Claude's execution report (below)
 - the current diff / changed files
+
+File-based review may provide these as:
+
+- `.agent-runs/current/PLAN.md`
+- `.agent-runs/current/CLAUDE_EXECUTION_REPORT.md`
+- current diff / changed files
+
+Codex writes:
+
+- `.agent-runs/current/CODEX_REVIEW.md`
 
 If any of the above is missing or unreadable, return:
 
